@@ -1,0 +1,145 @@
+/* =========================================================
+   หน้าจอ: ชื่อเกม, ฉากเล่าเรื่อง (VN), บทที่ ๑–๒
+   ========================================================= */
+.screen{min-height:100vh}
+
+/* ---------- title ---------- */
+#scr-title{position:relative;display:flex;align-items:center;justify-content:center;padding:32px 16px;overflow:hidden}
+.title-bg{position:absolute;inset:0;z-index:0}
+.title-bg svg{width:100%;height:100%;display:block}
+.title-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(10,6,3,.35),rgba(10,6,3,.88) 75%)}
+.title-card{position:relative;z-index:1;width:min(860px,100%);text-align:center;background-color:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(3px)}
+.title-eyebrow{font-size:14px;letter-spacing:2px;color:var(--gold);margin-bottom:6px}
+.title-main{font-size:clamp(44px,8vw,86px);margin:-.1em 0 -.2em}
+.title-num{font-size:.55em;vertical-align:.35em;margin-left:.15em}
+.title-sub{font-size:18px;color:var(--muted);margin:4px 0 0}
+.title-form{display:grid;grid-template-columns:1fr;gap:14px;margin:18px auto 0;max-width:680px;text-align:left}
+.title-form label{font-weight:600;color:var(--gold-2);font-size:14.5px}
+.title-form input{width:100%;margin-top:6px;font-size:17px}
+.diff-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:6px}
+.diff{cursor:pointer;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:var(--panel-2);transition:border-color .15s,background .15s}
+.diff:hover{border-color:var(--gold)}
+.diff.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--panel-2));box-shadow:var(--glow)}
+.diff b{display:block;color:var(--gold-2);font-size:16px}
+.diff small{color:var(--muted);line-height:1.45;display:block;margin-top:3px}
+.title-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+/* เลือกตัวละครของผู้เล่น */
+.who-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px}
+.diff.who{display:flex;align-items:center;gap:12px}
+.diff.who .avatar{width:64px;height:64px}
+@media (max-width:640px){.diff.who .avatar{width:52px;height:52px}.diff.who small{display:none}}
+/* ภาพหน้าตัวละครแบบวงกลม (ใช้ซ้ำทั้งเกม) */
+.avatar{flex:none;display:inline-block;width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);background:var(--panel-3);vertical-align:middle}
+.avatar svg,.avatar img{width:100%;height:auto;display:block;transform:translateY(-5%) scale(1.6);transform-origin:50% 45%}
+.avatar.sm{width:38px;height:38px;border-width:1.5px}
+.avatar.lg{width:96px;height:96px;margin:0 auto -10px;position:relative;z-index:1}
+.title-foot{font-size:13px;color:var(--faint);margin-top:16px}
+.title-prog{display:flex;gap:8px 16px;justify-content:center;flex-wrap:wrap;font-size:13.5px;color:var(--gold-2);margin-top:12px}
+.daily-btn{border-color:var(--gold);color:var(--gold-2)}
+@media (max-width:640px){.diff-grid{grid-template-columns:1fr}}
+
+/* ---------- visual novel ---------- */
+.vn{position:fixed;inset:0;z-index:60;overflow:hidden;user-select:none}
+.vn-bg{position:absolute;inset:0;transition:opacity .5s}
+.vn-bg svg{width:100%;height:100%;display:block}
+.vn-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 40%,rgba(8,5,3,.6) 100%)}
+.vn.overlay{background:rgba(8,5,3,.62);backdrop-filter:blur(2px)}
+.vn.overlay .vn-bg{display:none}
+.vn-chars{position:absolute;left:0;right:0;bottom:clamp(96px,15vh,150px);height:min(76vh,720px);pointer-events:none}
+.vn-char{position:absolute;bottom:0;height:100%;transition:opacity .35s,transform .35s,filter .35s;opacity:0}
+.vn-char.on{opacity:1}
+.vn-char svg,.vn-char img{height:100%;width:auto;display:block;filter:drop-shadow(0 10px 24px rgba(0,0,0,.45))}
+.vn-char.left{left:max(2%,calc(50% - 640px))}
+.vn-char.right{right:max(2%,calc(50% - 640px))}
+.vn-char.center{left:50%;transform:translateX(-50%)}
+.vn-char.dim{filter:brightness(.55) saturate(.75)}
+.vn-box{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);width:min(1120px,calc(100% - 32px));min-height:178px;padding:30px 34px 26px;cursor:pointer;
+  background-color:color-mix(in srgb,var(--panel) 94%,transparent)}
+.vn-name{position:absolute;top:-21px;left:30px;padding:3px 24px 4px;font-family:var(--font-hand);font-weight:700;font-size:22px;color:#24170a;
+  background:linear-gradient(180deg,var(--gold-2),var(--gold) 60%,var(--gold-3));border:1px solid var(--gold-3);border-radius:3px;box-shadow:0 3px 10px rgba(0,0,0,.4)}
+.vn-name small{font-family:var(--font-body);font-size:12.5px;font-weight:600;margin-left:8px;opacity:.8}
+.vn-name:empty{display:none}
+.vn-text{font-size:clamp(17px,1.6vw,21px);line-height:1.75;min-height:3.5em}
+.vn-text.narr{font-style:italic;color:var(--muted);text-align:center}
+.vn-text b{color:var(--gold-2)}
+.vn-next{position:absolute;right:22px;bottom:12px;color:var(--gold);font-size:18px;animation:bob 1s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(4px)}}
+.vn-choices{position:absolute;inset:0 0 220px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+.vn-choice{width:min(720px,100%);text-align:left;padding:14px 20px;font-size:17px;font-weight:500;cursor:pointer;color:var(--text);
+  background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--gold-3);border-radius:4px;box-shadow:var(--shadow);transition:border-color .15s,background .15s,transform .1s}
+.vn-choice:hover{border-color:var(--gold-2);background:color-mix(in srgb,var(--gold) 16%,var(--panel));transform:translateX(4px)}
+.vn-choice .hint{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.vn-tools{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2}
+/* หน้าตัวละครของผู้เล่นข้างกล่องข้อความ */
+.vn-face{display:none;position:absolute;left:24px;top:-52px;width:136px;height:136px;border-width:3px;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.vn-box.me .vn-face{display:block}
+.vn-box.me{padding-left:184px}
+.vn-box.me .vn-name{left:180px}
+/* ฝนตก */
+.vn-fx{position:absolute;inset:0;pointer-events:none;z-index:1}
+.vn-fx.rain{background:repeating-linear-gradient(104deg,transparent 0 22px,rgba(200,220,255,.22) 22px 23px,transparent 23px 47px),
+  linear-gradient(180deg,rgba(20,30,50,.45),rgba(20,30,50,.15));background-size:120px 120px,100% 100%;animation:rain .45s linear infinite}
+@keyframes rain{to{background-position:-28px 120px,0 0}}
+.vn-card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(8,5,3,.82);animation:fadeIn .6s ease-out;z-index:3;padding:16px}
+.vn-card .no{font-family:var(--font-display);font-size:clamp(26px,4vw,40px)}
+.vn-card .tt{font-family:var(--font-display);font-size:clamp(38px,7vw,74px);line-height:1.2}
+.vn-card .st{color:var(--muted);font-size:17px;margin-top:8px}
+.vn-card .orn-divider{width:min(520px,80vw)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@media (max-width:700px){
+  .vn-chars{height:52vh;bottom:120px}
+  .vn-char.left{left:-12%}.vn-char.right{right:-12%}
+  .vn-box{padding:26px 18px 22px;min-height:150px}
+  .vn-face{width:84px;height:84px;left:12px;top:-40px}
+  .vn-box.me{padding-left:18px;padding-top:50px}
+  .vn-box.me .vn-name{left:104px}
+}
+
+/* ---------- chapter layout ---------- */
+.ch-wrap{max-width:1200px;margin:0 auto;padding:22px 18px 40px}
+.ch-banner{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.ch-banner .pj{flex:none;width:44px;height:44px}
+.ch-banner .no{font-size:14px;color:var(--gold);letter-spacing:1px}
+.ch-banner h1{font-size:clamp(26px,3.6vw,38px);margin:-.35em 0 -.3em -.25em}
+.ch-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.ch-grid{grid-template-columns:minmax(0,1fr)}}
+.mentor{display:flex;gap:12px;align-items:flex-start}
+.mentor .face{flex:none;width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);background:var(--panel-3)}
+.mentor .face svg{width:100%;height:auto;transform:translateY(-8%) scale(1.7);transform-origin:50% 47%}
+.mentor .who{font-family:var(--font-hand);font-weight:700;color:var(--gold-2);font-size:17px}
+
+/* ใบรายงาน 506 */
+table.doc{border-collapse:collapse;width:100%;font-size:14.5px;font-variant-numeric:tabular-nums}
+table.doc th,table.doc td{border:1px solid #c4a979;padding:6px 8px;text-align:center;color:var(--ink)}   /* ตารางพื้นกระดาษ ต้องใช้หมึกเข้มเสมอ แม้อยู่ในกรอบธีมมืด */
+table.doc th{background:#e8d6ac;color:var(--ink);font-weight:700}
+table.doc td.hl{background:#f6d9c8;font-weight:700;color:#8a1f12}
+table.doc td.l{text-align:left}
+.qcard{margin-top:14px}
+.qcard h3{font-size:17px;margin-bottom:8px}
+.qopts{display:grid;gap:8px}
+.qopt{display:block;width:100%;text-align:left;cursor:pointer;padding:10px 14px;border:1px solid var(--line);background:var(--panel-2);border-radius:4px;color:var(--text);font-size:15.5px;transition:border-color .15s}
+.qopt:hover:not(:disabled){border-color:var(--gold)}
+.qopt.right{border-color:var(--jade);background:color-mix(in srgb,var(--jade) 18%,var(--panel-2))}
+.qopt.wrong{border-color:var(--red-2);background:color-mix(in srgb,var(--red) 20%,var(--panel-2));opacity:.75}
+.qopt:disabled{cursor:default}
+.qopt .lt{display:inline-block;width:26px;height:26px;line-height:24px;text-align:center;border:1px solid var(--gold-3);border-radius:50%;color:var(--gold-2);font-weight:700;margin-right:10px;font-size:13px}
+.paper .qopt{background:#f8efd8;color:var(--ink);border-color:#c9ae78}
+
+/* ---------- data cleaning ---------- */
+.clean-head{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.clean-prog{flex:1;min-width:200px}
+.issue-list{display:flex;flex-wrap:wrap;gap:6px}
+.issue-item{display:flex;gap:6px;align-items:center;padding:4px 10px;border:1px solid var(--line-soft);border-radius:999px;cursor:pointer;background:var(--panel-2);font-size:13.5px}
+.issue-item.on{border-color:var(--gold);box-shadow:var(--glow)}
+.issue-item.done{opacity:.6}
+.issue-item .ic{font-size:15px}
+.issue-item .chip{padding:0 7px;font-size:11.5px}
+.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px;margin:10px 0}
+.rec{background:#fbf4e2;color:var(--ink);border:1px solid #c9ae78;border-radius:3px;padding:10px 12px;font-size:14px;line-height:1.55;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.rec .src{font-size:12px;font-weight:700;color:#7a1f12;letter-spacing:.3px}
+.rec .row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #d8c49a;padding:2px 0}
+.rec .row span:first-child{color:var(--ink-2)}
+.rec .bad{color:#b0281a;font-weight:700;background:#fde3d8;padding:0 4px;border-radius:2px}
+.linelist{max-height:330px;overflow:auto;border:1px solid #c4a979}
+.linelist table.doc{font-size:13px}
+.linelist tr.flag td{background:#fde3d8}

@@ -163,6 +163,21 @@ table.at .sig{color:var(--danger);font-weight:700}
 .hb-fig{margin:0;width:210px;font-size:12.5px}
 .hb-dl dt{font-weight:700;margin-top:8px}.hb-dl dd{margin:2px 0 0 14px}
 @media (max-width:760px){.hb{grid-template-columns:1fr}.hb-nav{max-height:160px}}
+/* คู่มือ: วิธีเล่นสำหรับมือใหม่ */
+.hb-flow{list-style:none;padding:0;margin:8px 0;display:flex;flex-direction:column;gap:6px}
+.hb-flow li{display:flex;gap:10px;align-items:flex-start;padding:7px 10px;border:1px solid #d7c39a;border-radius:4px;background:rgba(160,120,40,.06)}
+.hb-flow li>span{font-size:20px;line-height:1.3}
+.hb-body kbd{display:inline-block;padding:0 6px;border:1px solid #b89a63;border-bottom-width:2px;border-radius:3px;background:#fbf3df;font:600 12.5px/1.6 Sarabun,sans-serif}
+.hb-t.hb-small{font-size:13px}.hb-t.hb-small td{padding:4px 6px}
+.hb-places{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:8px 0 12px}
+.hb-places.small{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.hb-place{border:1px solid #c4a979;border-radius:4px;overflow:hidden;background:#fbf4e2;display:flex;flex-direction:column}
+.hb-thumb{aspect-ratio:16/9;overflow:hidden;border-bottom:1px solid #c4a979}
+.hb-thumb svg{width:100%;height:100%;display:block}
+.hb-pbody{padding:7px 9px;font-size:13.5px;display:flex;flex-direction:column;gap:3px}
+.hb-pbody b{font-size:14.5px}.hb-pbody small{color:var(--ink-2)}
+.hb-pk{font-size:12.5px;color:var(--ink-2)}
+.title-new{margin-top:10px;font-size:14px;color:var(--gold-2)}
 /* ทัวร์ */
 .tour{position:fixed;inset:0;z-index:120}
 .tour-hole{position:fixed;border:2px solid var(--gold-2);border-radius:6px;box-shadow:0 0 0 9999px rgba(8,5,3,.7);pointer-events:none}

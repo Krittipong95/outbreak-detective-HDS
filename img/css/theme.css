@@ -1,0 +1,206 @@
+/* =========================================================
+   นักสืบโรคระบาด ๒ — ธีม "ลายรดน้ำ" (ทองบนรักดำ) และ "สมุดข่อย"
+   ========================================================= */
+:root{
+  /* ลายรดน้ำ: รักดำ + ทองคำเปลว */
+  --bg:#0e0a07; --bg-2:#160f0a; --panel:#1b130d; --panel-2:#241911; --panel-3:#2e2116;
+  --line:#5c4626; --line-soft:#3d2e1a;
+  --gold:#d4ae5c; --gold-2:#f1d78f; --gold-3:#9f772b;
+  --text:#f2e7cf; --muted:#bca986; --faint:#85734f;
+  --red:#a8301d; --red-2:#d2543a; --jade:#4e9a82; --indigo:#5a78b8;
+  --paper:#efe1c1; --paper-2:#e2cfa5; --ink:#2a1b0e; --ink-2:#5f4a2f; --ink-3:#8c7550;
+  --danger:#e3573f; --ok:#78c38e; --warn:#e9b54b;
+  --shadow:0 2px 0 rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45);
+  --glow:0 0 0 1px rgba(212,174,92,.25),0 0 24px rgba(212,174,92,.12);
+  --radius:6px;
+  --font-body:'Sarabun','Leelawadee UI','Noto Sans Thai',Tahoma,sans-serif;
+  --font-display:'Srisakdi','Sarabun','Leelawadee UI',serif;
+  --font-hand:'Charm','Sarabun',cursive;
+  color-scheme:dark;
+}
+/* สมุดข่อย (โหมดสว่าง) */
+:root[data-theme="light"]{
+  --bg:#e9dcbd; --bg-2:#e1d1ab; --panel:#f7eed8; --panel-2:#efe2c4; --panel-3:#e6d5b0;
+  --line:#b3955a; --line-soft:#d2bd8d;
+  --gold:#94701f; --gold-2:#b98d33; --gold-3:#6f5114;
+  --text:#2a1b0e; --muted:#644e31; --faint:#957f58;
+  --red:#9a2816; --red-2:#b83c25; --jade:#2f7a63; --indigo:#36559a;
+  --paper:#fbf4e2; --paper-2:#efe2c3; --ink:#2a1b0e; --ink-2:#5f4a2f; --ink-3:#8c7550;
+  --danger:#bf3a24; --ok:#2e8a52; --warn:#a8740f;
+  --shadow:0 1px 0 rgba(80,50,10,.15),0 8px 22px rgba(80,50,10,.18);
+  --glow:0 0 0 1px rgba(148,112,31,.25),0 0 18px rgba(148,112,31,.12);
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:var(--font-body);font-size:16px;line-height:1.6;color:var(--text);
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(1200px 700px at 50% -10%, color-mix(in srgb,var(--gold) 9%,transparent), transparent 70%),
+    var(--orn-lattice, none);
+  background-size:auto, 64px 64px;
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+b,strong{font-weight:600}
+a{color:var(--gold-2)}
+button,input,select,textarea{font:inherit;color:inherit}
+input[type=text],select{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:4px;padding:6px 10px}
+input[type=text]:focus,select:focus{outline:2px solid var(--gold);outline-offset:1px}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.faint{color:var(--faint)}
+small{font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- typography ---------- */
+.display{font-family:var(--font-display);font-weight:700;letter-spacing:.3px;line-height:1.4}
+/* ตัวอักษรไล่สีทอง: background-clip:text จะวาดเฉพาะในกล่องขององค์ประกอบ
+   หางตัวอักษร/สระบนของฟอนต์ไทยที่สูงเกินกล่องจะถูกตัด จึงต้องเผื่อ padding
+   แล้วหักด้วย margin ติดลบเพื่อไม่ให้เลย์เอาต์เลื่อน */
+.gold-text{
+  background:linear-gradient(180deg,var(--gold-2) 0%,var(--gold) 45%,var(--gold-3) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  padding:.45em .25em .35em;margin:-.45em -.25em -.35em;
+  -webkit-box-decoration-break:clone;box-decoration-break:clone;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.45));
+}
+:root[data-theme="light"] .gold-text{filter:none}
+.hand{font-family:var(--font-hand);font-weight:700}
+h1,h2,h3,h4{margin:0 0 .4em;line-height:1.3}
+
+/* ---------- ornate frame (กรอบลายทอง) ---------- */
+.frame{
+  position:relative;
+  background-color:var(--panel);
+  background-image:var(--orn-c-tl,none),var(--orn-c-tr,none),var(--orn-c-bl,none),var(--orn-c-br,none),
+    linear-gradient(180deg,color-mix(in srgb,var(--gold) 5%,transparent),transparent 40%);
+  background-repeat:no-repeat;
+  background-position:top 5px left 5px,top 5px right 5px,bottom 5px left 5px,bottom 5px right 5px,0 0;
+  background-size:46px 46px,46px 46px,46px 46px,46px 46px,100% 100%;
+  border:1px solid var(--line);
+  box-shadow:inset 0 0 0 4px var(--panel),inset 0 0 0 5px var(--line-soft),var(--shadow);
+  border-radius:var(--radius);
+  padding:20px 22px;
+}
+.frame.tight{padding:14px 16px;background-size:34px 34px,34px 34px,34px 34px,34px 34px,100% 100%}
+.frame.plain{background-image:none}
+/* กระดาษ / ใบรายงาน */
+.paper{
+  background-color:var(--paper);
+  background-image:
+    var(--orn-c-tl-ink,none),var(--orn-c-tr-ink,none),var(--orn-c-bl-ink,none),var(--orn-c-br-ink,none),
+    radial-gradient(circle at 20% 10%,rgba(255,255,255,.35),transparent 50%),
+    radial-gradient(circle at 80% 90%,rgba(120,80,20,.10),transparent 55%),
+    repeating-linear-gradient(0deg,rgba(90,60,20,.035) 0 1px,transparent 1px 3px);
+  background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,no-repeat,no-repeat,repeat;
+  background-position:top 6px left 6px,top 6px right 6px,bottom 6px left 6px,bottom 6px right 6px,0 0,0 0,0 0;
+  background-size:38px 38px,38px 38px,38px 38px,38px 38px,100% 100%,100% 100%,auto;
+  color:var(--ink);
+  border:1px solid #b89a63;
+  box-shadow:inset 0 0 0 4px var(--paper),inset 0 0 0 5px #cdb27a,0 2px 0 rgba(0,0,0,.25),0 12px 28px rgba(0,0,0,.35);
+  border-radius:3px;
+  padding:22px 24px;
+  color-scheme:light;
+}
+.paper .muted{color:var(--ink-2)}
+.paper .faint{color:var(--ink-3)}
+.paper h2,.paper h3{color:var(--ink)}
+
+/* ลายคั่น (ประจำยาม + กนก) */
+.orn-divider{height:22px;margin:14px 0;background:var(--orn-divider,none) center/auto 22px no-repeat;position:relative}
+.orn-divider::before,.orn-divider::after{content:"";position:absolute;top:50%;height:1px;width:calc(50% - 70px);background:linear-gradient(90deg,transparent,var(--gold-3))}
+.orn-divider::before{left:0}
+.orn-divider::after{right:0;transform:scaleX(-1)}
+.paper .orn-divider{background-image:var(--orn-divider-ink,none)}
+.paper .orn-divider::before,.paper .orn-divider::after{background:linear-gradient(90deg,transparent,#a88a50)}
+/* แถบลายกระจังบน/ล่าง */
+.krajang-band{height:16px;background:var(--orn-krajang,none) left bottom/22px 16px repeat-x;opacity:.9}
+.krajang-band.down{transform:scaleY(-1)}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  padding:9px 18px;border-radius:4px;font-weight:600;
+  background:linear-gradient(180deg,var(--panel-3),var(--panel-2));
+  border:1px solid var(--line);color:var(--text);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--gold-2) 18%,transparent),0 1px 0 rgba(0,0,0,.3);
+  transition:filter .15s,transform .05s,border-color .15s;
+}
+.btn:hover{border-color:var(--gold);filter:brightness(1.08)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.42;cursor:not-allowed;filter:none}
+.btn-gold{
+  background:linear-gradient(180deg,var(--gold-2),var(--gold) 55%,var(--gold-3));
+  color:#24170a;border-color:var(--gold-3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 2px 0 rgba(0,0,0,.35);
+  text-shadow:0 1px 0 rgba(255,255,255,.25);
+}
+.btn-red{background:linear-gradient(180deg,var(--red-2),var(--red));color:#fff3e4;border-color:#6e1c10}
+.btn-ghost{background:transparent;border-color:transparent;box-shadow:none}
+.btn-ghost:hover{background:color-mix(in srgb,var(--gold) 10%,transparent)}
+.btn-sm{padding:5px 11px;font-size:14px}
+.btn-lg{padding:13px 30px;font-size:19px}
+.paper .btn{background:linear-gradient(180deg,#fbf3df,#ecdcb7);color:var(--ink);border-color:#b89a63}
+
+/* ---------- chips ---------- */
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;padding:1px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--panel-2);white-space:nowrap}
+.chip.gold{color:#24170a;background:var(--gold);border-color:var(--gold-3)}
+.chip.red{color:#fff;background:var(--red);border-color:#6e1c10}
+.chip.jade{color:#fff;background:var(--jade);border-color:transparent}
+.chip.warn{color:#2a1b0e;background:var(--warn);border-color:transparent}
+.paper .chip{background:#f3e7cb;color:var(--ink-2);border-color:#c9ae78}
+
+/* ---------- meter ---------- */
+.meter{height:8px;border-radius:99px;background:var(--panel-3);border:1px solid var(--line-soft);overflow:hidden}
+.meter>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-3),var(--gold-2));border-radius:99px;transition:width .5s}
+.meter.red>i{background:linear-gradient(90deg,#7e2414,var(--red-2))}
+.meter.jade>i{background:linear-gradient(90deg,#2d6b58,var(--jade))}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,3,.72);backdrop-filter:blur(2px)}
+.modal.open{display:flex}
+.m-card{width:min(620px,100%);max-height:calc(100vh - 32px);overflow:auto;animation:mIn .2s ease-out}
+.m-card.wide{width:min(860px,100%)}
+.m-card h2{font-size:24px}
+.m-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:18px}
+@keyframes mIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+
+/* ---------- toast / tooltip ---------- */
+#toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:95;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(560px,calc(100vw - 32px))}
+#vn:not(.hidden) ~ #toasts{top:64px;bottom:auto}   /* ระหว่างฉากเล่าเรื่อง อย่าบังกล่องข้อความ */
+.toast{pointer-events:none;background:var(--panel-2);border:1px solid var(--gold-3);color:var(--text);padding:9px 18px;border-radius:4px;box-shadow:var(--shadow);font-weight:600;text-align:center;animation:tIn .25s ease-out}
+.toast.red{border-color:var(--red-2)}
+.toast.ok{border-color:var(--jade)}
+@keyframes tIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.tooltip{position:fixed;z-index:96;pointer-events:none;max-width:280px;background:var(--panel-2);color:var(--text);border:1px solid var(--gold-3);border-radius:4px;padding:8px 11px;font-size:13.5px;line-height:1.5;box-shadow:var(--shadow)}
+.tooltip .tt-h{font-weight:700;color:var(--gold-2);margin-bottom:2px}
+
+/* ---------- ปุ่มเพลง (มุมล่างซ้าย) ---------- */
+.music-ctl{position:fixed;left:14px;bottom:14px;z-index:97;display:flex;align-items:center;gap:8px;padding:4px;border-radius:999px;
+  background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--gold-3);box-shadow:var(--shadow)}
+.music-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--gold-3);background:linear-gradient(180deg,var(--panel-3),var(--panel-2));cursor:pointer;font-size:17px;line-height:1;padding:0}
+.music-btn:hover{border-color:var(--gold-2)}
+.music-ctl input{width:0;opacity:0;transition:width .25s,opacity .25s;accent-color:var(--gold);margin:0}
+.music-ctl:hover input,.music-ctl:focus-within input{width:96px;opacity:1;margin-right:8px}
+.music-ctl.off{opacity:.7}
+.hb-ctl{bottom:62px}
+/* จอแคบ: ย่อปุ่มลอยและทำให้โปร่งขึ้นจะได้ไม่บังเนื้อหา · ระหว่างฉากเล่าเรื่องย้ายขึ้นไปมุมบนซ้าย ไม่ทับกล่องข้อความ */
+@media (max-width:700px){
+  .music-ctl{left:8px;bottom:8px;padding:2px;opacity:.6}
+  .music-ctl:hover,.music-ctl:focus-within{opacity:1}
+  .music-btn{width:30px;height:30px;font-size:14px}
+  .hb-ctl{bottom:48px}
+  #vn:not(.hidden) ~ .music-ctl{top:8px;bottom:auto}
+  #vn:not(.hidden) ~ .hb-ctl{top:48px}
+}
+
+/* ---------- callouts ---------- */
+.note{border-left:3px solid var(--gold);background:color-mix(in srgb,var(--gold) 9%,transparent);padding:10px 14px;border-radius:0 4px 4px 0;margin:10px 0}
+.note.red{border-color:var(--red-2);background:color-mix(in srgb,var(--red) 14%,transparent)}
+.note.jade{border-color:var(--jade);background:color-mix(in srgb,var(--jade) 14%,transparent)}
+.paper .note{background:rgba(160,120,40,.10)}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}

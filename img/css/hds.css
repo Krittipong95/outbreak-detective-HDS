@@ -1,0 +1,155 @@
+/* =========================================================
+   เครื่องมือ HDS — แท็บ ML · วิเคราะห์เชิงพื้นที่ · NLP · ผู้ช่วย AI · พยากรณ์ · แล็บระบบเตือนภัย
+   ใช้ตัวแปรสีของธีม จึงรองรับทั้งลายรดน้ำ (มืด) และสมุดข่อย (สว่าง)
+   ========================================================= */
+.m-card.redraw{animation:none}
+.title-tools{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}
+.title-tools span{font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:999px;border:1px solid var(--gold-3);color:var(--gold-2);background:color-mix(in srgb,var(--gold) 8%,transparent)}
+
+/* ---------- แท็บ ML ---------- */
+.ml-sub{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.mls{border:1px solid var(--line);background:var(--panel-2);color:var(--muted);border-radius:999px;padding:4px 12px;font-size:13.5px;font-weight:600;cursor:pointer}
+.mls:hover{color:var(--text);border-color:var(--gold)}
+.mls.on{color:#24170a;background:var(--gold);border-color:var(--gold-3)}
+.ml-step{margin:8px 0 12px}
+.ml-step>b{font-size:14.5px}
+.fchips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.fchip{border:1px solid var(--line-soft);background:var(--panel-2);color:var(--text);border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;line-height:1.4}
+.fchip:hover{border-color:var(--gold)}
+.fchip.on{background:color-mix(in srgb,var(--jade) 30%,var(--panel-2));border-color:var(--jade);font-weight:600}
+.ml-opts{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--muted);margin:6px 0}
+.ml-opts label{display:flex;align-items:center;gap:6px}
+.ml-opts input[type=range]{width:110px;accent-color:var(--gold)}
+table.ml-t tr{cursor:default}
+table.ml-t tr.adj td{color:var(--muted)}
+.ml-perf{display:grid;grid-template-columns:160px minmax(0,1fr);gap:12px;align-items:center;margin-top:10px}
+.ml-kpi{display:flex;flex-direction:column;gap:6px}
+.ml-kpi>div span,.ml-kpis>div span{font-size:12px;color:var(--muted);display:block}
+.ml-kpi b{font-size:20px;font-variant-numeric:tabular-nums}
+.ml-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0}
+.ml-kpis>div{border:1px solid var(--line-soft);border-radius:5px;padding:7px 10px;background:var(--panel-2)}
+.ml-kpis b{font-size:19px;line-height:1.25;font-variant-numeric:tabular-nums}
+.ml-kpis b.up,.ml-kpi b.up{color:var(--danger)}
+@media (max-width:620px){.ml-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ml-perf{grid-template-columns:1fr}}
+#fAna{container-type:inline-size}
+@container (max-width:560px){.ml-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ml-two{grid-template-columns:minmax(0,1fr)!important}}
+@container (max-width:420px){table.ml-t .fcol{display:none}}
+.ml-two{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;margin-top:6px}
+.chart.lc polyline{fill:none;stroke-width:2.4}
+.chart .l1{stroke:var(--gold-2)} .chart circle.l1{fill:var(--gold-2);stroke:none}
+.chart .l2{stroke:var(--red-2)} .chart circle.l2{fill:var(--red-2);stroke:none}
+.chart polyline.l1,.chart polyline.l2{fill:none;stroke-width:2.4}
+.chart .base{stroke:var(--faint);stroke-dasharray:5 4;stroke-width:1.5}
+.chart.roc{width:150px;height:150px}
+.chart.roc .frm{fill:none;stroke:var(--line-soft)}
+.imps{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.imp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(60px,1fr) 42px;gap:8px;align-items:center;font-size:13px}
+.imp>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.imp b{text-align:right;font-variant-numeric:tabular-nums}
+.tbar{display:block;height:9px;border-radius:99px;background:var(--panel-3);border:1px solid var(--line-soft);overflow:hidden}
+.tbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-3),var(--gold-2))}
+/* ต้นไม้ตัดสินใจ */
+ul.dtree,ul.dtree ul{list-style:none;margin:0;padding:0}
+ul.dtree{margin-top:6px;font-size:13px;overflow-x:auto}
+ul.dtree ul{margin-left:16px;padding-left:12px;border-left:2px solid var(--line)}
+ul.dtree li{margin:4px 0;position:relative}
+ul.dtree ul>li::before{content:"";position:absolute;left:-12px;top:14px;width:10px;border-top:2px solid var(--line)}
+.tn{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 10px;border:1px solid var(--line-soft);border-radius:5px;background:var(--panel-2)}
+.tn.sick{border-color:color-mix(in srgb,var(--red-2) 60%,var(--line-soft))}
+.tn .tbar{width:70px}
+.tn.sick .tbar>i{background:linear-gradient(90deg,#7e2414,var(--red-2))}
+.tn .tl{font-weight:700;color:#24170a;background:var(--gold);border-radius:3px;padding:0 6px;font-size:12px}
+.tn .tc{color:var(--muted)}
+.tn .tp{font-weight:700;font-size:12.5px}
+.tq{margin:3px 0 2px 2px;color:var(--gold-2);font-weight:600}
+/* ข้อมูล โค้ด SQL */
+.dl-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.dl-row small{opacity:.7;font-weight:400}
+.sql-samples{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.sql-in{width:100%;font-family:Consolas,'Courier New',monospace;font-size:13.5px;line-height:1.5;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:4px 0 8px;resize:vertical}
+.sql-in:focus{outline:2px solid var(--gold);outline-offset:1px}
+.sql-out{margin-top:8px}
+code{font-family:Consolas,'Courier New',monospace;font-size:.92em;padding:0 4px;border-radius:3px;background:color-mix(in srgb,var(--gold) 12%,transparent)}
+
+/* ---------- วิเคราะห์เชิงพื้นที่บนแผนที่ ---------- */
+.map-tools input[type=range]{width:100px;accent-color:var(--gold)}
+.sp-heat,.sp-hull{pointer-events:none}
+.sp-hull path,.sp-hull circle{fill-opacity:.15;stroke-width:22;stroke-opacity:.22;stroke-linejoin:round}
+.sp-lab{font-size:18px;font-weight:700;paint-order:stroke;stroke:#fbf4e2;stroke-width:6px;stroke-linejoin:round;pointer-events:none}
+.sp-sum{margin-top:8px;font-size:13px;color:var(--muted);border:1px solid var(--line-soft);border-radius:5px;padding:7px 10px;background:var(--panel-2)}
+.sp-sum b{color:var(--text)}
+.sp-sum ul{list-style:none;margin:4px 0;padding:0;display:grid;gap:3px}
+.sp-sum li{color:var(--text)}
+.sp-sum li i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* ---------- NLP ---------- */
+.m-card.nlp-modal{width:min(1040px,100%)}
+.posts{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px;margin:8px 0}
+.post{border:1px solid var(--line-soft);border-radius:6px;padding:8px 10px;background:var(--panel-2);font-size:14px;display:flex;flex-direction:column;gap:4px}
+.post .ph{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600;color:var(--gold-2)}
+.post .pt{line-height:1.5}
+.post .pm{font-size:12px}
+.pl{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.plb{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:999px;padding:2px 8px;font-size:12px;cursor:pointer}
+.plb:hover:not(:disabled){border-color:var(--gold)}
+.plb.on{background:var(--gold);color:#24170a;border-color:var(--gold-3);font-weight:700}
+.plb:disabled{cursor:default;opacity:.8}
+.pv{font-size:12.5px;font-weight:600;padding:3px 8px;border-radius:4px}
+.pv.ok{background:color-mix(in srgb,var(--jade) 22%,transparent)}
+.pv.bad{background:color-mix(in srgb,var(--red) 25%,transparent)}
+table.conf{width:auto;margin:8px 0;font-size:13px}
+table.conf td.hl2{background:#d9eedc;font-weight:700}
+.kws{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-size:13px}
+.kws .kw{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+@media (max-width:700px){.kws{grid-template-columns:1fr}}
+.ent{display:grid;gap:5px}
+.er{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(80px,1.6fr) 56px;gap:8px;align-items:center;font-size:13px}
+.eb{position:relative;height:16px}
+.eb i{position:absolute;left:0;height:7px;border-radius:99px}
+.eb i.raw{top:0;background:var(--faint)}
+.eb i.sg{top:8px;background:var(--red-2)}
+
+/* ---------- ผู้ช่วย AI ---------- */
+.ai-card{display:flex;gap:14px;align-items:center;padding:10px 14px;border:1px solid var(--red-2);border-radius:6px;background:color-mix(in srgb,var(--red) 12%,var(--panel-2))}
+.ai-big{font-size:42px}
+.ai-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}
+.ai-grid h4{margin:0 0 6px}
+@media (max-width:700px){.ai-grid{grid-template-columns:1fr}}
+.ai-chat{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.ai-chat .q{align-self:flex-end;max-width:85%;background:color-mix(in srgb,var(--gold) 18%,var(--panel-2));border:1px solid var(--gold-3);border-radius:10px 10px 2px 10px;padding:6px 10px;font-size:14px}
+.ai-chat .ans{align-self:flex-start;max-width:92%;background:var(--panel-2);border:1px solid var(--line);border-radius:10px 10px 10px 2px;padding:6px 10px;font-size:14px}
+.ai-chat .note,.ai-chat .btn{align-self:flex-start}
+
+/* ---------- พยากรณ์ในรายงานเช้า ---------- */
+.fc{border:1px solid var(--line-soft);border-radius:6px;padding:9px 12px;background:var(--panel-2);margin-bottom:10px}
+.fc-h{font-weight:700;color:var(--gold-2);font-size:14.5px}
+.fc-h .faint{font-weight:400;font-size:12.5px}
+.fc-last{font-size:13.5px;margin:6px 0}
+.fc-picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0}
+.fc-picks .pick{padding:6px 10px}
+.fc-picks .pick b{font-size:17px}
+.fc-mae{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.fc-mae span.best b{color:var(--ok)}
+
+/* ---------- บทที่ ๑ แล็บระบบเตือนภัย ---------- */
+.lab-alarm h3{font-size:18px}
+.al-methods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 4px}
+.al-methods .pick{padding:8px 10px}
+@media (max-width:700px){.al-methods{grid-template-columns:1fr}}
+.al-ctl{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:4px 0 6px}
+.al-ctl label{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--gold-2)}
+.al-ctl input[type=range]{width:200px;accent-color:var(--gold)}
+.chart.al .ob{fill:var(--red-2);opacity:.28}
+.chart.al .yr{stroke:var(--line);stroke-dasharray:3 3}
+.chart.al .cnt{fill:none;stroke:var(--text);stroke-width:1.4;opacity:.85}
+.chart.al .thr{fill:none;stroke:var(--gold-2);stroke-width:1.8}
+.chart.al .al-ok{fill:var(--jade)}
+.chart.al .al-fa{fill:var(--warn)}
+.al-two{display:grid;grid-template-columns:320px minmax(0,1fr);gap:14px;align-items:start;margin-top:8px}
+@media (max-width:760px){.al-two{grid-template-columns:1fr}}
+.chart.sw .goal{fill:var(--ok);opacity:.35}
+.chart.sw .cur{fill:var(--red-2);stroke:var(--text);stroke-width:1.5}
+
+/* ---------- หน้าผลลัพธ์ ---------- */
+.skill.used{border-color:color-mix(in srgb,var(--jade) 55%,var(--line))}
+.skill h4 .chip{font-size:11px;vertical-align:2px}

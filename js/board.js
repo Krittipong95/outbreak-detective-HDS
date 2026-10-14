@@ -8,7 +8,7 @@ OD.board = (function(){
   const U = OD.u, M = OD.sim;
   const nm = id => M.SITES[id].name;
   const CAT = {stat:['📊','สถิติ'], env:['🔎','สิ่งแวดล้อม'], lab:['🧪','แล็บ/คลินิก'], talk:['💬','คำบอกเล่า']};
-  const KIND = {env:'🔎', lab:'🧪', supply:'📦', rumor:'💬', interview:'🎙️', clinical:'🩺', or:'📊', pc:'📊'};
+  const KIND = {env:'🔎', lab:'🧪', supply:'📦', rumor:'💬', interview:'🎙️', clinical:'🩺', or:'📊', pc:'📊', ml:'🤖', nlp:'📱'};
   const rot = id => { let h = 0; for(const ch of id) h = (h*31 + ch.charCodeAt(0)) | 0; return ((h>>>0) % 7) - 3; };
   /* ขัดแย้งชัดเจน: การ์ดพูดถึงสถานที่หนึ่ง แต่ไปโยงกับสถานที่อื่น (ยกเว้นแหล่งผลิตที่ส่งวัตถุดิบ — ต้องคิดเอง) */
   const clash = (e, sus) => e.target && sus && e.target!==sus && !M.SUPPLIERS.includes(sus);

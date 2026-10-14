@@ -169,6 +169,9 @@ OD.vn = (function(){
     root.classList.remove('hidden');
     E.text.innerHTML = ''; E.name.innerHTML = ''; E.choices.classList.add('hidden'); E.box.classList.remove('me'); E.fx.className = 'vn-fx';
     if(opts.mode!=='overlay' && !steps.some(s=>s.bg) && !opts.stay) E.bg.innerHTML = OD.art.scene('village');
+    // ผู้เล่นใหม่: บอกวิธีอ่านต่อครั้งเดียว
+    let hinted = false; try{ hinted = localStorage.getItem('od2-vnhint')==='1'; }catch(e){}
+    if(!hinted){ try{ localStorage.setItem('od2-vnhint','1'); }catch(e){} U.toast('💡 คลิกที่กล่องข้อความ หรือกด Space / Enter เพื่ออ่านต่อ · ▶ อัตโนมัติ = เลื่อนข้อความเอง · ⏩ เร่ง = ข้ามไปถึงตัวเลือก', '', 8000); }
     try { await run(steps, steps); }
     finally {
       fast = false; E.ff.classList.remove('btn-gold');

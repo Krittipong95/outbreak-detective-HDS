@@ -80,7 +80,9 @@ OD.music = (function(){
     - - - ม   - - - ซ   - - - ล   - ซ - ม   - - - ร   - - - ม   - - - ร   - - - ด
     - - - ร   - - - ม   - - - ซ   - ล - ดํ  - - - ล   - ซ - ม   - - - ร   - - - ม`});
 
-  const SCENE = {office_night:'night', lab:'field', ice_factory:'field', hall:'field', market:'field', temple:'calm', village:'calm', office:'calm'};
+  const SCENE = {office_night:'night', lab:'field', ice_factory:'field', hall:'field', market:'field', temple:'calm', village:'calm', office:'calm',
+                 well_temple:'field', well_market:'field', well_canal:'field', somtam:'field', noodle_boat:'field', chicken_rice:'field', mookata:'night',
+                 school:'calm', farm:'calm', clinic:'field'};
   /* หน้าทับกลอง ๘ ตำแหน่ง (สองห้อง): L = เสียงทุ้ม (ทั่ง/ตุ๊บ)  S = เสียงตบ (ปะ/ป๊ะ) — จังหวะหนักอยู่ท้ายห้อง */
   const DRUM = {chandiao:'.S.L.SSL', taphon:'..SL.S.L', rua:'LS.LLS.L', klongyao:'LS.LSLSL', none:'........'};
   const mtof = m => 440*Math.pow(2,(m-69)/12);
@@ -190,7 +192,7 @@ OD.music = (function(){
     else if(SONGS[m]) target = m; else return;
     if(!timer){ song = target; pos = 0; }
   }
-  function sceneMood(bg){ setMood(SCENE[bg] || 'calm'); }
+  function sceneMood(bg){ setMood(SCENE[String(bg).split(':')[0]] || 'calm'); }
   function toggle(){ enabled = !enabled; store.set('music', enabled ? '1' : '0'); enabled ? start() : stop(); ui(); }
   function setVolume(v){ vol = v; store.set('vol', Math.round(v*100)); if(enabled) start(); }
   function ui(){

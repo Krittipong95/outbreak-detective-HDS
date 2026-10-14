@@ -41,8 +41,10 @@ OD.main = (function(){
           <div><label>ระดับความยาก</label><div class="diff-grid">${Object.keys(D).map(k=>`<button class="diff ${pref.diff===k?'on':''}" data-diff="${k}"><b>${D[k].label}</b><small>${desc[k]}</small></button>`).join('')}</div></div>
         </div>
         <div class="title-actions"><button class="btn btn-gold btn-lg" data-t="start">เริ่มเรื่อง</button><button class="btn btn-lg" data-t="quick" title="ข้ามบทนำ บทที่ ๑ และ ๒">ลงพื้นที่ทันที</button></div>
-        <div class="title-actions" style="margin-top:10px"><button class="btn daily-btn" data-t="daily" title="ทุกคนเล่นคดีเดียวกันในวันนี้ · ระดับนักวิทยาศาสตร์ข้อมูล · ลงพื้นที่ทันที">📅 คดีประจำวัน</button><button class="btn" data-t="stats">🏆 สถิติและเหรียญ</button><button class="btn" data-t="hb">📘 คู่มือนักสืบมือใหม่</button></div>
-        ${(()=>{ const m = OD.meta.summary(); return m.cases ? `<div class="title-prog"><span>🗂️ ไขได้ ${U.thaiNum(m.solvedTypes)}/๖ ต้นตอ</span><span>🎖️ เหรียญ ${U.thaiNum(m.ach)}/${U.thaiNum(m.achMax)}</span><span>📜 เหตุการณ์ ${U.thaiNum(m.seen)}/${U.thaiNum(m.seenMax)}</span><span>🏅 คะแนนสูงสุด ${m.best}</span></div>` : ''; })()}
+        <div class="title-actions" style="margin-top:10px"><button class="btn" data-t="howto">🎮 วิธีเล่น</button><button class="btn daily-btn" data-t="daily" title="ทุกคนเล่นคดีเดียวกันในวันนี้ · ระดับนักวิทยาศาสตร์ข้อมูล · ลงพื้นที่ทันที">📅 คดีประจำวัน</button><button class="btn" data-t="stats">🏆 สถิติและเหรียญ</button><button class="btn" data-t="hb">📘 คู่มือนักสืบมือใหม่</button></div>
+        ${(()=>{ const m = OD.meta.summary(); return m.cases ? `<div class="title-prog"><span>🗂️ ไขได้ ${U.thaiNum(m.solvedTypes)}/๖ ต้นตอ</span><span>🎖️ เหรียญ ${U.thaiNum(m.ach)}/${U.thaiNum(m.achMax)}</span><span>📜 เหตุการณ์ ${U.thaiNum(m.seen)}/${U.thaiNum(m.seenMax)}</span><span>🏅 คะแนนสูงสุด ${m.best}</span></div>`
+          : `<div class="title-new">เล่นครั้งแรก? กด <b>🎮 วิธีเล่น</b> (อ่าน ๓ นาที) แล้วเลือก <b>เริ่มเรื่อง</b> ระดับ <b>${D.normal.label}</b></div>`; })()}
+        <div class="title-tools"><span>🚨 ระบบเตือนภัย</span><span>🤖 ML</span><span>🧭 เชิงพื้นที่</span><span>📱 NLP</span><span>⚖️ AI รับผิดชอบ</span><span>🔮 พยากรณ์</span><span>💻 SQL · Python · R</span></div>
         <div class="title-foot">สุ่มต้นตอใหม่ทุกคดีจาก ๖ รูปแบบ พร้อมคดีหักมุม · ใช้เวลาเล่นประมาณ ๓๐–๔๕ นาที · ตัวละคร สถานที่ และข้อมูลทั้งหมดเป็นเรื่องสมมติ</div>
         <div class="krajang-band down" style="margin-top:12px"></div>
       </div>`;
@@ -52,6 +54,7 @@ OD.main = (function(){
       if(b.dataset.diff){ pref.diff = b.dataset.diff; title(); }
       if(b.dataset.t==='theme') OD.toggleTheme();
       if(b.dataset.t==='hb') OD.handbook.open();
+      if(b.dataset.t==='howto') OD.handbook.open('howto');
       if(b.dataset.t==='stats') OD.meta.open();
       if(['start','quick','daily'].includes(b.dataset.t)){
         pref.name = (U.$('#tName').value || '').trim() || 'นักสืบ';

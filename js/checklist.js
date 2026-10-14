@@ -35,6 +35,7 @@ OD.checklist = (function(){
     {t:'สัมผัสอะไรแล้วเสี่ยงป่วย', how:'case-control: OR และ 95% CI', ok:(W,S)=>S.controls.length>0 && !!S.flags.vOR},
     {t:'แหล่งโรคอยู่ที่ไหน มีหลักฐานยืนยันไหม', how:'ตรวจสิ่งแวดล้อม + แล็บจากแหล่งที่สงสัย', ok:(W,S)=>S.evidence.some(e=>e.kind==='env') && S.evidence.some(e=>e.kind==='lab' && e.site)},
     {t:'มีการแพร่คนสู่คนในบ้านหรือไม่', how:'ปัจจัย “มีคนในบ้านป่วยก่อนหน้า” + รูปร่างเส้นโค้ง', ok:(W,S)=>S.controls.length>0 && !!S.flags.vOR},
+    {t:'ปัจจัยไหนยังเสี่ยงเมื่อปรับปัจจัยอื่นพร้อมกันแล้ว', how:'แท็บ 🤖 ML → Logistic regression (ไม่บังคับ แต่ช่วยแยกตัวแปรกวน)', ok:(W,S)=>!!S.flags.vML},
     {t:'ควรควบคุมอย่างไร และบอกชาวบ้านว่าอะไร', how:'คู่มือบทมาตรการควบคุม', ok:(W,S)=>Object.keys(S.closed).length>0 || S.hygieneAt!=null || S.flags.comm==='good'},
   ];
   function progress(W,S){ return STEPS.filter(s=>s.done(W,S)).length; }

@@ -64,11 +64,11 @@ OD.u = (function(){
 
   /* ---------- UI ---------- */
   U.show = id => { U.$$('.screen').forEach(s=>s.classList.toggle('hidden', s.id!==id)); window.scrollTo(0,0); };
-  U.toast = function(msg, kind=''){
+  U.toast = function(msg, kind='', ms=3200){
     const box = U.$('#toasts'); const t = document.createElement('div');
     t.className = 'toast ' + kind; t.innerHTML = msg; box.appendChild(t);
     while(box.children.length > 2) box.firstElementChild.remove();   // แสดงพร้อมกันไม่เกิน ๒ อัน ไม่บังแถบสถานะ
-    setTimeout(()=>t.remove(), 3200);
+    setTimeout(()=>t.remove(), ms);
   };
   let mh = null;
   U.modal = function(html, handler, opts={}){

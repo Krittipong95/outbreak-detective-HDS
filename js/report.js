@@ -26,7 +26,9 @@ OD.report = (function(){
     ['recall','อคติจากการระลึกความจำของผู้ตอบแบบสอบถาม', true], ['under','ผู้ป่วยอาการน้อยอาจไม่ถูกรายงานหรือค้นพบครบ', true],
     ['labsens','ความไวของการตรวจทางห้องปฏิบัติการไม่ถึง ๑๐๐% ผลลบจึงไม่ได้ตัดแหล่งนั้นออก', true], ['small','ขนาดตัวอย่างน้อย ช่วงความเชื่อมั่นจึงกว้าง', true],
     ['confound','อาจมีตัวแปรกวนจากการที่คนในหมู่บ้านเดียวกันสัมผัสหลายอย่างร่วมกัน', true],
+    ['model','โมเดลสถิติ/ML บอกความสัมพันธ์และพลังทำนาย ไม่ได้พิสูจน์สาเหตุด้วยตัวเอง', true],
     ['proof','ผลการศึกษานี้พิสูจน์ความเป็นเหตุเป็นผลได้ ๑๐๐%', false], ['nolimit','ไม่มีข้อจำกัด เพราะสัมภาษณ์ผู้ป่วยครบทุกราย', false],
+    ['aiproof','ระบบ AI ของจังหวัดยืนยันต้นตอแล้ว จึงไม่ต้องอาศัยหลักฐานด้านอื่น', false],
   ];
 
   /* ความจริงของคดี — คำนวณจากการระบาดที่เกิดขึ้นจริง ไม่ผูกกับประเภทต้นตอ */
@@ -48,16 +50,18 @@ OD.report = (function(){
   const fits = (W, target, suspect) => !target || target===suspect || M.feeds(W, suspect, target);
   /* รายการหลักฐานทั้งหมด: cat = stat | env | lab | talk (ใช้บนกระดานสืบสวน) */
   function evidenceItems(W,S){
-    const s = W.scn, items = S.evidence.map(e=>{
+    const s = W.scn, rk = related(W), items = S.evidence.map(e=>{
       let rel = 'none', cat = 'env', target = e.site || null;
       if(e.kind==='env') rel = e.site===s.culprit ? 'strong' : (e.strength==='weak' ? 'weak' : 'none');
       if(e.kind==='lab'){ cat = 'lab'; rel = e.mixed ? 'none' : e.pathogen ? (e.pathogen===s.pathogen ? 'strong':'none') : (e.pos ? 'strong' : 'none'); }
       if(e.kind==='supply') rel = e.strength==='strong' ? 'strong' : 'none';
       if(e.kind==='clinical'){ cat = 'lab'; rel = 'weak'; }
-      if(e.kind==='rumor' || e.kind==='interview'){ cat = 'talk'; rel = e.truth===false ? 'mis' : 'weak'; }   // คำบอกเล่าที่ไม่ตรงกับข้อมูล = หลักฐานชี้ผิดทาง
+      if(e.kind==='rumor' || e.kind==='interview' || e.kind==='nlp'){ cat = 'talk'; rel = e.truth===false ? 'mis' : 'weak'; }   // คำบอกเล่าที่ไม่ตรงกับข้อมูล = หลักฐานชี้ผิดทาง
+      // ผลจากโมเดลหลายตัวแปร (logistic regression) ประเมินแบบเดียวกับ OR
+      if(e.kind==='ml'){ cat = 'stat'; target = TGT[e.k] || null; rel = rk.includes(e.k) ? 'strong' : (isVenue(W,e.k) || e.k==='FEST') ? 'weak' : 'mis'; }
       return {id:e.id, kind:e.kind, text:e.text, rel, cat, target};
     });
-    const rows = M.analyze(W,S), rk = related(W);
+    const rows = M.analyze(W,S);
     if(S.controls.length){
       rows.filter(r=>r.or && r.lo>1).sort((a,b)=>b.or-a.or).slice(0,6).forEach(r=>items.push({id:'or-'+r.k, kind:'or', cat:'stat', target:TGT[r.k]||null,
         text:`การศึกษา case-control: ${r.label} OR = ${U.fmtOR(r.or)} (95% CI ${U.fmtOR(r.lo)}–${U.fmtOR(r.hi)})`,
@@ -209,7 +213,8 @@ OD.report = (function(){
     if(!P.acf) L.push(`ไม่ได้ค้นหาผู้ป่วยเชิงรุก — มีผู้ป่วยอาการน้อยที่ไม่ไปสถานพยาบาลราว ๑ ใน ๓ ซึ่งไม่อยู่ในข้อมูลของคุณเลย`);
     if(!S.hyp.some(x=>rk.includes(x))) L.push('สมมติฐานที่ตั้งไว้ไม่ครอบคลุมแหล่งโรคจริง — ใช้ข้อมูลเชิงพรรณนา (เวลา–สถานที่–บุคคล) ช่วยตั้งสมมติฐานให้ตรงจุด');
     if(S.flags.dehyd && S.flags.dehyd!=='good') L.push('ผู้ป่วยซึม ตาลึก ดื่มไม่ได้ คือภาวะขาดน้ำรุนแรง ต้องส่งต่อให้สารน้ำทางหลอดเลือด — ไม่ใช้ยาหยุดถ่ายและไม่ให้ยาปฏิชีวนะเป็นประจำ');
-    if(lim.some(l=>!l[2])) L.push('ไม่มีการศึกษาใดไร้ข้อจำกัด และการศึกษาแบบ case-control ไม่ได้พิสูจน์ความเป็นเหตุเป็นผลได้ ๑๐๐%');
+    if(lim.some(l=>l[0]==='aiproof')) L.push('ผลของ AI เป็นเพียงเครื่องมือช่วยตั้งสมมติฐาน — ข้อสรุปต้องมาจากหลักฐานที่ตรวจสอบได้ (สถิติ สิ่งแวดล้อม แล็บ)');
+    else if(lim.some(l=>!l[2])) L.push('ไม่มีการศึกษาใดไร้ข้อจำกัด และการศึกษาแบบ case-control ไม่ได้พิสูจน์ความเป็นเหตุเป็นผลได้ ๑๐๐%');
     else if(lim.length<2) L.push('ควรระบุข้อจำกัดของการสอบสวน เช่น อคติจากการระลึก การรายงานไม่ครบ และความไวของการตรวจทางห้องปฏิบัติการ');
     if(!L.length) L.push('ยอดเยี่ยม — ตัดสินใจได้ถูกต้องครบถ้วนด้วยหลักฐานหลายด้าน');
     return {C, total, rank, title, oc, T, L, correctSource: sel.site===T.site, wrongClosed, Tr, tri, badDec, picked};
@@ -293,6 +298,20 @@ OD.report = (function(){
     if(S.trust<40) im.push(`<b>ความเชื่อมั่นชุมชนเหลือ ${Math.round(S.trust)}</b> — ชาวบ้านตอบแบบสอบถามคลาดเคลื่อนมากขึ้น`);
     add('⏱️', 'เวลาและผลกระทบต่อชุมชน', im, 'ควบคุมการระบาดได้ทันเวลา ชุมชนยังเชื่อมั่นในทีม');
 
+    // ๗ เครื่องมือ HDS — เป็นข้อแนะนำ (💡) ไม่นับเป็นจุดพลาด
+    const f = S.flags, hds = [], tip = t => hds.push({tip:true, t});
+    if(!f.vML) tip('<b>ยังไม่ได้ใช้แท็บ 🤖 ML</b> — logistic regression ให้ OR ที่ปรับตัวแปรอื่นแล้ว (แยกตัวแปรกวนได้หลายตัวพร้อมกัน) และ decision tree ช่วยหาคำถามที่แยกผู้ป่วยได้ดีที่สุด');
+    else if(!f.treeBest) tip('<b>ลองเลื่อนความลึกของ decision tree</b> หาจุดที่ความแม่นยำแบบ cross-validation สูงสุด — ลึกเกินไปจะ overfit');
+    if(s.confound && f.vML && !(S.ui && S.ui.mlVil)) tip(`<b>คดีนี้มีตัวแปรกวน</b> — ลองติ๊ก “ปรับตามหมู่บ้าน” ใน logistic regression แล้วดู OR ของ${nm(s.confound)}ลดลง`);
+    if(!f.vSpatial) tip('<b>ยังไม่ได้ใช้ 🧭 วิเคราะห์เชิงพื้นที่</b> — DBSCAN หากลุ่มผู้ป่วย และแผนที่อัตราป่วยต่อประชากรแยก “คนเยอะ” ออกจาก “เสี่ยงสูง”');
+    if(!f.nlpDone) tip('<b>ยังไม่ได้ใช้ 📱 ฟังเสียงโซเชียล</b> — ข่าวลือถูกแชร์มากกว่าประสบการณ์จริง ต้องจำแนกข้อความก่อนนับ');
+    else if(f.nlpAcc<7) tip(`<b>ติดป้ายข้อมูลฝึก NLP ถูก ${th(f.nlpAcc)}/๙</b> — ป้ายที่ผิดสอนให้โมเดลเรียนรู้ผิด (garbage in, garbage out)`);
+    if(f.aiMet && !f.aiHallu) tip('<b>ลองถาม 🤖 ผู้ช่วย AI ว่า “มีงานวิจัยยืนยันไหม”</b> แล้วกดตรวจสอบแหล่งอ้างอิง — AI ภาษาอาจแต่งข้อมูลที่ไม่มีจริง (hallucination)');
+    const fc = OD.ai.fcScore(S);
+    if(fc.n<2) tip('<b>ลองเกม 🔮 พยากรณ์ในรายงานเช้า</b> — เลือกโมเดลแล้ววันรุ่งขึ้นดูว่าแม่นแค่ไหน (backtesting)');
+    if(!f.coder) tip('<b>ดาวน์โหลดข้อมูลคดีนี้</b> (CSV · Jupyter Notebook · R) ไปฝึกวิเคราะห์ต่อ หรือลอง SQL console ในแท็บ 🤖 ML');
+    add('🤖', 'เครื่องมือ HDS (ML · AI · ข้อมูล)', hds, hds.length ? 'ไม่มีจุดพลาดในส่วนนี้ — ลองเครื่องมือที่ยังไม่ได้ใช้ในคดีหน้า' : 'ใช้เครื่องมือ HDS ครบทุกชิ้น');
+
     // สิ่งที่ทำได้ดี
     const good = [];
     if(sel.site===T.site) good.push('ระบุแหล่งโรคถูก'); if(sel.path===T.pathogen) good.push('ระบุเชื้อถูก');
@@ -356,19 +375,23 @@ OD.report = (function(){
         ${D.decisions.length ? `<details class="howto" style="margin-top:12px"><summary>ไทม์ไลน์การตัดสินใจทั้งหมด (${D.decisions.length})</summary><ul class="db-tl">${D.decisions.map(d=>`<li><span class="lt">${M.fmtT(d.t)}</span><span>${{good:'✅',ok:'➖',mixed:'⚠️',bad:'❌'}[d.verdict]||'➖'} <b>${d.title}</b> — ${d.choice}${d.why?`<br><span class="muted">${d.why}</span>`:''}</span></li>`).join('')}</ul></details>` : ''}
       </div>
       <h2 class="display gold-text" style="margin-top:22px;font-size:26px">ทักษะของนักวิทยาศาสตร์ข้อมูลสุขภาพที่คุณได้ใช้</h2>
-      <div class="skills">${[
-        ['📊','ชีวสถิติ','ค่ามัธยฐาน Odds Ratio ช่วงความเชื่อมั่น การแยกวิเคราะห์ Mantel–Haenszel และปัญหาการเปรียบเทียบหลายครั้ง'],
-        ['🦠','ระบาดวิทยา','นิยามผู้ป่วย การศึกษาแบบ case-control เส้นโค้งการระบาด ระยะฟักตัว ตัวแปรกวน'],
-        ['🧹','การจัดการข้อมูล','รวมข้อมูลหลายแหล่ง ตัดข้อมูลซ้ำ แปลงรูปแบบวันที่ จัดการค่าว่างโดยไม่ทิ้งข้อมูลจริง'],
-        ['🗺️','ภาพข้อมูลเชิงพื้นที่','แผนที่ผู้ป่วยและกลุ่มควบคุม การไฮไลต์ตามการสัมผัส'],
-        ['🔬','วิทยาศาสตร์การแพทย์','เชื้อก่อโรค อาการ ความไวของการตรวจทางห้องปฏิบัติการ'],
-        ['⚖️','จริยธรรมและการสื่อสาร','PDPA การสื่อสารความเสี่ยง การตัดสินใจภายใต้แรงกดดันโดยยึดหลักฐาน'],
-      ].map(([i,t,d])=>`<div class="frame tight skill"><div class="ic">${i}</div><h4>${t}</h4><p>${d}</p></div>`).join('')}</div>
+      <div class="skills">${(()=>{ const f = S.flags, fc = OD.ai.fcScore(S); return [
+        ['📊','ชีวสถิติ','ค่ามัธยฐาน Odds Ratio ช่วงความเชื่อมั่น การแยกวิเคราะห์ Mantel–Haenszel และปัญหาการเปรียบเทียบหลายครั้ง', !!f.vOR],
+        ['🦠','ระบาดวิทยาและการแพทย์','นิยามผู้ป่วย case-control เส้นโค้งการระบาด ระยะฟักตัว ตัวแปรกวน เชื้อก่อโรค และความไวของการตรวจทางห้องปฏิบัติการ', S.controls.length>0],
+        ['🧹','การจัดการข้อมูล','รวมข้อมูลหลายแหล่ง ตัดข้อมูลซ้ำ แปลงรูปแบบวันที่ จัดการค่าว่างโดยไม่ทิ้งข้อมูลจริง', !f.quick],
+        ['🤖','Machine Learning','Logistic regression หลายตัวแปร (OR ที่ปรับแล้ว) · decision tree · cross-validation · AUC · overfitting', !!f.vML],
+        ['🚨','เฝ้าระวังอัตโนมัติและพยากรณ์','ตรวจจับความผิดปกติด้วย EARS / CUSUM · ความไวกับการเตือนผิด · พยากรณ์ผู้ป่วยและวัดความคลาดเคลื่อน (MAE)', !!f.alarm || fc.n>0],
+        ['📱','NLP และ AI อย่างรับผิดชอบ','ตัดคำภาษาไทย · Naive Bayes · คุณภาพป้ายข้อมูล · model card · hallucination · automation bias', !!(f.nlpDone || f.aiAsked)],
+        ['🗺️','ข้อมูลเชิงพื้นที่','แผนที่ผู้ป่วยและกลุ่มควบคุม · DBSCAN จับกลุ่ม · KDE · อัตราป่วยต่อประชากร', !!f.vSpatial],
+        ['💻','โปรแกรมและฐานข้อมูล','SQL · ส่งออก CSV · Python (pandas · statsmodels · scikit-learn) · R', !!f.coder],
+        ['⚖️','จริยธรรมและการสื่อสาร','PDPA การสื่อสารความเสี่ยง การตัดสินใจภายใต้แรงกดดันโดยยึดหลักฐาน', S.decisions.length>0],
+      ]; })().map(([i,t,d,u])=>`<div class="frame tight skill ${u?'used':''}"><div class="ic">${i}</div><h4>${t}${u?' <span class="chip jade">ใช้ในคดีนี้</span>':''}</h4><p>${d}</p></div>`).join('')}</div>
       <div class="frame" style="margin-top:16px;text-align:center"><p style="margin:0">สนใจงานแบบนี้? <b>หลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชาวิทยาศาสตร์ข้อมูลสุขภาพ</b><br><span class="muted">ราชวิทยาลัยจุฬาภรณ์</span></p>
-        <div class="title-actions"><button class="btn btn-gold btn-lg" id="resAgain">🔄 คดีใหม่</button><button class="btn btn-lg" id="resStats">🏆 สถิติและเหรียญ</button><button class="btn btn-lg" id="resHome">กลับหน้าแรก</button></div></div>
+        <div class="title-actions"><button class="btn btn-gold btn-lg" id="resAgain">🔄 คดีใหม่</button><button class="btn btn-lg" id="resData">💻 ดาวน์โหลดข้อมูลไปวิเคราะห์ต่อ</button><button class="btn btn-lg" id="resStats">🏆 สถิติและเหรียญ</button><button class="btn btn-lg" id="resHome">กลับหน้าแรก</button></div></div>
     </div>`;
     U.show('scr-result');
     OD.music.setMood(R.correctSource ? 'ending' : 'night');
+    U.$('#resData').onclick = ()=>OD.mlViews.downloadModal(W,S);
     U.$('#resAgain').onclick = ()=>OD.main.newCase();
     U.$('#resHome').onclick = ()=>OD.main.title();
     U.$('#resStats').onclick = ()=>OD.meta.open();
@@ -401,5 +424,5 @@ OD.report = (function(){
     await OD.vn.play(OD.story.ending(W,S,R));
     result(W,S,R,sel);
   }
-  return {run, truth};
+  return {run, truth, related};
 })();

@@ -230,8 +230,10 @@ OD.art = OD.art || {};
   A.scenes = Object.assign(A.scenes || {}, SC);
   /* ทำให้ id ของ gradient ไม่ซ้ำกันในแต่ละครั้งที่วาด (ฉากเดียวกันอาจอยู่หลายที่ในหน้า) */
   let sceneUid = 0;
+  /* name อาจมี variant ต่อท้าย เช่น 'well_temple:bad' (ดู art-scenes3.js) */
   A.scene = function(name){
-    const svg = (A.scenes[name] || A.scenes.temple)(), n = ++sceneUid;
+    const [key, variant] = String(name).split(':');
+    const svg = (A.scenes[key] || A.scenes.temple)(variant), n = ++sceneUid;
     const ids = Array.from(svg.matchAll(/id="([^"]+)"/g), m=>m[1]);
     return ids.reduce((s,id)=>s.split(`id="${id}"`).join(`id="${id}-${n}"`).split(`url(#${id})`).join(`url(#${id}-${n})`).split(`href="#${id}"`).join(`href="#${id}-${n}"`), svg);
   };

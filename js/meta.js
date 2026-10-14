@@ -34,6 +34,15 @@ OD.meta = (function(){
     {id:'rumorRight', icon:'🗞️', t:'ข่าวลือก็ถูกได้',    d:'ไขคดีที่ข่าวลือบังเอิญชี้ถูก โดยไม่สั่งปิดตามข่าวลือ',             ok:c=>c.solved && c.rumorRight && !c.yielded},
     {id:'ear',    icon:'🎙️', t:'นักสัมภาษณ์',          d:'สัมภาษณ์เชิงลึกโดยขอความยินยอม และไม่ใช้คำถามชี้นำ',              ok:c=>c.deepGood},
     {id:'daily',  icon:'📅', t:'คดีประจำวัน',          d:'เล่นคดีประจำวันจนจบ',                                          ok:c=>c.daily},
+    /* ---------- เครื่องมือ HDS ---------- */
+    {id:'alarm',  icon:'🚨', t:'ระบบเตือนภัยแม่นยำ',     d:'ตั้งระบบเตือนภัยการระบาด (บทที่ ๑) ได้ตามเป้าตั้งแต่ครั้งแรก',       ok:c=>c.alarmFirst},
+    {id:'model',  icon:'🤖', t:'นักสร้างโมเดล',          d:'ปักผล logistic regression ที่ชี้ต้นตอจริงไว้บนกระดานสืบสวน',       ok:c=>c.mlRight},
+    {id:'overfit',icon:'🌳', t:'รู้ทันโอเวอร์ฟิต',         d:'ตั้งความลึกของ decision tree ตรงจุดที่ cross-validation ดีที่สุด',  ok:c=>c.treeBest},
+    {id:'nlp',    icon:'📱', t:'นักฟังโซเชียล',          d:'ติดป้ายข้อมูลฝึกโมเดล NLP ถูกอย่างน้อย ๘ ใน ๙ โพสต์',             ok:c=>c.nlpAcc!=null && c.nlpAcc>=8},
+    {id:'xai',    icon:'🧠', t:'ไม่เชื่อ AI ง่าย ๆ',       d:'ตรวจ model card ก่อนตัดสินใจ และจับได้ว่า AI แต่งแหล่งอ้างอิง',     ok:c=>c.aiGood && c.aiHallu},
+    {id:'forecast',icon:'🔮', t:'นักพยากรณ์',            d:'พยากรณ์ในรายงานเช้าอย่างน้อย ๓ วัน คลาดเคลื่อนเฉลี่ยไม่เกิน ๒ ราย', ok:c=>c.fcN>=3 && c.fcMAE!=null && c.fcMAE<=2},
+    {id:'coder',  icon:'💻', t:'สายโค้ด',               d:'รัน SQL หรือดาวน์โหลดข้อมูลไปวิเคราะห์ต่อ',                       ok:c=>c.coder},
+    {id:'hds',    icon:'🎓', t:'นักวิทยาศาสตร์ข้อมูลสุขภาพตัวจริง', d:'ไขคดีถูก โดยใช้ ML · วิเคราะห์เชิงพื้นที่ · NLP และใช้ AI อย่างรับผิดชอบในคดีเดียว', ok:c=>c.solved && c.mlUsed && c.spatial && c.nlpAcc!=null && c.nlpAcc>=7 && c.aiGood},
     {id:'five',   icon:'🏛️', t:'นักสืบมากประสบการณ์',   d:'ไขคดีสำเร็จครบ ๕ คดี',                                          ok:(c,m)=>m.cases.filter(x=>x.solved).length>=5},
   ];
 
@@ -45,6 +54,11 @@ OD.meta = (function(){
       decN:dec.length, decBad:dec.filter(d=>d.verdict==='bad').length, decMixed:dec.filter(d=>d.verdict==='mixed').length,
       bondsMin:Math.min(...Object.values(S.bonds)), pdpa:S.flags.pdpa||null, festival:S.flags.festival||null, festCases:OD.story.festCases(W,S),
       deepGood:!!S.flags.deepConsent && !S.flags.leading, rumorRight:S.flags.rumor===W.scn.culprit, yielded:!!S.flags.yield};
+    // เครื่องมือ HDS
+    const fc = OD.ai.fcScore(S);
+    Object.assign(c, {mlUsed:!!S.flags.vML, mlRight:R.picked.some(e=>e.kind==='ml' && e.rel==='strong'), treeBest:!!S.flags.treeBest, spatial:!!S.flags.vSpatial,
+      nlpAcc: S.flags.nlpAcc==null ? null : S.flags.nlpAcc, aiGood:S.decisions.some(d=>d.id==='aiTool' && d.verdict==='good'), aiHallu:!!S.flags.aiHallu,
+      alarmFirst:!!S.flags.alarmFirst, fcN:fc.n, fcMAE:fc.mae, coder:!!S.flags.coder});
     m.cases.push(c); if(m.cases.length>300) m.cases = m.cases.slice(-300);
     // เหตุการณ์ที่เคยเจอ + รูปแบบเรื่องที่เคยเจอ (สะสมข้ามคดี)
     const v = S.flags.v || {};
@@ -59,7 +73,7 @@ OD.meta = (function(){
 
   /* รายการเหตุการณ์/รูปแบบเรื่องทั้งหมดที่สะสมได้ */
   const SEEN_ALL = [
-    ...['pdpa','storm','sheriff','herbal','schoolClose','neighbor','students','labMix','teamSick','tipoff','misinfo','vendor','promise','backlash'].map(id=>[id, (OD.story.EVENT_NAMES||{})[id]||id]),
+    ...['pdpa','storm','sheriff','herbal','schoolClose','neighbor','students','labMix','teamSick','tipoff','misinfo','vendor','promise','backlash','aiTool'].map(id=>[id, (OD.story.EVENT_NAMES||{})[id]||id]),
     ['pt:thongbai','ยายทองใบขาดน้ำ'], ['pt:baby','น้องใบบัวขาดน้ำ'], ['pt:boonsong','ตาบุญส่งขาดน้ำ'],
     ['fe:kathin','งานทอดกฐิน'], ['fe:wedding','งานแต่งลูกสาวกำนัน'],
     ['pr:hall','ประชาคมที่ศาลา'], ['pr:protest','ชาวบ้านประท้วงหน้า รพ.สต.'], ['pr:live','กำนันไลฟ์สด'],

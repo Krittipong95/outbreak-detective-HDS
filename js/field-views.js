@@ -66,9 +66,69 @@ OD.fieldViews = (function(){
     const anchor = st.x<130 ? 'start' : st.x>870 ? 'end' : 'middle';
     return {x: anchor==='start' ? -24 : anchor==='end' ? 24 : 0, y: st.y>590 ? -32 : 44, anchor};
   }
+  /* ---------- วิเคราะห์เชิงพื้นที่: DBSCAN จับกลุ่ม · KDE ความหนาแน่น · อัตราป่วยต่อประชากร ----------
+     มาตราส่วนแผนที่: ๑ หน่วย ≈ ๔ เมตร */
+  const MPU = 4, CLC = ['#c0392b','#2f6fb0','#2e8a52','#a0662a','#7b3fa0','#0f8a8a','#b8306e','#5a6b2a'];
+  const spCache = {key:null};
+  function spatial(){
+    const mode = S.ui.spatial; if(!mode) return null;
+    const R = recs(), key = [W.seed, mode, S.ui.eps, R.length, S.ver, S.T].join('|');
+    if(spCache.key===key) return spCache.v;
+    const pts = R.map(r=>({x:r.p.x + (r.dup?6:0), y:r.p.y, r}));
+    let v;
+    if(mode==='db'){
+      const {labels, k} = OD.ml.dbscan(pts, S.ui.eps, 4), cl = [];
+      for(let c=1;c<=k;c++){
+        const P = pts.filter((_,i)=>labels[i]===c), cx = OD.ml.mean(P.map(p=>p.x)), cy = OD.ml.mean(P.map(p=>p.y));
+        const near = Object.keys(M.SITES).filter(id=>S.known.has(id)).map(id=>({id, d:Math.hypot(M.SITES[id].x-cx, M.SITES[id].y-cy)})).sort((a,b)=>a.d-b.d)[0];
+        const vc = {}; P.forEach(p=>{ vc[p.r.p.v] = (vc[p.r.p.v]||0)+1; });
+        const topV = Object.keys(vc).sort((a,b)=>vc[b]-vc[a])[0];
+        cl.push({c, n:P.length, hull:OD.ml.hull(P), cx, cy, near, topV:+topV, vShare:vc[topV]/P.length});
+      }
+      cl.sort((a,b)=>b.n-a.n);
+      v = {mode, cl, noise:labels.filter(l=>l===-1).length};
+    } else {
+      const cell = 20, bw = S.ui.eps, kc = OD.ml.kde(pts, 1000, 680, cell, bw);
+      let val = Array.from(kc.v);
+      if(mode==='rate'){
+        const kp = OD.ml.kde(W.people, 1000, 680, cell, bw), pm = Math.max(...kp.v);
+        val = val.map((c,i)=>kp.v[i] >= pm*.2 ? c/kp.v[i] : 0);
+      }
+      const mx = Math.max(...val, 1e-9);
+      v = {mode, cell, cols:kc.cols, val:val.map(x=>x/mx)};
+    }
+    spCache.key = key; spCache.v = v;
+    return v;
+  }
+  function spatialLayer(){
+    const sp = spatial(); if(!sp) return '';
+    if(sp.mode==='db') return sp.cl.map((c,i)=>{ const col = CLC[i%CLC.length], h = c.hull;
+      return `<g class="sp-hull">${h.length>=3 ? `<path d="M${h.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L')} Z" style="fill:${col};stroke:${col}"/>`
+        : `<circle cx="${c.cx}" cy="${c.cy}" r="16" style="fill:${col};stroke:${col}"/>`}</g>`; }).join('');
+    const rate = sp.mode==='rate';
+    let s = '<g class="sp-heat">';
+    sp.val.forEach((v,i)=>{ if(v<.06) return; const x = (i%sp.cols)*sp.cell, y = Math.floor(i/sp.cols)*sp.cell;
+      s += `<rect x="${x}" y="${y}" width="${sp.cell}" height="${sp.cell}" style="fill:${rate?'#7a1fa2':'#c0392b'};fill-opacity:${(rate ? .72*Math.pow(v,1.6) : .62*Math.pow(v,.85)).toFixed(3)}"/>`; });
+    return s + '</g>';
+  }
+  /* ป้ายชื่อกลุ่ม วาดไว้ชั้นบนสุด ไม่ให้ป้ายสถานที่ทับ */
+  function spatialLabels(){
+    const sp = spatial(); if(!sp || sp.mode!=='db') return '';
+    return sp.cl.map((c,i)=>`<text class="sp-lab" x="${c.cx.toFixed(1)}" y="${(Math.min(...c.hull.map(p=>p.y), c.cy)-24).toFixed(1)}" text-anchor="middle" style="fill:${CLC[i%CLC.length]}">กลุ่ม ${U.thaiNum(i+1)} · ${U.thaiNum(c.n)} ราย</text>`).join('');
+  }
+  function spatialLegend(){
+    const sp = spatial(); if(!sp) return '';
+    if(sp.mode==='db') return `<div class="sp-sum"><b>DBSCAN</b> (รัศมี ≈ ${U.thaiNum(S.ui.eps*MPU)} ม. · อย่างน้อย ๔ รายต่อกลุ่ม): พบ ${U.thaiNum(sp.cl.length)} กลุ่ม · ผู้ป่วยกระจายเดี่ยว (noise) ${U.thaiNum(sp.noise)} ราย
+      ${sp.cl.length ? `<ul>${sp.cl.map((c,i)=>`<li><i style="background:${CLC[i%CLC.length]}"></i>กลุ่ม ${U.thaiNum(i+1)}: ${c.n} ราย · ${Math.round(c.vShare*100)}% อยู่${M.VILLAGES[c.topV-1].short}${c.near?` · ใกล้ ${M.SITES[c.near.id].icon} ${M.SITES[c.near.id].name} (~${U.thaiNum(Math.round(c.near.d*MPU/10)*10)} ม.)`:''}</li>`).join('')}</ul>` : ''}
+      <div class="faint">กลุ่มที่อยู่ใกล้สถานที่ใด ไม่ได้แปลว่าสถานที่นั้นเป็นต้นตอ — คนในหมู่บ้านเดียวกันใช้หลายอย่างร่วมกัน (ตัวแปรกวนเชิงพื้นที่) ใช้เป็นเบาะแสตั้งสมมติฐานเท่านั้น</div></div>`;
+    return `<div class="sp-sum">${sp.mode==='kde'
+      ? '<b>แผนที่ความร้อน (KDE)</b> ของ <b>จำนวน</b>ผู้ป่วย — จุดร้อนมักซ้อนกับที่ที่คนอยู่หนาแน่น ลองเปลี่ยนเป็น “อัตราป่วยต่อประชากร” เพื่อดูความเสี่ยงจริง'
+      : '<b>อัตราป่วยต่อประชากร</b> = ความหนาแน่นผู้ป่วย ÷ ความหนาแน่นประชากร (KDE ทั้งสองชั้น) — สีเข้มคือพื้นที่ที่คนป่วยเป็นสัดส่วนสูง ไม่ใช่แค่คนเยอะ (ซ่อนพื้นที่ที่แทบไม่มีคนอาศัย)'}
+      · แบนด์วิดท์ ≈ ${U.thaiNum(S.ui.eps*MPU)} ม.</div>`;
+  }
   function mapView(){
     const hl = S.ui.hl, R = recs();
-    let s = `<svg viewBox="0 0 1000 680" id="fmapsvg">${mapBase()}`;
+    let s = `<svg viewBox="0 0 1000 680" id="fmapsvg">${mapBase()}${spatialLayer()}`;
     if(S.ui.showCtl) for(const id of S.controls){ const p = W.byId(id), a = S.ans[id]; const cls = hl ? (a[hl]?' hl':' dim') : ''; s += `<rect class="ctl${cls}" x="${p.x-5}" y="${p.y-5}" width="10" height="10"/>`; }
     const sorted = R.slice().sort((a,b)=> hl ? ((ans(a.p)||{})[hl]?1:0)-((ans(b.p)||{})[hl]?1:0) : 0);
     for(const r of sorted){
@@ -86,14 +146,16 @@ OD.fieldViews = (function(){
       const lp = labelPos(st);
       s += `<g class="m-site unknown" data-unknown="${id}" transform="translate(${st.x} ${st.y})"><circle class="b" r="20"/><text class="e">${st.icon}</text><text class="q" x="16" y="-14">?</text><text class="m-txt" x="${lp.x}" y="${lp.y}" text-anchor="${lp.anchor}">${st.type==='farm'?'สวนผัก':'โรงน้ำแข็ง'}ที่ยังไม่รู้จัก</text></g>`;
     }
-    return s + `</svg>`;
+    return s + spatialLabels() + `</svg>`;
   }
   function mapTools(){
     const iv = Object.keys(S.ans).length>0;
     return `<div class="map-tools">
       <label>ระบายสี <select id="vColor"><option value="case">ผู้ป่วย</option><option value="onset">วันเริ่มป่วย</option><option value="age">กลุ่มอายุ</option><option value="water" ${iv?'':'disabled'}>น้ำดื่ม (ตามคำตอบ)</option></select></label>
       <label>ไฮไลต์การสัมผัส <select id="vHl" ${iv?'':'disabled'}><option value="">${iv?'— ไม่เลือก —':'🔒 ต้องสัมภาษณ์ก่อน'}</option>${M.exposures(S).map(e=>`<option value="${e.k}">${e.label}</option>`).join('')}</select></label>
-      ${S.controls.length?`<label><input type="checkbox" id="vCtl" ${S.ui.showCtl?'checked':''}> แสดงกลุ่มควบคุม (□)</label>`:''}</div>`;
+      ${S.controls.length?`<label><input type="checkbox" id="vCtl" ${S.ui.showCtl?'checked':''}> แสดงกลุ่มควบคุม (□)</label>`:''}
+      <label>🧭 วิเคราะห์เชิงพื้นที่ <select id="vSp"><option value="">— ไม่ใช้ —</option><option value="db">DBSCAN จับกลุ่มผู้ป่วย</option><option value="kde">แผนที่ความร้อน (จำนวน)</option><option value="rate">อัตราป่วยต่อประชากร</option></select></label>
+      ${S.ui.spatial?`<label>${S.ui.spatial==='db'?'รัศมี':'แบนด์วิดท์'} <input type="range" id="vEps" min="20" max="110" step="5" value="${S.ui.eps}"> <b>≈ ${U.thaiNum(S.ui.eps*MPU)} ม.</b></label>`:''}</div>`;
   }
   function legend(){
     let h = '';
@@ -103,7 +165,7 @@ OD.fieldViews = (function(){
     if(S.ui.colorBy==='onset') h += `<span>สีอ่อน = ป่วยก่อน · สีเข้ม = ป่วยล่าสุด</span>`;
     if(S.controls.length && S.ui.showCtl) h += `<span><i style="border:2px solid #2f6a8a;border-radius:0;background:none"></i>กลุ่มควบคุม</span>`;
     if(S.ui.hl) h += `<span>· ไฮไลต์: <b style="color:var(--gold-2)">${EXL(S.ui.hl)}</b> (จุดเข้ม = ตอบว่าสัมผัส)</span>`;
-    return `<div class="legend">${h}</div>`;
+    return `<div class="legend">${h}</div>${spatialLegend()}`;
   }
 
   /* ---------- เส้นโค้งการระบาด ---------- */
@@ -215,11 +277,11 @@ OD.fieldViews = (function(){
   }
   function evid(){
     if(!S.evidence.length) return `<div class="lockbox"><div class="big">🗂️</div><b>ยังไม่มีหลักฐานภาคสนาม</b><div>ตรวจสิ่งแวดล้อม ส่งแล็บ หรือขอข้อมูลห่วงโซ่อุปทาน — หลักฐานทั้งหมดจะถูกรวบรวมไว้ที่นี่เพื่อใช้เขียนรายงาน</div></div>`;
-    const ic = {env:'🔎', lab:'🧪', supply:'📦', rumor:'💬', clinical:'🩺', interview:'🎙️'};
+    const ic = {env:'🔎', lab:'🧪', supply:'📦', rumor:'💬', clinical:'🩺', interview:'🎙️', ml:'🤖', nlp:'📱'};
     return `<div class="evs">${S.evidence.slice().reverse().map(e=>`<div class="ev"><span class="k">${ic[e.kind]||'📄'}</span><div><div>${e.text}</div><div class="tm">${M.fmtT(e.t)}</div></div></div>`).join('')}</div>`;
   }
 
-  const TABS = [['curve','📈 เส้นโค้งการระบาด',curve],['ana','📊 วิเคราะห์ OR',ana],['sym','🩺 อาการ/อายุ',sym],['list','📋 รายชื่อ',list],['ev','🗂️ หลักฐาน',evid],['ck','✅ เช็คลิสต์',()=>OD.checklist.html(W,S)]];
+  const TABS = [['curve','📈 เส้นโค้งการระบาด',curve],['ana','📊 วิเคราะห์ OR',ana],['ml','🤖 ML',()=>OD.mlViews.html(W,S)],['sym','🩺 อาการ/อายุ',sym],['list','📋 รายชื่อ',list],['ev','🗂️ หลักฐาน',evid],['ck','✅ เช็คลิสต์',()=>OD.checklist.html(W,S)]];
   function render(w, s){
     W = w; S = s;
     U.$('#fMap').innerHTML = `<div class="ptitle"><h2>แผนที่ตำบลบ้านสุขใจ</h2><span class="faint" style="font-size:12.5px">แตะสถานที่เพื่อไฮไลต์ผู้สัมผัส</span></div>${mapTools()}<div class="mapbox">${mapView()}</div>${legend()}`;
@@ -232,8 +294,12 @@ OD.fieldViews = (function(){
     const h = U.$('#vHl'); if(h){ h.value = S.ui.hl || ''; h.onchange = e=>{ S.ui.hl = e.target.value || null; S.flags.vPlace = true; rerender(); }; }
     const k = U.$('#vCtl'); if(k) k.onchange = e=>{ S.ui.showCtl = e.target.checked; rerender(); };
     const so = U.$('#vSort'); if(so){ so.value = S.ui.sort; so.onchange = e=>{ S.ui.sort = e.target.value; rerender(); }; }
+    const sp = U.$('#vSp'); if(sp){ sp.value = S.ui.spatial || ''; sp.onchange = e=>{ S.ui.spatial = e.target.value; if(S.ui.spatial){ S.flags.vPlace = true; S.flags.vSpatial = true; } rerender(); }; }
+    const ep = U.$('#vEps'); if(ep){ ep.oninput = e=>{ const b = ep.parentElement.querySelector('b'); if(b) b.textContent = `≈ ${U.thaiNum(e.target.value*MPU)} ม.`; };
+      ep.onchange = e=>{ S.ui.eps = +e.target.value; rerender(); }; }
     U.$('#fAna .tabs').onclick = e=>{ const b = e.target.closest('[data-tab]'); if(b){ S.ui.tab = b.dataset.tab; rerender(); } };
     U.$$('#vBody tr[data-k]').forEach(tr=>tr.onclick = ()=>{ S.ui.hl = S.ui.hl===tr.dataset.k ? null : tr.dataset.k; rerender(); });
+    if(S.ui.tab==='ml') OD.mlViews.wire(W,S,rerender);
     const svg = U.$('#fmapsvg');
     const HIDDEN_TIP = 'ยังไม่รู้ว่าที่นี่ส่งวัตถุดิบให้ใคร — ค้นพบได้จาก 🔎 ตรวจสิ่งแวดล้อมร้านอาหาร/โรงอาหาร (ดูว่าซื้อน้ำแข็ง/ผักจากไหน) หรือ 📦 ห่วงโซ่อุปทาน';
     svg.onclick = e=>{

@@ -1,0 +1,48 @@
+คำสั่งสร้างภาพด้วย AI (ChatGPT / Gemini / Copilot ใช้ฟรีได้) — สำหรับนักสืบโรคระบาด v3
+=====================================================================================
+วิธีใช้: คัดลอกคำสั่งภาษาอังกฤษไปวางทีละข้อ ถ้าได้ภาพที่ชอบแล้ว ให้สร้างภาพถัดไปในแชตเดิม
+แล้วพิมพ์ต่อท้ายว่า "same art style as the previous image" เพื่อให้ทุกภาพเป็นสไตล์เดียวกัน
+ข้อควรระวัง: AI มักเขียนตัวอักษรไทยผิด จึงสั่ง "no text" ไว้ทุกภาพ ชื่อเกมใช้ตัวหนังสือของเกมเองดีกว่า
+
+---------------------------------------------------------------------
+1) ภาพพื้นหลังหน้าแรก  → บันทึกเป็น img/title-bg.jpg (แนวนอน 16:9)
+---------------------------------------------------------------------
+A cozy, vibrant painted illustration of a rural Thai riverside village in late November
+at golden hour: wooden stilt houses with rusty zinc and thatched roofs, golden rice paddies
+ready for harvest, a calm canal with a small wooden rowing boat, coconut and banana trees,
+a white-and-gold Thai temple with a red tiered roof and a white chedi in the distance,
+misty green mountains, water buffalo grazing, chickens near a house. Warm, hopeful, detailed
+storybook game art, soft lighting, wide landscape 16:9, no people in the foreground, no text.
+
+---------------------------------------------------------------------
+2) ตราสัญลักษณ์เกม (ไม่มีตัวอักษร)  → img/logo-emblem.png (สี่เหลี่ยมจัตุรัส พื้นโปร่งใส)
+---------------------------------------------------------------------
+A cute game logo emblem without any text: a young Thai health data scientist detective
+holding a magnifying glass and a tablet showing a small bar chart, framed by Thai rural
+elements (stilt house roof, rice stalks, coconut palm, canal water, a tiny water buffalo),
+ornate Thai gold "lai thai" border, bright saturated colors, sticker style with thick
+outline, transparent background, centered, no text, no letters.
+
+---------------------------------------------------------------------
+3) ตัวละครของผู้เล่น (ใช้กับระบบภาพตัวละครจริงที่มีอยู่แล้วในเกม — ดู README หัวข้อ "ใส่ภาพตัวละครจริง")
+   → img/me_f.png และ img/me_m.png (ครึ่งตัว พื้นโปร่งใส ประมาณ 400x520)
+---------------------------------------------------------------------
+Half-body portrait of a friendly young Thai woman (for me_f) / young Thai man (for me_m),
+a new health data science graduate working as an outbreak detective, teal jacket over a
+white shirt, ID badge on a lanyard, small field bag across the shoulder, holding a tablet,
+confident warm smile, soft painted anime-inspired game character art, clean lines,
+transparent background, facing slightly to the side, no text.
+
+---------------------------------------------------------------------
+4) ตัวละครอื่นแบบเดียวกัน (สร้างในแชตเดิม ใส่ "same art style as the previous image")
+---------------------------------------------------------------------
+doctor   — Thai male epidemiologist in his 30s, teal-green polo, browline glasses, team leader
+boonma   — kind elderly Thai village health volunteer woman, grey hair in a bun, light blue lace blouse
+kamnan   — Thai village headman in his 50s, khaki government shirt, small mustache
+fah      — young Thai female medical technologist, lab coat, surgical mask pulled down
+monk     — elderly Thai Buddhist abbot, saffron robe, shaved head, serene
+vendorF  — Thai papaya-salad (som tam) vendor woman, apron, head wrap
+vendorM  — Thai boat-noodle vendor man, pakama cloth, straw hat
+director — Thai female school director, navy blazer, glasses, bob hair
+
+เมื่อได้ภาพแล้ว ส่งไฟล์มาให้ผม ผมจะใส่เข้าเกมให้ (หน้าแรก โลโก้ และภาพตัวละคร)

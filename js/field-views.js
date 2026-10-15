@@ -284,7 +284,8 @@ OD.fieldViews = (function(){
   const TABS = [['curve','📈 เส้นโค้งการระบาด',curve],['ana','📊 วิเคราะห์ OR',ana],['ml','🤖 ML',()=>OD.mlViews.html(W,S)],['sym','🩺 อาการ/อายุ',sym],['list','📋 รายชื่อ',list],['ev','🗂️ หลักฐาน',evid],['ck','✅ เช็คลิสต์',()=>OD.checklist.html(W,S)]];
   function render(w, s){
     W = w; S = s;
-    U.$('#fMap').innerHTML = `<div class="ptitle"><h2>แผนที่ตำบลบ้านสุขใจ</h2><span class="faint" style="font-size:12.5px">แตะสถานที่เพื่อไฮไลต์ผู้สัมผัส</span></div>${mapTools()}<div class="mapbox">${mapView()}</div>${legend()}`;
+    U.$('#fMap').innerHTML = `<div class="ptitle"><h2>แผนที่ตำบลบ้านสุขใจ</h2><span class="faint" style="font-size:12.5px">แตะสถานที่เพื่อไฮไลต์ผู้สัมผัส</span></div>
+      <button class="walk-cta" data-a="walk"><span class="wc-i">🚶</span><span><b>เดินสำรวจหมู่บ้าน</b><small>เดินไปตรวจสถานที่ คุยกับชาวบ้าน เก็บการ์ดความรู้</small></span><span class="wc-go">เข้าสู่หมู่บ้าน ▶</span></button>${mapTools()}<div class="mapbox">${mapView()}</div>${legend()}`;
     U.$('#fAna').innerHTML = `<div class="tabs">${TABS.map(([k,l])=>`<button class="tab ${S.ui.tab===k?'on':''}" data-tab="${k}">${l}${k==='ev'&&S.evidence.length?` (${S.evidence.length})`:''}</button>`).join('')}</div><div id="vBody">${TABS.find(t=>t[0]===S.ui.tab)[2]()}</div>`;
     wire();
   }

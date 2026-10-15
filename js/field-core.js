@@ -247,8 +247,8 @@ OD.field = (function(){
       }, {wide:true});
     draw();
   };
-  A.inspect = ()=>{
-    let sel = null; const c = M.COST.inspect;
+  A.inspect = (pre)=>{
+    let sel = pre && !S.inspected[pre] ? pre : null; const c = M.COST.inspect;
     const sites = Object.keys(M.SITES).filter(id=>S.known.has(id));
     const draw = ()=>U.modal(`<h2 class="display gold-text">ตรวจสอบสิ่งแวดล้อม</h2>
       <p>ลงพื้นที่ตรวจสุขาภิบาล วัดคลอรีนคงเหลือ และสอบถามผู้ประกอบการ — ${c.h} ชม. · ${U.baht(c.b)} ต่อแห่ง</p>
@@ -271,8 +271,9 @@ OD.field = (function(){
       }, {wide:true});
     draw();
   };
-  A.lab = ()=>{
+  A.lab = (pre)=>{
     let site = null, type = null;
+    if(pre && M.sampleTypes(W,S,pre).length){ site = pre; const ts = M.sampleTypes(W,S,pre); if(ts.length===1) type = ts[0][0]; }
     const stoolOK = M.records(W,S).some(r=>!r.dup && !r.phantom && S.ans[r.p.id] && !S.stoolDone.has(r.p.id));
     const sites = Object.keys(M.SITES).filter(id=>S.known.has(id));
     const draw = ()=>{
@@ -325,8 +326,8 @@ OD.field = (function(){
     await U.ask(`<h2 class="display gold-text">ห่วงโซ่อุปทาน</h2><div class="paper" style="margin-top:8px"><ul style="margin:0;padding-left:20px">${lines.map(l=>`<li>${l}</li>`).join('')}</ul></div>`, [['ok','บันทึกเป็นหลักฐาน','btn-gold']]);
     await after();
   };
-  A.measure = ()=>{
-    let sel = null;
+  A.measure = (pre)=>{
+    let sel = pre || null;
     const sites = Object.keys(M.SITES).filter(id=>S.known.has(id) && id!=='E');
     const draw = ()=>U.modal(`<h2 class="display gold-text">มาตรการเร่งด่วน</h2>
       <p>สั่งปิด/งดใช้แหล่งที่สงสัยได้ทันทีโดยไม่ต้องรอรายงาน (หลักการป้องกันไว้ก่อน) — แต่ถ้าปิดผิดที่ ผู้ประกอบการเสียรายได้ และความเชื่อมั่นของชุมชนจะลดลง</p>
@@ -346,6 +347,12 @@ OD.field = (function(){
       }, {wide:true});
     draw();
   };
+  /* โหมดเดินสำรวจหมู่บ้าน (js/walk.js) — เรียกการกระทำเดิมผ่าน F.act */
+  A.walk = ()=>{ S.flags.walked = true; OD.walk.open(F); };
+  F.act = (k, arg) => { if(A[k]) A[k](arg); };
+  F.after = () => after();
+  F.hint = () => hint();
+  F.can = c => can(c);
   A.wait = async()=>{ const h = Math.min(M.COST.wait.h, M.DEADLINE - S.T); if(h<=0) return; F.spend(h, 0, `รอรายงานผู้ป่วยและผลการดำเนินงาน ${h} ชั่วโมง`); await after(); };
   A.report = async()=>{
     const k = await U.ask(`<h2 class="display gold-text">ส่งรายงานสอบสวนโรค?</h2><p>เมื่อส่งรายงาน การสอบสวนจะสิ้นสุดลง และมาตรการตามรายงานจะเริ่มทันที (${M.fmtT(S.T)})</p>
@@ -413,6 +420,7 @@ OD.field = (function(){
       <div class="note"><b>ปุ่มมีเลขขั้นตอนกำกับ</b> ตาม ๑๐ ขั้นตอนการสอบสวนการระบาด — ดูความคืบหน้าที่ ✅ เช็คลิสต์</div>
       <div class="note"><b>เหตุการณ์ระหว่างสอบสวน:</b> ทุกการตัดสินใจมีผลต่อเนื่อง — ชาวบ้านจะไว้ใจหรือไม่ ผู้ป่วยจะเพิ่มหรือลด และตอนจบจะเป็นอย่างไร ท้ายเกมมีสรุปว่าคุณพลาดอะไรบ้าง</div>
       <div class="note jade"><b>เครื่องมือ HDS:</b> แท็บ 🤖 ML (logistic regression · decision tree · SQL · ดาวน์โหลด notebook) · 🧭 วิเคราะห์เชิงพื้นที่บนแผนที่ · 📱 NLP ฟังเสียงโซเชียล · 🤖 ผู้ช่วย AI · 🔮 พยากรณ์ในรายงานเช้า</div>
+      <div class="note jade"><b>🚶 เดินสำรวจหมู่บ้าน (ใหม่):</b> กดปุ่มเหนือแผนที่ เดินไปตรวจบ่อ ร้านอาหาร คุยกับชาวบ้าน ดูธงแดงบ้านผู้ป่วย และเก็บการ์ดความรู้ — เดิน ๔ กม. = ๑ ชม. ในเกม</div>
       <div class="note"><b>ไม่รู้จะทำอะไรต่อ?</b> ดูกล่องคำแนะนำของพี่วิด้านบน หรือทำตามลำดับนี้: ดูกราฟและแผนที่ (ฟรี) → 🩺 ทบทวนเวชระเบียน → 🏘️ ค้นหาเชิงรุก → 🗣️ สัมภาษณ์ → 💡 ตั้งสมมติฐาน → 👥 กลุ่มควบคุม → อ่าน OR → 🔎 ตรวจ + 🧪 แล็บที่แหล่งที่ OR ชี้ → 🛑 ควบคุม → 📝 รายงาน</div>
       <div class="m-actions"><button class="btn" data-m="tour">🧭 ดูทัวร์หน้าจออีกครั้ง</button><button class="btn" data-m="fieldui">🔘 ปุ่มแต่ละปุ่มทำอะไร</button><button class="btn" data-m="tips">💡 เคล็ดลับมือใหม่</button><button class="btn" data-m="hb">📘 เปิดคู่มือ</button><button class="btn btn-gold" data-m="x">เข้าใจแล้ว</button></div>`,
       k=>{ U.closeModal(); if(k==='tour') OD.handbook.tour(); if(k==='hb') OD.handbook.open(); if(k==='fieldui' || k==='tips') OD.handbook.open(k); });
@@ -447,6 +455,7 @@ OD.field = (function(){
       await packKit(); log(`เตรียมอุปกรณ์ ${S.kit.size} รายการ`, 'good'); F.render();
       let seen = false; try{ seen = localStorage.getItem('od2-tour')==='1'; }catch(e){}
       if(!seen){ try{ localStorage.setItem('od2-tour','1'); }catch(e){} OD.handbook.tour(); }
+      else U.toast('🚶 ใหม่! กด <b>เดินสำรวจหมู่บ้าน</b> เหนือแผนที่ เพื่อเดินไปสืบสวนด้วยตัวเอง', '', 6000);
     })();
     return new Promise(res=>{ done = ()=>{ root.onclick = null; S.flags.reported = true; res(); }; });
   };

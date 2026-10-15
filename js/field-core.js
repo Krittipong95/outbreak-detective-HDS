@@ -379,28 +379,6 @@ OD.field = (function(){
     if(OD.interview.available(W,S) && !S.deep.length && S.flags.interviewed) return 'ลอง <b>🎙️ สัมภาษณ์เชิงลึก</b> ผู้ป่วยรายแรกดู — ถามคำถามปลายเปิดจะได้เบาะแสที่แบบสอบถามให้ไม่ได้ แต่ระวังคำถามชี้นำ';
     return 'หลักฐานครบสามด้านหรือยัง: <b>สถิติ</b> · <b>สิ่งแวดล้อม</b> · <b>ห้องปฏิบัติการ</b> — ถ้าชัดแล้ว ใช้มาตรการควบคุมและ <b>เขียนรายงาน</b> ยิ่งเร็ว ยิ่งป้องกันผู้ป่วยได้มาก';
   }
-  function nextStep(){
-    if(!S || !W) return null;
-    const left = OD.deadline.snapshot(S).remainingHours;
-    const step = (key, title, why, cost, kind='action') => ({key,title,why,cost,kind});
-    if(left<=0) return step('report','เขียนรายงาน','หมดเวลาสอบสวนแล้ว สรุปจากหลักฐานที่มี','ฟรี');
-    if(!S.reviewed && can({h:3,b:0})) return step('review','ทบทวนเวชระเบียน','ยืนยันว่าผู้ป่วยมีอาการเข้าได้กับโรคเดียวกัน','3 ชม.');
-    if(S.acfAt==null && can(OD.bonds.acfCost(S))) return step('acf','ค้นหาผู้ป่วยเชิงรุก','เพิ่มข้อมูลผู้ป่วยที่ยังไม่เข้าสู่ระบบ','ใช้เวลาและงบตามปุ่ม');
-    const pending = M.pendingInterviews(W,S);
-    const ic = interviewCost();
-    if(pending && can(ic)) return step('interview','สัมภาษณ์ผู้ป่วย','ยังมีผู้ป่วยรอสัมภาษณ์ '+pending+' ราย',costTxt(ic).replace('<br>',' · '));
-    if(!S.flags.vTime) return step('curve','ดูเส้นโค้งการระบาด','ดูว่าผู้ป่วยเริ่มเพิ่มเมื่อไร','ฟรี','tab');
-    if(!S.flags.vPlace) return step('map','ดูแผนที่ผู้ป่วย','ดูว่าผู้ป่วยกระจุกตัวที่ใด','ฟรี','map');
-    if(!S.hyp.length) return step('hyp','ตั้งสมมติฐาน','เลือกแหล่งที่สงสัยจากข้อมูลที่เห็น','ฟรี');
-    const interviewed = M.records(W,S).filter(r=>S.ans[r.p.id]).length;
-    if(!S.controls.length && interviewed>=5 && can(ccCost(1))) return step('controls','เก็บกลุ่มควบคุม','เทียบการสัมผัสของคนป่วยและคนไม่ป่วย','ใช้เวลาและงบตามปุ่ม');
-    if(S.controls.length && !S.flags.vOR) return step('ana','อ่านค่า OR','ตรวจว่าปัจจัยใดสัมพันธ์กับการป่วย','ฟรี','tab');
-    if(!Object.keys(S.inspected).length && can(M.COST.inspect||M.COST.env)) return step('inspect','ตรวจสิ่งแวดล้อม','ตรวจสถานที่จากหลักฐานที่คุณมี','ใช้เวลาและงบตามปุ่ม');
-    if(S.labs.some(l=>!l.seen) && left>12) return step('skip','รอผลแล็บ','ข้ามไปเวลาที่ผลออกได้ หากพร้อมแล้ว','เลือกเวลา');
-    if(can({h:1,b:0}) && !Object.keys(S.closed).length && S.hygieneAt==null) return step('measure','ใช้มาตรการเร่งด่วน','ลดการติดเชื้อเมื่อหลักฐานพอ','1–2 ชม.');
-    return step('report','เขียนรายงาน','ตรวจหลักฐานที่มี แล้วสรุปคดี','ฟรี');
-  }
-  F.nextStep = nextStep;
   function actBtn(key, icon, title, sub, c, dis){
     return `<button class="act" data-a="${key}" ${dis?'disabled':''}><span class="i">${icon}</span><span class="t"><b>${title}</b><small>${sub}</small></span><span class="c">${c}</span></button>`;
   }
@@ -415,8 +393,7 @@ OD.field = (function(){
       ${OD.deadline.html(S)}
       <button class="chip gold ck-chip" id="fCk" data-a="checklist" title="ดูเช็คลิสต์ ๑๐ ขั้นตอน">✅ ขั้นตอน ${U.thaiNum(OD.checklist.progress(W,S))}/๑๐</button>
       <button class="btn btn-ghost btn-sm" data-a="help" title="วิธีเล่น">📖</button><button class="btn btn-ghost btn-sm" data-a="handbook" title="คู่มือนักสืบมือใหม่">📘</button><button class="btn btn-ghost btn-sm" data-a="theme" title="สลับธีม">🌓</button>`;
-    const mission = nextStep();
-    U.$('#fAdv').innerHTML = `<div class="f-mission"><div><small>เป้าหมายถัดไป · ${mission.cost}</small><b>${mission.title}</b><span>${mission.why}</span></div><button class="btn btn-gold" data-a="next">ทำตอนนี้ →</button></div><div class="adv-row"><div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${hint()}</div></div></div>${OD.bonds.html(S)}</div>`;
+    U.$('#fAdv').innerHTML = `<div class="adv-row"><div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${hint()}</div></div></div>${OD.bonds.html(S)}</div>`;
     OD.deadline.notify(S);
     const ac = OD.bonds.acfCost(S);
     const icNext = interviewCost();
@@ -447,7 +424,6 @@ OD.field = (function(){
       <div class="note"><b>ดูข้อมูลฟรี:</b> แผนที่ เส้นโค้งการระบาด ตารางวิเคราะห์ อาการ รายชื่อผู้ป่วย หลักฐาน</div>
       <div class="note red"><b>การกระทำใช้เวลาและงบ:</b> ระหว่างนั้นผู้ป่วยรายใหม่จะเพิ่มขึ้น ผลแล็บออกหลัง ๒๔ ชม.</div>
       <div class="note"><b>⏳ เวลาคดีที่เหลือ:</b> แสดงวัน–ชั่วโมง–นาทีบนหน้าภาคสนามและตอนเดิน เวลาในคดีลดเมื่อเดินทางหรือทำภารกิจ การอ่านหลักฐานและบทสนทนาไม่ลดเวลา</div>
-      <div class="note jade"><b>หาทางไปต่อ:</b> กล่องเป้าหมายถัดไปด้านบนมีปุ่ม “ทำตอนนี้” สำหรับงานที่เริ่มได้</div>
       <div class="note jade"><b>ความเชื่อมั่นชุมชน:</b> ถ้าต่ำกว่า ๔๐ ชาวบ้านจะตอบแบบสอบถามคลาดเคลื่อนมากขึ้น</div>
       <div class="note"><b>ปุ่มมีเลขขั้นตอนกำกับ</b> ตาม ๑๐ ขั้นตอนการสอบสวนการระบาด — ดูความคืบหน้าที่ ✅ เช็คลิสต์</div>
       <div class="note"><b>เหตุการณ์ระหว่างสอบสวน:</b> ทุกการตัดสินใจมีผลต่อเนื่อง — ชาวบ้านจะไว้ใจหรือไม่ ผู้ป่วยจะเพิ่มหรือลด และตอนจบจะเป็นอย่างไร ท้ายเกมมีสรุปว่าคุณพลาดอะไรบ้าง</div>
@@ -479,14 +455,6 @@ OD.field = (function(){
       if(a==='handbook') return OD.handbook.open();
       if(a==='checklist'){ S.ui.tab = 'ck'; F.render(); U.$('#fAna').scrollIntoView({behavior:'smooth', block:'start'}); return; }
       if(a==='theme') return OD.toggleTheme();
-      if(a==='next'){
-        const m = nextStep(); if(!m) return;
-        if(m.kind==='tab'){ S.ui.tab=m.key; F.render(); U.$('#fAna').scrollIntoView({behavior:'smooth',block:'start'}); return; }
-        if(m.kind==='map'){ U.$('#fMap').scrollIntoView({behavior:'smooth',block:'start'}); return; }
-        const target = root.querySelector(`#fActions [data-a="${m.key}"]`);
-        if(target && !target.disabled) return F.act(m.key);
-        U.toast('งานนี้ยังทำไม่ได้ ลองอ่านหลักฐานหรือเลือกงานอื่น'); return;
-      }
       if(A[a]) F.act(a);
     };
     log(`เริ่มลงพื้นที่ — ฐานข้อมูลผู้ป่วย ${M.records(W,S).length} ราย`);

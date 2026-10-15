@@ -5,7 +5,8 @@ OD.main = (function(){
   const U = OD.u, M = OD.sim;
   const store = {get(k,d){ try{ const v = localStorage.getItem('od2-'+k); return v==null ? d : v; }catch(e){ return d; } },
                  set(k,v){ try{ localStorage.setItem('od2-'+k, v); }catch(e){} }};
-  let pref = {name:store.get('name',''), gender:store.get('gender', store.get('pol','ครับ')==='ค่ะ' ? 'f' : 'm'), diff:store.get('diff','normal')};
+  const savedDiff = store.get('diff', null);
+  let pref = {name:store.get('name',''), gender:store.get('gender', store.get('pol','ครับ')==='ค่ะ' ? 'f' : 'm'), diff:savedDiff || 'easy'};
   const GENDER = {m:{t:'ชาย', pol:'ครับ'}, f:{t:'หญิง', pol:'ค่ะ'}};
 
   /* ภาพหน้าตัวละครของผู้เล่น (วงกลม) — เก็บแคชไว้เพราะถูกวาดซ้ำบ่อย */
@@ -43,7 +44,7 @@ OD.main = (function(){
         <div class="title-actions"><button class="btn btn-gold btn-lg" data-t="start">เริ่มเรื่อง</button><button class="btn btn-lg" data-t="quick" title="ข้ามบทนำ บทที่ ๑ และ ๒">ลงพื้นที่ทันที</button></div>
         <div class="title-actions" style="margin-top:10px"><button class="btn" data-t="howto">🎮 วิธีเล่น</button><button class="btn daily-btn" data-t="daily" title="ทุกคนเล่นคดีเดียวกันในวันนี้ · ระดับนักวิทยาศาสตร์ข้อมูล · ลงพื้นที่ทันที">📅 คดีประจำวัน</button><button class="btn" data-t="stats">🏆 สถิติและเหรียญ</button><button class="btn" data-t="hb">📘 คู่มือนักสืบมือใหม่</button></div>
         ${(()=>{ const m = OD.meta.summary(); return m.cases ? `<div class="title-prog"><span>🗂️ ไขได้ ${U.thaiNum(m.solvedTypes)}/๖ ต้นตอ</span><span>🎖️ เหรียญ ${U.thaiNum(m.ach)}/${U.thaiNum(m.achMax)}</span><span>📜 เหตุการณ์ ${U.thaiNum(m.seen)}/${U.thaiNum(m.seenMax)}</span><span>🏅 คะแนนสูงสุด ${m.best}</span></div>`
-          : `<div class="title-new">เล่นครั้งแรก? กด <b>🎮 วิธีเล่น</b> (อ่าน ๓ นาที) แล้วเลือก <b>เริ่มเรื่อง</b> ระดับ <b>${D.normal.label}</b></div>`; })()}
+          : `<div class="title-new"><b>เริ่มแบบง่าย ๆ</b><ol><li>ลงพื้นที่ดูว่าเกิดอะไรขึ้น</li><li>สัมภาษณ์และตรวจสถานที่</li><li>เทียบหลักฐานก่อนสรุปคดี</li></ol><span>เมื่ออยู่หน้าภาคสนาม กด <b>🚶 เดินสำรวจ</b> เพื่อเปิดโหมดเดินในหมู่บ้าน</span></div>`; })()}
         <div class="title-tools"><span>🚨 ระบบเตือนภัย</span><span>🤖 ML</span><span>🧭 เชิงพื้นที่</span><span>📱 NLP</span><span>⚖️ AI รับผิดชอบ</span><span>🔮 พยากรณ์</span><span>💻 SQL · Python · R</span></div>
         <div class="title-foot">สุ่มต้นตอใหม่ทุกคดีจาก ๖ รูปแบบ พร้อมคดีหักมุม · ใช้เวลาเล่นประมาณ ๓๐–๔๕ นาที · ตัวละคร สถานที่ และข้อมูลทั้งหมดเป็นเรื่องสมมติ</div>
         <div class="krajang-band down" style="margin-top:12px"></div>

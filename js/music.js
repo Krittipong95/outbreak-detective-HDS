@@ -9,7 +9,10 @@ OD.music = (function(){
   const store = {get(k,d){ try{ const v = localStorage.getItem('od2-'+k); return v==null ? d : v; }catch(e){ return d; } },
                  set(k,v){ try{ localStorage.setItem('od2-'+k, v); }catch(e){} }};
   let ctx = null, master = null, bus = null, timer = null;
-  let enabled = store.get('music','1')==='1', vol = (+store.get('vol','55'))/100;
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  const savedVol = (key, fallback) => { const n=Number(store.get(key, fallback)); return Number.isFinite(n) ? clamp(n,0,100)/100 : fallback/100; };
+  let enabled = store.get('music','1')==='1', vol = savedVol('vol',55);
+  let sfxEnabled = store.get('sfx','1')==='1', sfxVol = savedVol('sfxVol',55);
   let song = 'kangkao', target = 'kangkao', pos = 0, nextT = 0, cur = null;
 
   /* ---------- โน้ตไทย ---------- */
@@ -90,10 +93,13 @@ OD.music = (function(){
   function init(){
     if(ctx) return true;
     const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return false;
-    ctx = new AC(); buildGraph();
-    document.addEventListener('visibilitychange', ()=>{ if(!ctx) return; if(document.hidden) ctx.suspend(); else if(enabled) ctx.resume(); });
-    return true;
+    try{
+      ctx = new AC(); buildGraph();
+      document.addEventListener('visibilitychange', ()=>{ if(!ctx) return; if(document.hidden) { try{ ctx.suspend(); }catch(e){} } else if(enabled || sfxEnabled) resume(); });
+      return true;
+    }catch(e){ ctx = master = bus = null; return false; }
   }
+  function resume(){ try{ if(ctx && ctx.state!=='running'){ const p=ctx.resume(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){} }
   function buildGraph(){
     master = ctx.createGain(); master.gain.value = 0;
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3;
@@ -179,13 +185,13 @@ OD.music = (function(){
   function fade(to, sec=1){ if(master) master.gain.setTargetAtTime(to, ctx.currentTime, sec/3); }
   function start(){
     if(!enabled || !init()) return;
-    if(ctx.state!=='running') ctx.resume();
+    resume();
     if(!timer){ nextT = ctx.currentTime + .1; timer = setInterval(tick, 40); }
     fade(vol*.7);
   }
   function stop(){
     if(!ctx) return; fade(0, .6);
-    setTimeout(()=>{ if(!enabled && timer){ clearInterval(timer); timer = null; ctx.suspend(); } }, 900);
+    setTimeout(()=>{ if(!enabled && timer){ clearInterval(timer); timer = null; if(!sfxEnabled) try{ ctx.suspend(); }catch(e){} } }, 900);
   }
   function setMood(m){
     if(MOOD[m]){ if(m===moodKey && MOOD[m].includes(target)) return; moodKey = m; moodIdx = 0; target = MOOD[m][0]; }
@@ -194,29 +200,35 @@ OD.music = (function(){
   }
   function sceneMood(bg){ setMood(SCENE[String(bg).split(':')[0]] || 'calm'); }
   function toggle(){ enabled = !enabled; store.set('music', enabled ? '1' : '0'); enabled ? start() : stop(); ui(); }
-  function setVolume(v){ vol = v; store.set('vol', Math.round(v*100)); if(enabled) start(); }
+  function toggleSfx(){ sfxEnabled = !sfxEnabled; store.set('sfx', sfxEnabled ? '1' : '0'); if(sfxEnabled){ if(init()) resume(); } else if(sfxBus && ctx) sfxBus.gain.setTargetAtTime(0, ctx.currentTime, .015); ui(); }
+  function setVolume(v){ vol = clamp(Number(v)||0,0,1); store.set('vol', Math.round(vol*100)); if(enabled) start(); }
+  function setSfxVolume(v){ sfxVol = clamp(Number(v)||0,0,1); store.set('sfxVol', Math.round(sfxVol*100)); if(sfxBus && ctx) sfxBus.gain.setTargetAtTime(sfxEnabled ? sfxVol*.8 : 0, ctx.currentTime, .015); }
   function ui(){
     const box = document.getElementById('musicCtl'); if(!box) return;
     if(!box.dataset.ready){
-      box.innerHTML = `<button class="music-btn" type="button"></button><input type="range" min="0" max="100" aria-label="ระดับเสียงเพลง">`;
+      box.innerHTML = `<div class="audio-control"><button class="music-btn" data-audio="music" type="button"></button><label>เพลง<input data-audio="music-vol" type="range" min="0" max="100" aria-label="ระดับเสียงเพลง"></label></div><div class="audio-control"><button class="music-btn" data-audio="sfx" type="button"></button><label>เอฟเฟกต์<input data-audio="sfx-vol" type="range" min="0" max="100" aria-label="ระดับเสียงเอฟเฟกต์"></label></div>`;
       box.dataset.ready = '1';
-      box.querySelector('button').onclick = e=>{ e.stopPropagation(); toggle(); };
-      const r = box.querySelector('input'); r.value = Math.round(vol*100);
-      r.oninput = e=>{ setVolume(e.target.value/100); if(!enabled){ enabled = true; store.set('music','1'); start(); ui(); } };
+      box.querySelector('[data-audio="music"]').onclick = e=>{ e.stopPropagation(); toggle(); };
+      box.querySelector('[data-audio="sfx"]').onclick = e=>{ e.stopPropagation(); toggleSfx(); };
+      box.querySelector('[data-audio="music-vol"]').oninput = e=>{ setVolume(e.target.value/100); };
+      box.querySelector('[data-audio="sfx-vol"]').oninput = e=>{ setSfxVolume(e.target.value/100); };
     }
-    const b = box.querySelector('button');
-    b.textContent = enabled ? '🎵' : '🔇';
-    b.title = enabled ? `กำลังเล่น: ${SONGS[song].name} (คลิกเพื่อปิดเพลง)` : 'เปิดเพลงประกอบ';
-    box.classList.toggle('off', !enabled);
+    const mb=box.querySelector('[data-audio="music"]'), sb=box.querySelector('[data-audio="sfx"]');
+    mb.textContent = enabled ? '🎵' : '🎵̸'; mb.title = enabled ? `เพลงเปิดอยู่: ${SONGS[song].name} · กดเพื่อปิดเพลง` : 'เพลงปิดอยู่ · กดเพื่อเปิดเพลง'; mb.setAttribute('aria-label',mb.title);
+    sb.textContent = sfxEnabled ? '🔔' : '🔕'; sb.title = sfxEnabled ? 'เสียงเอฟเฟกต์เปิดอยู่ · กดเพื่อปิด' : 'เสียงเอฟเฟกต์ปิดอยู่ · กดเพื่อเปิด'; sb.setAttribute('aria-label',sb.title);
+    box.querySelector('[data-audio="music-vol"]').value = Math.round(vol*100);
+    box.querySelector('[data-audio="sfx-vol"]').value = Math.round(sfxVol*100);
+    box.classList.toggle('off', !enabled && !sfxEnabled);
   }
-  function arm(){ ui(); const go = ()=>{ if(enabled) start(); }; document.addEventListener('pointerdown', go, {once:true}); document.addEventListener('keydown', go, {once:true}); }
+  function arm(){ ui(); const go = ()=>{ if(!init()) return; resume(); if(enabled) start(); }; document.addEventListener('pointerdown', go, {once:true}); document.addEventListener('keydown', go, {once:true}); }
 
-  /* ---------- เสียงเอฟเฟกต์ (ปิดพร้อมเพลงด้วยปุ่ม 🎵) ---------- */
+  /* ---------- เสียงเอฟเฟกต์ ---------- */
   let sfxBus = null;
   function sfx(name){
-    if(!enabled || !ctx || ctx.state!=='running') return;     // ต้องมีการคลิกครั้งแรกก่อน (นโยบายเบราว์เซอร์)
+    if(!sfxEnabled || !ctx || ctx.state!=='running') return;     // ต้องมีการคลิกครั้งแรกก่อน (นโยบายเบราว์เซอร์)
+    try{
     if(!sfxBus){ sfxBus = ctx.createGain(); sfxBus.connect(ctx.destination); }
-    sfxBus.gain.value = vol*.8;
+    sfxBus.gain.setTargetAtTime(sfxVol*.8, ctx.currentTime, .01);
     const t = ctx.currentTime + .01;
     const T = (type, f, a, peak, d, at=0, f2) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, t+at);
       if(f2) o.frequency.exponentialRampToValueAtTime(f2, t+at+a+d); g.gain.setValueAtTime(.0001, t+at); g.gain.exponentialRampToValueAtTime(peak, t+at+a);
@@ -235,7 +247,13 @@ OD.music = (function(){
       case 'alert': T('sawtooth', 233, .01, .08, .4, 0, 170); T('sawtooth', 220, .01, .07, .4); break;     // ข่าวร้าย
       case 'heart': T('sine', 660, .005, .1, .15); T('sine', 990, .005, .08, .22, .1); break;               // ความสนิทเพิ่ม
       case 'down':  T('sine', 520, .005, .09, .2, 0, 330); break;                                           // ความสนิทลด
+      case 'step':  T('triangle', 170, .003, .055, .07); break;
+      case 'bike':  T('sine', 420, .003, .06, .1, 0, 260); break;
+      case 'navigate': T('sine', 740, .004, .07, .12); T('sine', 990, .004, .055, .1, .07); break;
+      case 'arrive': T('triangle', 660, .004, .075, .16); T('triangle', 880, .004, .065, .2, .09); break;
+      case 'startle': T('sine', 260, .004, .055, .12, 0, 180); T('triangle', 520, .004, .035, .1, .05, 390); break;
     }
+    }catch(e){} // Audio APIs may be unavailable or suspended in older browsers.
   }
   OD.sfx = sfx;
 
@@ -251,5 +269,5 @@ OD.music = (function(){
     ({ctx, master, bus, song, target, pos, cur} = keep);
     return {rms:Math.sqrt(sum/d.length), peak};
   }
-  return {arm, start, stop, toggle, setMood, sceneMood, setVolume, renderTest, addSong, parseThai, sfx, songs:()=>Object.keys(SONGS)};
+  return {arm, start, stop, toggle, toggleSfx, setMood, sceneMood, setVolume, setSfxVolume, renderTest, addSong, parseThai, sfx, songs:()=>Object.keys(SONGS)};
 })();

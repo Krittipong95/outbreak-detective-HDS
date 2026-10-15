@@ -612,13 +612,48 @@ OD.walk = (function(){
   /* ---------- เปิด / ปิด ---------- */
   let coarse = false, navTarget = null, view2 = null, vctx2 = null, badgeT = 0;
   const Q = () => S.flags.wq;
+  let startleOn = true, startleClock = 0, startleNext = 30, startleCount = 0, startleLife = 0;
+  let stepDistance = 0, stepClock = 0;
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function clearStartle(){ startleLife = 0; const box = el && el.querySelector('.wk-startle'); if(box){ box.classList.add('hidden'); box.textContent = ''; } }
+  function triggerStartle(test = false){
+    if(!running || !startleOn || sheetFor || blocked() || document.hidden || startleLife || startleCount >= 2 || (!test && startleClock < startleNext)) return false;
+    const box = el.querySelector('.wk-startle'); if(!box) return false;
+    const bird = Math.random() < .5;
+    box.innerHTML = '<span class="wk-startle-animal" aria-hidden="true">' + (bird ? '🐦' : '🐈') + '</span><span>' + (bird ? 'ฟึ่บ! แค่นกบินผ่านเอง 🐦' : 'แฮ่! แมวเจ้าถิ่นแวะมาทัก 🐈') + '<small>ไม่มีผลต่อคดีหรือคะแนน · ปิดได้ที่ปุ่ม สะดุ้ง</small></span>';
+    box.classList.toggle('wk-still', reducedMotion()); box.classList.remove('hidden');
+    startleLife = 3.5; startleCount++; startleNext = startleClock + 90;
+    OD.sfx && OD.sfx('startle'); return true;
+  }
+  function updateStartle(dt, moved){
+    if(!startleOn || sheetFor || blocked() || document.hidden){ clearStartle(); return; }
+    startleClock += dt;
+    if(startleLife){ startleLife -= dt; if(startleLife <= 0) clearStartle(); }
+    else if(moved > 0 && startleClock >= startleNext && Math.random() < dt*.025) triggerStartle();
+  }
+  function cancelNavigation(){ path = null; pendingTarget = null; navTarget = null; dest = null; hold = null; hudKey = ''; }
+  function placeInfo(s, i){
+    const site = s.kind==='site' ? M.SITES[s.id] : null;
+    const unknown = site && site.hidden && !S.known.has(s.id);
+    return Object.assign({}, s, {spot:s, code:s.kind==='hc' ? 'H' : s.kind==='village' ? 'V'+s.vid : unknown ? '?'+(i+1) : s.id,
+      n:s.kind==='hc' ? HC.name : s.kind==='village' ? M.VILLAGES[s.vid-1].name : unknown ? (site.type==='farm' ? 'สวนผัก' : 'โรงน้ำแข็ง')+'ที่ยังไม่รู้จัก' : site.name,
+      ic:s.kind==='hc' ? '🏥' : s.kind==='village' ? '🏘️' : unknown ? '❔' : site.icon,
+      closed:!!(site && !unknown && M.isClosed(S,s.id)), d:Math.hypot(s.x-P.x,s.y-P.y)*1.25});
+  }
+  function places(){ return built.spots.map(placeInfo); }
+  function selectPlace(s){ if(!s || !running) return; closeSheet(); navTarget = s; goTo(s.x,s.y,s.spot); }
+  function routeDistance(){ if(!path || !path.length) return 0; let x=P.x,y=P.y,d=0; for(const p of path){ d+=Math.hypot(p[0]-x,p[1]-y); x=p[0]; y=p[1]; } return d; }
+
   function open(field){
+    if(running) return;
     F = field; W = OD.W; S = OD.S;
     if(!built || built.seed!==W.seed){ sprites(); built = build(); built.seed = W.seed; spawnActors(); }
     recCache = {key:'', list:[]}; flagCache = {key:'', list:[]};
     S.flags.walkCards = S.flags.walkCards || [];
     S.flags.wq = S.flags.wq || {hen:0, wash:0, trash:0, trashGot:[], visited:[], talked:[], badges:[], dist:0, bikeDist:0, bike:false, riding:false, night:false};
     coarse = matchMedia('(pointer:coarse)').matches;
+    try{ startleOn = localStorage.getItem('od3-startle') !== '0'; }catch(e){}
+    startleClock = 0; startleNext = 30; startleCount = 0; startleLife = 0; stepDistance = 0; stepClock = 0;
     const sv = S.flags.walkPos;
     P = {x: sv ? sv[0] : HC.x, y: sv ? sv[1] : HC.y+24, dir:'d', frame:0, ft:0, look:{skin: S.gender==='f' ? '#f3cfac' : '#ebbd96', hair: S.gender==='f' ? '#3a2219' : '#2a1d17', long: S.gender==='f', shirt:'#2f7f6c', pants:'#2b3550', vest:true, bag:true}};
     if(!walkable(P.x,P.y)){ const q = freeNear(P.x,P.y); P.x = q.x; P.y = q.y; }
@@ -626,9 +661,10 @@ OD.walk = (function(){
     if(!el){ el = document.createElement('div'); el.id = 'walk'; el.className = 'walk'; document.body.appendChild(el); }
     el.innerHTML = `<canvas class="wk-cv"></canvas>
       <div class="wk-hud"><div class="wk-left"><div class="wk-stats"></div><div class="wk-quest"></div></div>
-        <div class="wk-btns"><button class="wk-b" data-w="nav" title="นำทาง (N)">🧭 ไปที่…</button><button class="wk-b" data-w="book" title="สมุดนักสำรวจ">📒 สมุด</button><button class="wk-b hidden" data-w="bike" title="ขึ้น/ลงจักรยาน (B)">🚲</button><button class="wk-b" data-w="zoom" title="ซูมเข้า/ออก (M)">🔍</button><button class="wk-b" data-w="help" title="วิธีเล่น">❔</button><button class="wk-b gold" data-w="exit">🗺️ กลับหน้าข้อมูล</button></div></div>
-      <canvas class="wk-mini" title="แตะเพื่อเดินไปที่นั่น"></canvas>
+        <div class="wk-btns"><button class="wk-b" data-w="home">🏥 กลับ รพ.สต.</button><button class="wk-b hidden" data-w="stop">⏹ หยุดเดิน</button><button class="wk-b" data-w="startle" aria-pressed="${startleOn}">สะดุ้ง: ${startleOn ? 'เปิด' : 'ปิด'}</button><button class="wk-b" data-w="nav" title="นำทาง (N)">🧭 ไปที่…</button><button class="wk-b" data-w="book" title="สมุดนักสำรวจ">📒 สมุด</button><button class="wk-b hidden" data-w="bike" title="ขึ้น/ลงจักรยาน (B)">🚲</button><button class="wk-b" data-w="zoom" title="ซูมเข้า/ออก (M)">🔍</button><button class="wk-b" data-w="help" title="วิธีเล่น">❔</button><button class="wk-b gold" data-w="exit">🗺️ กลับหน้าข้อมูล</button></div></div>
+      <div class="wk-map-panel"><button class="wk-map-open" data-w="nav" aria-label="ขยายแผนที่ ดูชื่อร้านและเลือกจุดหมาย"><canvas class="wk-mini" aria-hidden="true"></canvas><span>🗺️ ชื่อร้าน / ขยายแผนที่</span></button><div class="wk-shop-legend">${places().filter(s=>s.kind==='site' && M.SITES[s.id].type==='food').map(s=>'<button data-w="shop" data-id="'+U.esc(s.id)+'" title="ไป '+U.esc(s.n)+'"><b>'+U.esc(s.code)+'</b> <span>'+U.esc(s.n)+'</span></button>').join('')}</div></div>
       <button class="wk-act hidden" data-w="act"></button>
+      <div class="wk-startle hidden" role="status" aria-live="polite"></div>
       <div class="wk-sheet hidden"></div>`;
     el.classList.remove('hidden');
     cv = el.querySelector('.wk-cv'); ctx = cv.getContext('2d');
@@ -645,7 +681,7 @@ OD.walk = (function(){
   }
   async function close(){
     if(!running) return;
-    running = false; cancelAnimationFrame(raf); unbind();
+    running = false; cancelAnimationFrame(raf); unbind(); clearStartle(); cancelNavigation(); closeSheet();
     S.flags.walkPos = [Math.round(P.x), Math.round(P.y)];
     el.classList.add('hidden'); el.innerHTML = ''; document.body.classList.remove('walking');
     const charged = charge();
@@ -674,36 +710,40 @@ OD.walk = (function(){
       kd: e=>{ if(!running) return; const k = (e.key||'').toLowerCase();
         if(k==='shift'){ keys.add('shift'); return; }
         if(blocked()) return; if(e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA' || e.ctrlKey || e.metaKey || e.altKey) return;
-        if(MOVE_KEYS.includes(k)){ keys.add(k); path = null; pendingTarget = null; navTarget = null; e.preventDefault(); }
+        if(MOVE_KEYS.includes(k)){ cancelNavigation(); keys.add(k); e.preventDefault(); }
         else if(k==='e' || k===' ' || k==='enter'){ e.preventDefault(); if(sheetFor) closeSheet(); else if(focus) interact(focus); }
-        else if(k==='escape'){ if(sheetFor) closeSheet(); }
+        else if(k==='escape'){ if(sheetFor) closeSheet(); else cancelNavigation(); }
         else if(k==='m') toggleZoom();
         else if(k==='b') toggleBike();
         else if(k==='n') navSheet(); },
       ku: e=>keys.delete((e.key||'').toLowerCase()),
-      blur: ()=>{ keys.clear(); hold = null; },
+      blur: ()=>{ keys.clear(); hold = null; clearStartle(); },
+      visibility: ()=>{ keys.clear(); hold = null; clearStartle(); lastT = performance.now(); },
       rs: ()=>resize(),
       down: e=>{ if(blocked()) return; e.preventDefault();
         const w = toWorld(e.clientX, e.clientY), tgt = pickAt(w.x, w.y);
-        navTarget = null;
+        cancelNavigation();
         if(tgt) goTo(tgt.a ? tgt.a.x : tgt.x, tgt.a ? tgt.a.y : tgt.y, tgt); else goTo(w.x, w.y, null);
         if(sheetFor && !tgt) closeSheet();
         hold = {id:e.pointerId, cx:e.clientX, cy:e.clientY, t0:performance.now(), tgt:!!tgt};
         try{ cv.setPointerCapture(e.pointerId); }catch(er){} },
       move: e=>{ if(hold && e.pointerId===hold.id){ hold.cx = e.clientX; hold.cy = e.clientY; } },
       up: e=>{ if(hold && e.pointerId===hold.id){ if(hold.steer){ path = null; pendingTarget = null; } hold = null; } },
-      mdown: e=>{ if(blocked()) return; const r = mini.getBoundingClientRect(); navTarget = null; goTo((e.clientX-r.left)/r.width*WW, (e.clientY-r.top)/r.height*WH, null); if(sheetFor) closeSheet(); },
       click: e=>{ const b = e.target.closest('[data-w],[data-a]'); if(!b || b.disabled) return;
         if(b.dataset.a){ doAction(b.dataset.a, b.dataset.arg); return; }
-        const w = b.dataset.w;
+        const w = b.dataset.w; if(blocked()) return;
         if(w==='exit') close();
         else if(w==='zoom') toggleZoom();
         else if(w==='help') help();
         else if(w==='nav') navSheet();
+        else if(w==='shop') selectPlace(places().find(s=>s.id===b.dataset.id));
+        else if(w==='home') selectPlace(places().find(s=>s.kind==='hc'));
+        else if(w==='stop') cancelNavigation();
+        else if(w==='startle'){ startleOn = !startleOn; try{ localStorage.setItem('od3-startle', startleOn ? '1' : '0'); }catch(er){} clearStartle(); b.textContent = 'สะดุ้ง: '+(startleOn ? 'เปิด' : 'ปิด'); b.setAttribute('aria-pressed', String(startleOn)); }
         else if(w==='book') bookSheet(b.dataset.tab || 'badge');
         else if(w==='bike') toggleBike();
         else if(w==='borrow'){ Q().bike = true; Q().riding = true; closeSheet(); U.toast('🚲 ยืมจักรยาน รพ.สต. แล้ว! เร็วขึ้นเกือบ ๒ เท่า และเสียเวลาเดินทางน้อยลง · กด 🚲 หรือ B เพื่อขึ้น/ลง'); OD.sfx && OD.sfx('chime'); hudKey = ''; }
-        else if(w==='go'){ const s = navList[+b.dataset.i]; if(s){ closeSheet(); navTarget = s; goTo(s.x, s.y, s); } }
+        else if(w==='go') selectPlace(navList[+b.dataset.i]);
         else if(w==='act'){ if(focus) interact(focus); }
         else if(w==='close' || w==='card') closeSheet();
         else if(w==='q') questAction(b.dataset.q, b.dataset.v);
@@ -712,9 +752,9 @@ OD.walk = (function(){
     };
     addEventListener('keydown', H.kd); addEventListener('keyup', H.ku); addEventListener('blur', H.blur); addEventListener('resize', H.rs);
     cv.addEventListener('pointerdown', H.down); cv.addEventListener('pointermove', H.move); cv.addEventListener('pointerup', H.up); cv.addEventListener('pointercancel', H.up);
-    mini.addEventListener('pointerdown', H.mdown); el.addEventListener('click', H.click);
+    document.addEventListener('visibilitychange', H.visibility); el.addEventListener('click', H.click);
   }
-  function unbind(){ if(!H) return; removeEventListener('keydown', H.kd); removeEventListener('keyup', H.ku); removeEventListener('blur', H.blur); removeEventListener('resize', H.rs); keys.clear(); hold = null; H = null; }
+  function unbind(){ if(!H) return; removeEventListener('keydown', H.kd); removeEventListener('keyup', H.ku); removeEventListener('blur', H.blur); removeEventListener('resize', H.rs); document.removeEventListener('visibilitychange', H.visibility); el.removeEventListener('click', H.click); cv.removeEventListener('pointerdown', H.down); cv.removeEventListener('pointermove', H.move); cv.removeEventListener('pointerup', H.up); cv.removeEventListener('pointercancel', H.up); keys.clear(); hold = null; H = null; }
   function toggleZoom(){ zoomFar = !zoomFar; resize(); }
   function toggleBike(){
     if(!Q().bike){ U.toast('🚲 ยืมจักรยานได้ที่ 🏥 รพ.สต. (ฟรี)'); return; }
@@ -738,12 +778,14 @@ OD.walk = (function(){
   function goTo(x, y, tgt){
     path = findPath(P.x, P.y, x, y);
     pendingTarget = tgt; dest = {x, y}; P.retry = 0; P.stuck = 0;
-    if(!path){ pendingTarget = null; navTarget = null; U.toast('🚧 ไปตรงนั้นไม่ได้ — ลองเดินอ้อมหรือหาสะพาน'); return; }
+    if(!path){ cancelNavigation(); U.toast('🚧 ไปตรงนั้นไม่ได้ — ลองเดินอ้อมหรือหาสะพาน'); return; }
+    hudKey = ''; OD.sfx && OD.sfx('navigate');
     if(!path.length){ path = null; arrive(); }
   }
   function arrive(){
     dest = null;
-    if(navTarget && Math.hypot(P.x-navTarget.x, P.y-navTarget.y) < 30) navTarget = null;
+    navTarget = null; hudKey = '';
+    OD.sfx && OD.sfx('arrive');
     if(!pendingTarget) return;
     const tg = pendingTarget; pendingTarget = null;
     const tx = tg.a ? tg.a.x : tg.x, ty = tg.a ? tg.a.y : tg.y;
@@ -770,14 +812,15 @@ OD.walk = (function(){
   function update(dt, t){
     let moved = 0;
     const q = Q();
-    if(!blocked()){
+    stepClock += dt;
+    if(!blocked() && !sheetFor && !document.hidden){
       let dx = 0, dy = 0;
       if(keys.has('arrowleft')||keys.has('a')) dx--; if(keys.has('arrowright')||keys.has('d')) dx++;
       if(keys.has('arrowup')||keys.has('w')) dy--; if(keys.has('arrowdown')||keys.has('s')) dy++;
       // กดค้างแล้วลากนิ้ว = บังคับทิศทางเหมือนจอยสติ๊ก
       if(hold && !dx && !dy && performance.now() - hold.t0 > 230){
         const w = toWorld(hold.cx, hold.cy), ddx = w.x - P.x, ddy = w.y - (P.y-8);
-        if(Math.hypot(ddx, ddy) > 6){ hold.steer = true; path = null; pendingTarget = null; navTarget = null; dx = ddx; dy = ddy; }
+        if(Math.hypot(ddx, ddy) > 6){ hold.steer = true; path = null; pendingTarget = null; navTarget = null; dest = null; dx = ddx; dy = ddy; }
       }
       if(dx||dy) moved = moveP(dx, dy, dt);
       else if(path && path.length){
@@ -788,11 +831,14 @@ OD.walk = (function(){
             if(P.stuck > .3){ P.stuck = 0;
               // ติดสิ่งกีดขวาง → หาเส้นทางใหม่จากจุดปัจจุบัน (สูงสุด ๓ ครั้ง)
               if(dest && (P.retry = (P.retry||0) + 1) <= 3) path = findPath(P.x, P.y, dest.x, dest.y); else path = null;
-              if(!path){ pendingTarget = null; dest = null; } else if(!path.length){ path = null; arrive(); } } }
+              if(!path){ cancelNavigation(); U.toast('🚧 ทางติดขัด — เลือกจุดหมายอีกครั้ง'); } else if(!path.length){ path = null; arrive(); } } }
           else P.stuck = 0; }
       }
     }
+    updateStartle(dt, moved);
     if(moved){
+      stepDistance += moved;
+      if(stepDistance >= (q.riding ? 35 : 15) && stepClock >= (q.riding ? .5 : .25)){ OD.sfx && OD.sfx(q.riding ? 'bike' : 'step'); stepDistance = 0; stepClock = 0; }
       P.ft += dt; P.frame = [1,0,2,0][Math.floor(P.ft*(q.riding ? 10 : keys.has('shift') ? 11 : 8))%4];
       S.flags.walkAcc = (S.flags.walkAcc||0) + moved * (q.riding ? 1/3 : 1);
       q.dist += moved; if(q.riding) q.bikeDist += moved;
@@ -902,7 +948,8 @@ OD.walk = (function(){
     if(!running) return;
     frames++;
     const dt = U.clamp((now - lastT)/1000, 0, .05); lastT = now;
-    if(document.getElementById('scr-field').classList.contains('hidden')){ running = false; unbind(); el.classList.add('hidden'); document.body.classList.remove('walking'); return; }
+    if(document.getElementById('scr-field').classList.contains('hidden')){ running = false; unbind(); clearStartle(); cancelNavigation(); closeSheet(); el.classList.add('hidden'); document.body.classList.remove('walking'); return; }
+    if(document.hidden){ clearStartle(); raf = requestAnimationFrame(loop); return; }
     update(dt, now/1000);
     draw(now/1000);
     raf = requestAnimationFrame(loop);
@@ -1023,7 +1070,7 @@ OD.walk = (function(){
     return null;
   }
   /* ลูกศรนำทาง: ไปยังปลายทางที่เลือก หรือพาไก่กลับบ้านยาย */
-  function guideTarget(){ const q = Q(); if(q.hen===2) return {x:quest.yai.x, y:quest.yai.y, n:'ยายผิน'}; if(navTarget) return navTarget; if(q.trash===1 && q.trashGot.length===quest.trash.length) return {x:quest.lung.x, y:quest.lung.y, n:'ลุงเผือก'}; return null; }
+  function guideTarget(){ const q = Q(); if(navTarget) return navTarget; if(q.hen===2) return {x:quest.yai.x, y:quest.yai.y, n:'ยายผิน'}; if(q.trash===1 && q.trashGot.length===quest.trash.length) return {x:quest.lung.x, y:quest.lung.y, n:'ลุงเผือก'}; return null; }
   function guide(t){
     const tg = guideTarget(); if(!tg) return;
     const s = scale, x = (tg.x - camF.x)*s, y = (tg.y - camF.y)*s - 34*s, m = 40*dpr;
@@ -1048,7 +1095,8 @@ OD.walk = (function(){
       const w = ctx.measureText(txt).width + 12*dpr, h = fs + 8*dpr; if(x+w/2 < 0 || x-w/2 > cv.width || y < -h || y > cv.height+h) return;
       ctx.fillStyle = bgc; rr(x-w/2, y-h/2, w, h, h/2); ctx.fill(); ctx.fillStyle = fg; ctx.fillText(txt, x, y+1*dpr); };
     for(const id in M.SITES){ const st = Object.assign({}, M.SITES[id], loc(id)), known = S.known.has(id);
-      const txt = known ? `${st.icon} ${st.name}` : `${st.icon} ${st.type==='farm'?'สวนผัก':'โรงน้ำแข็ง'}ที่ยังไม่รู้จัก`;
+      const info = placeInfo(built.spots.find(s=>s.id===id));
+      const txt = `${info.ic} ${info.n}`;
       tag(txt + (known && M.isClosed(S,id) ? ' · ปิดอยู่' : ''), sx(st.x), sy(st.y+10-siteH(id)) - 4*dpr, known ? (M.isClosed(S,id) ? 'rgba(140,20,20,.8)' : 'rgba(24,16,8,.72)') : 'rgba(60,60,70,.7)'); }
     tag('🏥 รพ.สต. บ้านสุขใจ · ฐานทีม HDS', sx(HC.x), sy(HC.y+10-32) - 4*dpr, 'rgba(20,90,60,.82)');
     for(const p of built.plazas){ const v = M.VILLAGES[p.vid-1]; tag(`🏘️ ${v.name}`, sx(p.x), sy(p.y-30), 'rgba(90,60,20,.78)'); }
@@ -1069,7 +1117,10 @@ OD.walk = (function(){
   }
   function drawMini(t){
     const g = mctx, q = Q(); g.drawImage(built.mm, 0, 0);
+    if(path && path.length){ g.strokeStyle = '#ffe391'; g.lineWidth = 2; g.beginPath(); g.moveTo(P.x/5,P.y/5); for(const p of path) g.lineTo(p[0]/5,p[1]/5); g.stroke(); }
     for(const id in M.SITES){ const s = loc(id); g.fillStyle = S.known.has(id) ? (M.isClosed(S,id) ? '#d8322a' : '#ffd23f') : '#9aa'; g.fillRect(s.x/5-2, s.y/5-2, 4, 4); }
+    g.font = 'bold 10px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    for(const s of places().filter(s=>s.kind==='site' && M.SITES[s.id].type==='food')){ const x=U.clamp(s.x/5,10,mini.width-10), y=U.clamp(s.y/5-9,7,mini.height-7); g.fillStyle='#201b11'; g.fillRect(x-9,y-6,18,12); g.fillStyle='#ffe493'; g.fillText(s.code,x,y); }
     g.fillStyle = '#2e9a5a'; g.fillRect(HC.x/5-2, HC.y/5-2, 5, 5); g.fillStyle = '#fff'; g.fillRect(HC.x/5-1, HC.y/5, 3, 1); g.fillRect(HC.x/5, HC.y/5-1, 1, 3);
     g.fillStyle = '#e8322a'; for(const f of caseFlags()) g.fillRect(f.x/5-1, f.y/5-1, 2, 2);
     if(q.trash===1){ g.fillStyle = '#9ad35a'; quest.trash.forEach((tr,i)=>{ if(!q.trashGot.includes(i)) g.fillRect(tr.x/5-1, tr.y/5-1, 2, 2); }); }
@@ -1080,11 +1131,11 @@ OD.walk = (function(){
   }
   function questLine(){
     const q = Q();
+    if(navTarget) return `🧭 ไป <b>${U.esc(navTarget.n)}</b> · เหลือ ${(routeDistance()*4/1000).toFixed(1)} กม. · กด ⏹ เพื่อหยุด`;
     if(q.hen===2) return '🐔 พาไก่นางดำไปส่ง<b>ยายผิน</b> (ตามลูกศรสีทอง)';
     if(q.trash===1) return q.trashGot.length===quest.trash.length ? '🗑️ เก็บครบแล้ว — กลับไปหา<b>ลุงเผือก</b>' : `🗑️ เก็บขยะริมคลอง ${U.thaiNum(q.trashGot.length)}/${U.thaiNum(quest.trash.length)} (จุดเขียวบนแผนที่ย่อ)`;
     if(q.hen===1) return `🐔 ตามหาไก่นางดำ — ยายว่ามันชอบไปแถว<b>${quest.henMark}</b>`;
-    if(navTarget) return `🧭 กำลังไป <b>${navTarget.n}</b>`;
-    return '';
+    return path ? '🚶 กำลังเดินตามเส้นทาง · กด ⏹ เพื่อหยุด' : 'เริ่มที่ 🧭 ไปที่… เลือกร้าน → สำรวจ/สัมภาษณ์ → เทียบหลักฐาน · 🏥 กลับฐานได้เสมอ';
   }
   function hud(){
     const acc = S.flags.walkAcc || 0, h = M.DEADLINE - S.T, q = Q();
@@ -1094,6 +1145,7 @@ OD.walk = (function(){
     el.querySelector('.wk-stats').innerHTML = `<span>🕘 <b>${M.fmtT(S.T)}</b></span><span>⏳ เหลือ ${h} ชม.</span><span>💰 ${U.baht(S.budget)}</span><span>🚩 ผู้ป่วย ${nRec} ราย</span>
       <span title="เดินทาง ๑,๐๐๐ หน่วย = ๑ ชม. ในเกม — คิดเวลาเมื่อทำภารกิจหรือกลับหน้าข้อมูล">⏱️ เดินทาง ${(acc/UNITS_PER_HOUR).toFixed(1)} ชม.</span><span>✨ ${S.flags.walkCards.length}/${CARDS.length}</span><span>🏅 ${q.badges.length}/${BADGES.length}</span>`;
     const qe = el.querySelector('.wk-quest'); qe.innerHTML = ql; qe.classList.toggle('hidden', !ql);
+    el.querySelector('[data-w="stop"]').classList.toggle('hidden', !path);
     const bb = el.querySelector('[data-w="bike"]'); bb.classList.toggle('hidden', !q.bike); bb.classList.toggle('gold', !!q.riding); bb.textContent = q.riding ? '🚲 ปั่นอยู่' : '🚲';
     const ab = el.querySelector('.wk-act');
     if(focus && !sheetFor){ ab.classList.remove('hidden'); ab.textContent = focusLabel(focus).replace(/^(กด E|แตะ 💬) /, '💬 '); } else ab.classList.add('hidden');
@@ -1105,11 +1157,11 @@ OD.walk = (function(){
   const FLAVOR = {water:'ชาวบ้านตักน้ำบ่อนี้ไปดื่มและหุงข้าว — น้ำบ่อตื้นปนเปื้อนได้ง่ายหลังฝนตกหนัก', food:'ร้านประจำของคนในตำบล มีคนแวะกินทุกวัน',
     school:'เด็ก ๆ กินอาหารกลางวันที่โรงอาหารนี้ทุกวันเรียน', event:'วัดประจำตำบล งานบุญแต่ละครั้งคนมาร่วมหลายร้อยคน', ice:'โรงน้ำแข็งที่ส่งน้ำแข็งให้ร้านค้าในตำบล', farm:'สวนผักริมคลอง ใช้น้ำคลองรดผัก'};
   function sheet(html, forT){
-    sheetFor = forT; path = null; pendingTarget = null; keys.clear(); hold = null;
-    const s = el.querySelector('.wk-sheet'); s.innerHTML = html; s.classList.remove('hidden'); s.scrollTop = 0; hudKey = '';
+    cancelNavigation(); clearStartle(); sheetFor = forT; keys.clear(); hold = null;
+    const s = el.querySelector('.wk-sheet'); s.classList.remove('wk-map-sheet'); s.innerHTML = html; s.classList.remove('hidden'); s.scrollTop = 0; hudKey = '';
     OD.sfx && OD.sfx('blip');
   }
-  function closeSheet(){ sheetFor = null; const s = el && el.querySelector('.wk-sheet'); if(s){ s.classList.add('hidden'); s.innerHTML = ''; } hudKey = ''; }
+  function closeSheet(){ sheetFor = null; const s = el && el.querySelector('.wk-sheet'); if(s){ s.classList.add('hidden'); s.classList.remove('wk-map-sheet'); s.innerHTML = ''; } hudKey = ''; }
   const head = (ic, title, sub) => `<div class="wk-sh-h"><span class="ic">${ic}</span><div class="tt"><b>${title}</b>${sub?`<small>${sub}</small>`:''}</div><button class="wk-x" data-w="close" title="ปิด">✕</button></div>`;
   const btn = (a, label, cost, dis, arg) => `<button class="wk-ab" data-a="${a}" ${arg?`data-arg="${arg}"`:''} ${dis?'disabled':''}><span>${label}</span>${cost?`<small>${cost}</small>`:''}</button>`;
   const wbtn = (attrs, label, sub) => `<button class="wk-ab" ${attrs}><span>${label}</span>${sub?`<small>${sub}</small>`:''}</button>`;
@@ -1261,13 +1313,16 @@ OD.walk = (function(){
   /* ---------- นำทาง / สมุดนักสำรวจ ---------- */
   let navList = [];
   function navSheet(){
-    const sp = built.spots, iconOf = s => s.kind==='hc' ? '🏥' : s.kind==='village' ? '🏘️' : M.SITES[s.id].icon;
-    const nameOf = s => s.kind==='hc' ? HC.name : s.kind==='village' ? M.VILLAGES[s.vid-1].name : (M.SITES[s.id].hidden && !S.known.has(s.id) ? `${M.SITES[s.id].type==='farm'?'สวนผัก':'โรงน้ำแข็ง'}ที่ยังไม่รู้จัก` : M.SITES[s.id].name);
-    navList = sp.map(s=>Object.assign({}, s, {n:nameOf(s), ic:iconOf(s), d:Math.hypot(s.x-P.x, s.y-P.y)*1.25})).sort((a,b)=>a.d-b.d);
-    const q = Q(), per = q.riding ? 3 : 1;
-    sheet(head('🧭', 'นำทาง — จะไปไหนดี?', 'แตะชื่อสถานที่ ตัวละครจะเดินไปเองตามลูกศรสีทอง')
-      + `<div class="wk-sh-b"><p class="faint" style="font-size:13px">ระยะทางโดยประมาณ · ${q.riding ? '🚲 ปั่นจักรยาน' : '🚶 เดิน'} — เวลาเดินทางในเกมคิดตามระยะทางจริง</p></div>
-        <div class="wk-acts wk-nav">${navList.map((s,i)=>wbtn(`data-w="go" data-i="${i}"`, `${s.ic} ${s.n}${Q().visited.includes(spotKey(s))?' ✓':''}`, `${(s.d*4/1000).toFixed(1)} กม. · ~${Math.max(1, Math.round(s.d/per/UNITS_PER_HOUR*60))} นาที`)).join('')}</div>`, {kind:'nav', x:null});
+    navList = places().sort((a,b)=>a.d-b.d);
+    const per = Q().riding ? 3 : 1;
+    const map = '<div class="wk-map-full"><img alt="แผนที่ตำบลพร้อมหมุดสถานที่" src="'+built.mm.toDataURL()+'">'
+      + navList.map((s,i)=>'<button class="wk-pin '+(s.closed ? 'closed' : '')+'" data-w="go" data-i="'+i+'" style="left:'+s.x/WW*100+'%;top:'+s.y/WH*100+'%" title="'+U.esc(s.n)+'" aria-label="ไป '+U.esc(s.n)+'">'+U.esc(s.code)+'</button>').join('')
+      + caseFlags().map(f=>'<span class="wk-map-case" style="left:'+f.x/WW*100+'%;top:'+f.y/WH*100+'%" title="บ้านผู้ป่วย"></span>').join('')
+      + '<span class="wk-map-you" style="left:'+P.x/WW*100+'%;top:'+P.y/WH*100+'%" title="คุณอยู่ที่นี่">●</span></div>';
+    sheet(head('🗺️', 'แผนที่และชื่อสถานที่', 'แตะหมุดรหัสหรือชื่อด้านล่าง เพื่อเดินไปสำรวจและเปิดข้อมูลเมื่อถึง')
+      + '<div class="wk-sh-b">'+map+'<p class="wk-map-legend">🟢 คุณอยู่ที่นี่ · H ฐาน รพ.สต. · R ร้านอาหาร · W บ่อน้ำ · V ลานหมู่บ้าน · 🔴 บ้านผู้ป่วย · หมุดชมพู ปิดอยู่ · ❔ ยังไม่รู้จัก</p><p class="faint">'+(Q().riding ? '🚲 ปั่นจักรยาน' : '🚶 เดิน')+' · เวลาเดินทางในเกมคิดตามระยะทางจริง · รายชื่อด้านล่างเลือกได้ทุกจุด</p></div>'
+      + '<div class="wk-acts wk-nav">'+navList.map((s,i)=>wbtn('data-w="go" data-i="'+i+'"', '<b class="wk-place-code">'+U.esc(s.code)+'</b> '+s.ic+' '+U.esc(s.n)+(s.closed ? ' · ปิดอยู่' : '')+(Q().visited.includes(spotKey(s.spot)) ? ' ✓' : ''), (s.d*4/1000).toFixed(1)+' กม. โดยประมาณ · ~'+Math.max(1,Math.round(s.d/per/UNITS_PER_HOUR*60))+' นาที')).join('')+'</div>', {kind:'nav',x:null});
+    el.querySelector('.wk-sheet').classList.add('wk-map-sheet');
   }
   function bookSheet(tab){
     const q = Q(), tabs = [['badge','🏅 เหรียญ'],['quest','📌 ภารกิจ'],['card','✨ การ์ดความรู้']];
@@ -1294,10 +1349,11 @@ OD.walk = (function(){
     sheet(head('🚶', 'เดินสำรวจตำบลบ้านสุขใจ', 'โหมดใหม่ในเวอร์ชัน ๓')
       + `<div class="wk-sh-b"><ul class="wk-list">
         <li><b>เดิน:</b> ปุ่มลูกศร / WASD (กด <b>Shift</b> ค้างเพื่อวิ่ง) · <b>แตะ/คลิก</b>ที่พื้นเพื่อเดินไปเอง · <b>แตะค้างแล้วลาก</b>เพื่อบังคับทิศแบบจอยสติ๊ก</li>
-        <li><b>🧭 ไปที่…</b> เลือกสถานที่แล้วตัวละครเดินไปเอง · แตะ<b>แผนที่ย่อ</b>เพื่อเดินทางไกล · <b>🚲</b> ยืมจักรยานที่ รพ.สต.</li>
+        <li><b>🧭 ไปที่…</b> เลือกสถานที่แล้วตัวละครเดินไปเอง · แตะ<b>ชื่อร้าน / ขยายแผนที่</b> ดูชื่อและเลือกหมุด · <b>🏥 กลับ รพ.สต.</b> เดินกลับฐาน · <b>⏹ หยุดเดิน</b> ยกเลิกจุดหมาย · <b>🚲</b> ยืมจักรยานที่ รพ.สต.</li>
         <li><b>คุย/สำรวจ:</b> เมื่อมีเครื่องหมาย <b style="color:#e8b830">!</b> กด <b>E</b> / Space หรือแตะปุ่ม 💬</li>
         <li>📌 <b>ภารกิจชาวบ้าน</b> ๓ อย่าง (คนที่มีฟอง <b style="color:#e8b830">!</b> เหนือหัว) · 🏅 เหรียญ ${U.thaiNum(BADGES.length)} เหรียญ · ✨ การ์ดความรู้ ${U.thaiNum(CARDS.length)} ใบ — ดูใน <b>📒 สมุด</b></li>
         <li>🚩 <b>ธงแดง</b> = บ้านที่มีผู้ป่วยในฐานข้อมูล (ธงส้มกะพริบ = รายงานใหม่) · 🏥 <b>รพ.สต.</b> = ฐานทีม สัมภาษณ์ ส่งรายงานได้ที่นั่น</li>
+        <li><b>สะดุ้ง: เปิด/ปิด</b> เลือกเหตุการณ์แมวหรือนกเล็กน้อย ไม่มีผลต่อคะแนน และจำค่าที่เลือก</li>
         <li>⏱️ <b>เวลาเดินทางมีค่า:</b> เดิน ๔ กม. หรือปั่น ๑๒ กม. = ๑ ชม. ในเกม (คิดเมื่อทำภารกิจหรือกลับหน้าข้อมูล)</li></ul></div>
         <div class="wk-acts"><button class="wk-ab" data-w="close"><span>เริ่มเดินเลย! 🚶</span></button></div>`, {kind:'help', x:null});
   }
@@ -1310,5 +1366,5 @@ OD.walk = (function(){
   }
 
   // _dbg/_t ใช้กับชุดทดสอบ headless เท่านั้น (เกมไม่ได้เรียกใช้)
-  return {open, close, get on(){ return running; }, _dbg: ()=>({P, path, frames, lastT, built, quest, qhen, camF}), _t: {findPath, update, draw, goTo, walkable, caseFlags, interact, nearest, questAction, washPick, navSheet, bookSheet, toggleBike}};
+  return {open, close, get on(){ return running; }, _dbg: ()=>({P, path, frames, lastT, built, quest, qhen, camF}), _t: {findPath, update, draw, goTo, walkable, caseFlags, interact, nearest, questAction, washPick, navSheet, bookSheet, toggleBike, places, selectPlace, cancelNavigation, triggerStartle, startleState:()=>({enabled:startleOn, active:startleLife>0, count:startleCount, clock:startleClock, next:startleNext})}};
 })();

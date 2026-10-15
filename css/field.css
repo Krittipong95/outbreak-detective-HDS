@@ -11,6 +11,11 @@
 .f-stat b{font-size:16px;font-variant-numeric:tabular-nums}
 .f-stat .meter{width:120px;margin-top:4px}
 .f-stat.cases b{color:var(--danger)}
+.f-top .od-deadline{order:1;margin-left:auto}
+.f-mission{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:10px;border:1px solid var(--gold);border-radius:8px;background:color-mix(in srgb,var(--gold) 12%,var(--panel-2))}
+.f-mission>div{display:flex;flex-direction:column;gap:2px;min-width:0}.f-mission small{font-size:12px;color:var(--warn);font-weight:700}.f-mission b{font-size:18px}.f-mission span{font-size:13px;color:var(--muted)}
+.f-mission .btn{flex:none;min-height:44px}
+@media(max-width:650px){.f-top .od-deadline{order:0;width:100%;margin-left:0}.f-mission{align-items:stretch;flex-direction:column}.f-mission .btn{width:100%}}
 .f-stat .d{font-size:12px;color:var(--danger);margin-left:4px;font-weight:700}
 .f-wrap{max-width:1760px;margin:0 auto;padding:12px 18px 30px;display:flex;flex-direction:column;gap:12px}
 .f-adv{display:flex;gap:12px;align-items:flex-start}

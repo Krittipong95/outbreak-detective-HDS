@@ -614,6 +614,7 @@ OD.walk = (function(){
   const Q = () => S.flags.wq;
   let startleOn = true, startleClock = 0, startleNext = 30, startleCount = 0, startleLife = 0;
   let stepDistance = 0, stepClock = 0;
+  let deadlineClosing = false, actionBusy = false;
   const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   function clearStartle(){ startleLife = 0; const box = el && el.querySelector('.wk-startle'); if(box){ box.classList.add('hidden'); box.textContent = ''; } }
   function triggerStartle(test = false){
@@ -646,7 +647,7 @@ OD.walk = (function(){
 
   function open(field){
     if(running) return;
-    F = field; W = OD.W; S = OD.S;
+    F = field; W = OD.W; S = OD.S; deadlineClosing = false; actionBusy = false;
     if(!built || built.seed!==W.seed){ sprites(); built = build(); built.seed = W.seed; spawnActors(); }
     recCache = {key:'', list:[]}; flagCache = {key:'', list:[]};
     S.flags.walkCards = S.flags.walkCards || [];
@@ -660,7 +661,7 @@ OD.walk = (function(){
     if(Q().hen===2){ qhen.x = P.x-6; qhen.y = P.y+2; }
     if(!el){ el = document.createElement('div'); el.id = 'walk'; el.className = 'walk'; document.body.appendChild(el); }
     el.innerHTML = `<canvas class="wk-cv"></canvas>
-      <div class="wk-hud"><div class="wk-left"><div class="wk-stats"></div><div class="wk-quest"></div></div>
+      <div class="wk-hud"><div class="wk-left"><div class="wk-clock">${OD.deadline.html(S,{compact:true})}</div><div class="wk-stats"></div><div class="wk-quest"></div></div>
         <div class="wk-btns"><button class="wk-b" data-w="home">🏥 กลับ รพ.สต.</button><button class="wk-b hidden" data-w="stop">⏹ หยุดเดิน</button><button class="wk-b" data-w="startle" aria-pressed="${startleOn}">สะดุ้ง: ${startleOn ? 'เปิด' : 'ปิด'}</button><button class="wk-b" data-w="nav" title="นำทาง (N)">🧭 ไปที่…</button><button class="wk-b" data-w="book" title="สมุดนักสำรวจ">📒 สมุด</button><button class="wk-b hidden" data-w="bike" title="ขึ้น/ลงจักรยาน (B)">🚲</button><button class="wk-b" data-w="zoom" title="ซูมเข้า/ออก (M)">🔍</button><button class="wk-b" data-w="help" title="วิธีเล่น">❔</button><button class="wk-b gold" data-w="exit">🗺️ กลับหน้าข้อมูล</button></div></div>
       <div class="wk-map-panel"><button class="wk-map-open" data-w="nav" aria-label="ขยายแผนที่ ดูชื่อร้านและเลือกจุดหมาย"><canvas class="wk-mini" aria-hidden="true"></canvas><span>🗺️ ชื่อร้าน / ขยายแผนที่</span></button><div class="wk-shop-legend">${places().filter(s=>s.kind==='site' && M.SITES[s.id].type==='food').map(s=>'<button data-w="shop" data-id="'+U.esc(s.id)+'" title="ไป '+U.esc(s.n)+'"><b>'+U.esc(s.code)+'</b> <span>'+U.esc(s.n)+'</span></button>').join('')}</div></div>
       <button class="wk-act hidden" data-w="act"></button>
@@ -695,7 +696,7 @@ OD.walk = (function(){
     if(h < 1) return false;
     const left = M.DEADLINE - S.T; if(left <= 0){ S.flags.walkAcc = 0; return false; }
     const hh = Math.min(h, left);
-    S.flags.walkAcc = acc - h*UNITS_PER_HOUR;
+    S.flags.walkAcc = hh >= left ? 0 : acc - h*UNITS_PER_HOUR;
     F.spend(hh, 0, `เดินทางสำรวจหมู่บ้าน ${U.thaiNum(hh)} ชม.`);
     return true;
   }
@@ -841,6 +842,11 @@ OD.walk = (function(){
       if(stepDistance >= (q.riding ? 35 : 15) && stepClock >= (q.riding ? .5 : .25)){ OD.sfx && OD.sfx(q.riding ? 'bike' : 'step'); stepDistance = 0; stepClock = 0; }
       P.ft += dt; P.frame = [1,0,2,0][Math.floor(P.ft*(q.riding ? 10 : keys.has('shift') ? 11 : 8))%4];
       S.flags.walkAcc = (S.flags.walkAcc||0) + moved * (q.riding ? 1/3 : 1);
+      OD.deadline.update(el,S);
+      OD.deadline.notify(S);
+      if(!deadlineClosing && OD.deadline.snapshot(S).remainingHours<=0){
+        deadlineClosing = true; cancelNavigation(); close(); return;
+      }
       q.dist += moved; if(q.riding) q.bikeDist += moved;
       const hr = S.T % 24; if(hr>=19 || hr<5) q.night = true;
       dustT -= dt; if(dustT < 0 && !q.riding){ dustT = keys.has('shift') ? .08 : .16; parts.push({x:P.x+(Math.random()-.5)*4, y:P.y, vx:0, vy:-3, life:.45, max:.45, c:'rgba(214,190,140,', s:2, ground:true}); }
@@ -1140,9 +1146,10 @@ OD.walk = (function(){
   function hud(){
     const acc = S.flags.walkAcc || 0, h = M.DEADLINE - S.T, q = Q();
     const nRec = recs().length, ql = questLine();
+    OD.deadline.update(el,S);
     const key = [S.T, S.budget, nRec, Math.floor(acc/50), S.flags.walkCards.length, focus && focusLabel(focus), !!sheetFor, q.riding, q.bike, q.badges.length, ql].join('|');
     if(key===hudKey) return; hudKey = key;
-    el.querySelector('.wk-stats').innerHTML = `<span>🕘 <b>${M.fmtT(S.T)}</b></span><span>⏳ เหลือ ${h} ชม.</span><span>💰 ${U.baht(S.budget)}</span><span>🚩 ผู้ป่วย ${nRec} ราย</span>
+    el.querySelector('.wk-stats').innerHTML = `<span>🕘 <b>${M.fmtT(S.T)}</b></span><span>💰 ${U.baht(S.budget)}</span><span>🚩 ผู้ป่วย ${nRec} ราย</span>
       <span title="เดินทาง ๑,๐๐๐ หน่วย = ๑ ชม. ในเกม — คิดเวลาเมื่อทำภารกิจหรือกลับหน้าข้อมูล">⏱️ เดินทาง ${(acc/UNITS_PER_HOUR).toFixed(1)} ชม.</span><span>✨ ${S.flags.walkCards.length}/${CARDS.length}</span><span>🏅 ${q.badges.length}/${BADGES.length}</span>`;
     const qe = el.querySelector('.wk-quest'); qe.innerHTML = ql; qe.classList.toggle('hidden', !ql);
     el.querySelector('[data-w="stop"]').classList.toggle('hidden', !path);
@@ -1358,11 +1365,15 @@ OD.walk = (function(){
         <div class="wk-acts"><button class="wk-ab" data-w="close"><span>เริ่มเดินเลย! 🚶</span></button></div>`, {kind:'help', x:null});
   }
   async function doAction(a, arg){
+    if(actionBusy) return;
+    actionBusy = true;
+    try{
     closeSheet();
     // คิดเวลาเดินทางก่อน แล้วให้เหตุการณ์ที่ถึงเวลาเกิดขึ้นก่อนเริ่มงานใหม่
     if(charge()){ await F.after(); if(!running || document.getElementById('scr-field').classList.contains('hidden')) return; }
-    if(a==='report'){ await close(); F.act('report'); return; }
-    F.act(a, arg);
+    if(a==='report'){ await close(); await F.act('report'); return; }
+    await F.act(a, arg);
+    } finally { actionBusy = false; }
   }
 
   // _dbg/_t ใช้กับชุดทดสอบ headless เท่านั้น (เกมไม่ได้เรียกใช้)

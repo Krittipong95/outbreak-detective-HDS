@@ -36,7 +36,7 @@ OD.field = (function(){
     log(`เปิด${nm(id)}ให้กลับมาใช้งาน${reason?` (${reason})`:''}`, '');
   };
   const nClosed = () => Object.keys(S.closed).filter(id=>M.isClosed(S,id)).length;
-  const can = c => S.budget >= c.b && S.T + c.h <= M.DEADLINE;
+  const can = c => S.budget >= c.b && S.T + (S.flags.walkAcc||0)/1000 + c.h <= M.DEADLINE;
   const costTxt = c => `${c.h} ชม.${c.b?`<br>${U.baht(c.b)}`:''}`;
 
   /* ---------- หลังทุกการกระทำ: ผลแล็บ เหตุการณ์ เส้นตาย ---------- */
@@ -158,7 +158,7 @@ OD.field = (function(){
   };
   /* ข้ามเวลา: ๑๒ ชม. / จนผลแล็บออก / เช้าวันถัดไป */
   A.skip = ()=>{
-    const left = M.DEADLINE - S.T, pend = S.labs.filter(l=>!l.seen).sort((a,b)=>a.due-b.due)[0];
+    const left = OD.deadline.snapshot(S).remainingHours, pend = S.labs.filter(l=>!l.seen).sort((a,b)=>a.due-b.due)[0];
     const nextMorning = (Math.floor(S.T/24)+1)*24 + 8 - S.T;
     const opts = [['h12', `รอ ${Math.min(12,left)} ชั่วโมง`, Math.min(12,left)]];
     if(pend) opts.push(['lab', `ข้ามไปจนผลแล็บออก (${M.fmtT(pend.due)})`, Math.min(pend.due - S.T, left)]);
@@ -348,12 +348,18 @@ OD.field = (function(){
     draw();
   };
   /* โหมดเดินสำรวจหมู่บ้าน (js/walk.js) — เรียกการกระทำเดิมผ่าน F.act */
-  A.walk = ()=>{ S.flags.walked = true; OD.walk.open(F); };
-  F.act = (k, arg) => { if(A[k]) A[k](arg); };
+  A.walk = ()=>{ if(OD.deadline.snapshot(S).remainingHours<=0) return; S.flags.walked = true; OD.walk.open(F); };
+  let actionBusy = false;
+  F.act = async (k, arg) => {
+    if(!A[k] || actionBusy || S.flags.reported) return;
+    actionBusy = true;
+    try { return await A[k](arg); }
+    finally { actionBusy = false; }
+  };
   F.after = () => after();
   F.hint = () => hint();
   F.can = c => can(c);
-  A.wait = async()=>{ const h = Math.min(M.COST.wait.h, M.DEADLINE - S.T); if(h<=0) return; F.spend(h, 0, `รอรายงานผู้ป่วยและผลการดำเนินงาน ${h} ชั่วโมง`); await after(); };
+  A.wait = async()=>{ const h = Math.min(M.COST.wait.h, OD.deadline.snapshot(S).remainingHours); if(h<=0) return; F.spend(h, 0, `รอรายงานผู้ป่วยและผลการดำเนินงาน ${h} ชั่วโมง`); await after(); };
   A.report = async()=>{
     const k = await U.ask(`<h2 class="display gold-text">ส่งรายงานสอบสวนโรค?</h2><p>เมื่อส่งรายงาน การสอบสวนจะสิ้นสุดลง และมาตรการตามรายงานจะเริ่มทันที (${M.fmtT(S.T)})</p>
       <div class="note">ตรวจดูว่ามีหลักฐานครบหรือยัง: สถิติ (OR) · สิ่งแวดล้อม · ห้องปฏิบัติการ</div>`, [['no','สืบสวนต่อ',''],['yes','เขียนรายงาน','btn-gold']]);
@@ -368,11 +374,33 @@ OD.field = (function(){
     const nx = OD.checklist.next(W,S);
     if(nx && nx.n<=8) return `ขั้นตอนถัดไป: <b>${OD.u.thaiNum(nx.n)}. ${nx.t}</b> — ${nx.d}<br><span class="muted">วิธีทำ: ${nx.how}</span>`;
     if(S.controls.length && !S.flags.vML) return 'มีกลุ่มควบคุมแล้ว ลองแท็บ <b>🤖 ML</b> — ใช้ <b>logistic regression</b> ดูว่าปัจจัยไหนยังเสี่ยงอยู่เมื่อปรับปัจจัยอื่นแล้ว หรือให้ <b>decision tree</b> ช่วยหาคำถามที่แยกผู้ป่วยได้ดีที่สุด';
-    if(pend>=5) return `มีผู้ป่วยรายใหม่รอสัมภาษณ์ ${pend} ราย ข้อมูลยิ่งครบ ผลวิเคราะห์ยิ่งแม่น — แต่ก็อย่าลืมว่าเวลาเดินตลอด`;
+    if(pend>=5) return `มีผู้ป่วยรายใหม่รอสัมภาษณ์ ${pend} ราย ข้อมูลยิ่งครบ ผลวิเคราะห์ยิ่งแม่น — การเดินทางและภารกิจใช้เวลา`;
     if(S.diff==='easy' && !S.supply && !S.known.has('F1') && !S.known.has('F3')) return 'ถ้าผู้ป่วยกระจายไปหลายร้านพร้อมกัน ลองนึกถึง “สิ่งที่ร้านเหล่านั้นใช้ร่วมกัน” — <b>ห่วงโซ่อุปทาน</b> (น้ำแข็ง ผักสด) อาจมีคำตอบ';
     if(OD.interview.available(W,S) && !S.deep.length && S.flags.interviewed) return 'ลอง <b>🎙️ สัมภาษณ์เชิงลึก</b> ผู้ป่วยรายแรกดู — ถามคำถามปลายเปิดจะได้เบาะแสที่แบบสอบถามให้ไม่ได้ แต่ระวังคำถามชี้นำ';
     return 'หลักฐานครบสามด้านหรือยัง: <b>สถิติ</b> · <b>สิ่งแวดล้อม</b> · <b>ห้องปฏิบัติการ</b> — ถ้าชัดแล้ว ใช้มาตรการควบคุมและ <b>เขียนรายงาน</b> ยิ่งเร็ว ยิ่งป้องกันผู้ป่วยได้มาก';
   }
+  function nextStep(){
+    if(!S || !W) return null;
+    const left = OD.deadline.snapshot(S).remainingHours;
+    const step = (key, title, why, cost, kind='action') => ({key,title,why,cost,kind});
+    if(left<=0) return step('report','เขียนรายงาน','หมดเวลาสอบสวนแล้ว สรุปจากหลักฐานที่มี','ฟรี');
+    if(!S.reviewed && can({h:3,b:0})) return step('review','ทบทวนเวชระเบียน','ยืนยันว่าผู้ป่วยมีอาการเข้าได้กับโรคเดียวกัน','3 ชม.');
+    if(S.acfAt==null && can(OD.bonds.acfCost(S))) return step('acf','ค้นหาผู้ป่วยเชิงรุก','เพิ่มข้อมูลผู้ป่วยที่ยังไม่เข้าสู่ระบบ','ใช้เวลาและงบตามปุ่ม');
+    const pending = M.pendingInterviews(W,S);
+    const ic = interviewCost();
+    if(pending && can(ic)) return step('interview','สัมภาษณ์ผู้ป่วย','ยังมีผู้ป่วยรอสัมภาษณ์ '+pending+' ราย',costTxt(ic).replace('<br>',' · '));
+    if(!S.flags.vTime) return step('curve','ดูเส้นโค้งการระบาด','ดูว่าผู้ป่วยเริ่มเพิ่มเมื่อไร','ฟรี','tab');
+    if(!S.flags.vPlace) return step('map','ดูแผนที่ผู้ป่วย','ดูว่าผู้ป่วยกระจุกตัวที่ใด','ฟรี','map');
+    if(!S.hyp.length) return step('hyp','ตั้งสมมติฐาน','เลือกแหล่งที่สงสัยจากข้อมูลที่เห็น','ฟรี');
+    const interviewed = M.records(W,S).filter(r=>S.ans[r.p.id]).length;
+    if(!S.controls.length && interviewed>=5 && can(ccCost(1))) return step('controls','เก็บกลุ่มควบคุม','เทียบการสัมผัสของคนป่วยและคนไม่ป่วย','ใช้เวลาและงบตามปุ่ม');
+    if(S.controls.length && !S.flags.vOR) return step('ana','อ่านค่า OR','ตรวจว่าปัจจัยใดสัมพันธ์กับการป่วย','ฟรี','tab');
+    if(!Object.keys(S.inspected).length && can(M.COST.inspect||M.COST.env)) return step('inspect','ตรวจสิ่งแวดล้อม','ตรวจสถานที่จากหลักฐานที่คุณมี','ใช้เวลาและงบตามปุ่ม');
+    if(S.labs.some(l=>!l.seen) && left>12) return step('skip','รอผลแล็บ','ข้ามไปเวลาที่ผลออกได้ หากพร้อมแล้ว','เลือกเวลา');
+    if(can({h:1,b:0}) && !Object.keys(S.closed).length && S.hygieneAt==null) return step('measure','ใช้มาตรการเร่งด่วน','ลดการติดเชื้อเมื่อหลักฐานพอ','1–2 ชม.');
+    return step('report','เขียนรายงาน','ตรวจหลักฐานที่มี แล้วสรุปคดี','ฟรี');
+  }
+  F.nextStep = nextStep;
   function actBtn(key, icon, title, sub, c, dis){
     return `<button class="act" data-a="${key}" ${dis?'disabled':''}><span class="i">${icon}</span><span class="t"><b>${title}</b><small>${sub}</small></span><span class="c">${c}</span></button>`;
   }
@@ -384,26 +412,28 @@ OD.field = (function(){
       <div class="f-stat cases"><span class="l">ผู้ป่วยในฐานข้อมูล</span><b>${nRec} ราย${S.lastNew?`<span class="d">+${S.lastNew}</span>`:''}</b></div>
       <div class="f-stat"><span class="l">งบประมาณคงเหลือ</span><b>${U.baht(S.budget)}</b></div>
       <div class="f-stat"><span class="l">ความเชื่อมั่นชุมชน ${Math.round(S.trust)}</span><div class="meter jade"><i style="width:${S.trust}%"></i></div></div>
-      <div class="f-stat"><span class="l">เหลือเวลา ${left} ชม.</span><div class="meter ${left<=36?'red':''}"><i style="width:${left/(M.DEADLINE-M.T0)*100}%"></i></div></div>
+      ${OD.deadline.html(S)}
       <button class="chip gold ck-chip" id="fCk" data-a="checklist" title="ดูเช็คลิสต์ ๑๐ ขั้นตอน">✅ ขั้นตอน ${U.thaiNum(OD.checklist.progress(W,S))}/๑๐</button>
       <button class="btn btn-ghost btn-sm" data-a="help" title="วิธีเล่น">📖</button><button class="btn btn-ghost btn-sm" data-a="handbook" title="คู่มือนักสืบมือใหม่">📘</button><button class="btn btn-ghost btn-sm" data-a="theme" title="สลับธีม">🌓</button>`;
-    U.$('#fAdv').innerHTML = `<div class="adv-row"><div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${hint()}</div></div></div>${OD.bonds.html(S)}</div>`;
+    const mission = nextStep();
+    U.$('#fAdv').innerHTML = `<div class="f-mission"><div><small>เป้าหมายถัดไป · ${mission.cost}</small><b>${mission.title}</b><span>${mission.why}</span></div><button class="btn btn-gold" data-a="next">ทำตอนนี้ →</button></div><div class="adv-row"><div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${hint()}</div></div></div>${OD.bonds.html(S)}</div>`;
+    OD.deadline.notify(S);
     const ac = OD.bonds.acfCost(S);
     const icNext = interviewCost();
     const labsWait = S.labs.filter(l=>!l.seen).length, hypOK = S.hyp.length>0;
     U.$('#fActions').innerHTML =
-      actBtn('review','🩺','๒ ทบทวนเวชระเบียน', S.reviewed ? 'ยืนยันการวินิจฉัยแล้ว ✓' : 'ยืนยันการวินิจฉัย', '3 ชม.', S.reviewed || S.T+3>M.DEADLINE) +
+      actBtn('review','🩺','๒ ทบทวนเวชระเบียน', S.reviewed ? 'ยืนยันการวินิจฉัยแล้ว ✓' : 'ยืนยันการวินิจฉัย', '3 ชม.', S.reviewed || !can({h:3,b:0})) +
       actBtn('acf','🏘️','๔ ค้นหาผู้ป่วยเชิงรุก', S.acfAt!=null ? `พบเพิ่ม ${M.hiddenFound(W,S)} ราย ✓` : ac.b ? 'อสม. เคาะประตูทุกบ้าน' : 'ป้าบุญมาช่วยฟรี ❤️', costTxt(ac), S.acfAt!=null || !can(ac)) +
       actBtn('interview','🗣️','๕ สัมภาษณ์ผู้ป่วย', pend ? `รอสัมภาษณ์ ${pend} ราย` : 'สัมภาษณ์ครบแล้ว', costTxt(icNext), !pend || !can(icNext)) +
       actBtn('deep','🎙️','๕ สัมภาษณ์เชิงลึก', S.deep.length>=OD.interview.MAX ? 'สัมภาษณ์ครบแล้ว ✓' : S.deep.length ? 'ผู้ป่วยที่นอนโรงพยาบาล' : 'คุยกับผู้ป่วยรายแรก', '2 ชม.', !OD.interview.available(W,S) || !can({h:2,b:0})) +
       actBtn('hyp','💡','๖ ตั้งสมมติฐาน', hypOK ? `${S.hyp.length} ข้อ (แก้ไขได้)` : 'สงสัยอะไรบ้าง?', 'ฟรี', false) +
-      actBtn('controls','👥','๗ เก็บกลุ่มควบคุม', !hypOK ? '🔒 ตั้งสมมติฐานก่อน' : S.controls.length ? `มีแล้ว ${S.controls.length} คน (๑:${U.thaiNum(S.ccRatio)})` : 'case-control → OR', '6–14 ชม.', S.T+3>M.DEADLINE) +
+      actBtn('controls','👥','๗ เก็บกลุ่มควบคุม', !hypOK ? '🔒 ตั้งสมมติฐานก่อน' : S.controls.length ? `มีแล้ว ${S.controls.length} คน (๑:${U.thaiNum(S.ccRatio)})` : 'case-control → OR', '6–14 ชม.', !can({h:3,b:0})) +
       actBtn('inspect','🔎','๘ ตรวจสิ่งแวดล้อม', `ตรวจแล้ว ${Object.keys(S.inspected).length} แห่ง`, costTxt(M.COST.inspect), !can(M.COST.inspect)) +
       actBtn('lab','🧪','๘ ส่งตรวจแล็บ', labsWait ? `รอผล ${labsWait} รายการ` : 'อุจจาระ / น้ำ / อาหาร', 'ผลใน ๒๔ ชม.', !can(M.COST.env)) +
       actBtn('supply','📦','๘ ห่วงโซ่อุปทาน', S.supply ? 'ได้ข้อมูลแล้ว ✓' : 'น้ำแข็ง วัตถุดิบ มาจากไหน', costTxt(M.COST.supply), S.supply || !can(M.COST.supply)) +
       actBtn('nlp','📱','ฟังเสียงโซเชียล (NLP)', S.flags.nlpDone ? `ติดป้ายถูก ${S.flags.nlpAcc}/9 ✓` : 'สอนโมเดลแยกข่าวลือ', '2 ชม.', S.flags.nlpDone || !can({h:2,b:0})) +
       actBtn('ai','🤖','ผู้ช่วย AI', S.flags.aiMet ? 'ถามได้ แต่ต้องตรวจสอบ' : '🔒 ระบบยังมาไม่ถึง', 'ฟรี', !S.flags.aiMet) +
-      actBtn('measure','🛑','๙ มาตรการเร่งด่วน', `ปิดอยู่ ${nClosed()} แห่ง${S.hygieneAt!=null?' · รณรงค์ล้างมือ':''}${S.boilAt!=null?' · ต้มน้ำ':''}`, '๑–๒ ชม.', S.T+1>M.DEADLINE) +
+      actBtn('measure','🛑','๙ มาตรการเร่งด่วน', `ปิดอยู่ ${nClosed()} แห่ง${S.hygieneAt!=null?' · รณรงค์ล้างมือ':''}${S.boilAt!=null?' · ต้มน้ำ':''}`, '๑–๒ ชม.', !can({h:1,b:0})) +
       actBtn('skip','⏭️','ข้ามเวลา', labsWait ? 'ข้ามไปจนผลแล็บออก' : 'รอ ๑๒ ชม. / เช้าวันใหม่', 'เลือกได้', left<=0) +
       `<button class="btn btn-gold report" data-a="report">📝 ๑๐ เขียนรายงาน<br>สอบสวนโรค</button>`;
     OD.fieldViews.render(W,S);
@@ -416,6 +446,8 @@ OD.field = (function(){
       <p><b>เป้าหมาย:</b> หาแหล่งโรค ช่องทางการแพร่ และเชื้อก่อโรค พร้อมหลักฐาน แล้วออกมาตรการให้ถูกต้องภายในเวลาที่กำหนด</p>
       <div class="note"><b>ดูข้อมูลฟรี:</b> แผนที่ เส้นโค้งการระบาด ตารางวิเคราะห์ อาการ รายชื่อผู้ป่วย หลักฐาน</div>
       <div class="note red"><b>การกระทำใช้เวลาและงบ:</b> ระหว่างนั้นผู้ป่วยรายใหม่จะเพิ่มขึ้น ผลแล็บออกหลัง ๒๔ ชม.</div>
+      <div class="note"><b>⏳ เวลาคดีที่เหลือ:</b> แสดงวัน–ชั่วโมง–นาทีบนหน้าภาคสนามและตอนเดิน เวลาในคดีลดเมื่อเดินทางหรือทำภารกิจ การอ่านหลักฐานและบทสนทนาไม่ลดเวลา</div>
+      <div class="note jade"><b>หาทางไปต่อ:</b> กล่องเป้าหมายถัดไปด้านบนมีปุ่ม “ทำตอนนี้” สำหรับงานที่เริ่มได้</div>
       <div class="note jade"><b>ความเชื่อมั่นชุมชน:</b> ถ้าต่ำกว่า ๔๐ ชาวบ้านจะตอบแบบสอบถามคลาดเคลื่อนมากขึ้น</div>
       <div class="note"><b>ปุ่มมีเลขขั้นตอนกำกับ</b> ตาม ๑๐ ขั้นตอนการสอบสวนการระบาด — ดูความคืบหน้าที่ ✅ เช็คลิสต์</div>
       <div class="note"><b>เหตุการณ์ระหว่างสอบสวน:</b> ทุกการตัดสินใจมีผลต่อเนื่อง — ชาวบ้านจะไว้ใจหรือไม่ ผู้ป่วยจะเพิ่มหรือลด และตอนจบจะเป็นอย่างไร ท้ายเกมมีสรุปว่าคุณพลาดอะไรบ้าง</div>
@@ -447,7 +479,15 @@ OD.field = (function(){
       if(a==='handbook') return OD.handbook.open();
       if(a==='checklist'){ S.ui.tab = 'ck'; F.render(); U.$('#fAna').scrollIntoView({behavior:'smooth', block:'start'}); return; }
       if(a==='theme') return OD.toggleTheme();
-      if(A[a]) A[a]();
+      if(a==='next'){
+        const m = nextStep(); if(!m) return;
+        if(m.kind==='tab'){ S.ui.tab=m.key; F.render(); U.$('#fAna').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+        if(m.kind==='map'){ U.$('#fMap').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+        const target = root.querySelector(`#fActions [data-a="${m.key}"]`);
+        if(target && !target.disabled) return F.act(m.key);
+        U.toast('งานนี้ยังทำไม่ได้ ลองอ่านหลักฐานหรือเลือกงานอื่น'); return;
+      }
+      if(A[a]) F.act(a);
     };
     log(`เริ่มลงพื้นที่ — ฐานข้อมูลผู้ป่วย ${M.records(W,S).length} ราย`);
     U.show('scr-field'); F.render();

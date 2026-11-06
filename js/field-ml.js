@@ -59,14 +59,14 @@ OD.mlViews = (function(){
       <polyline class="l1" points="${pts.map(([a,b])=>`${X(a).toFixed(1)},${Y(b).toFixed(1)}`).join(' ')}"/>
       <text class="t" x="${p+(S-p)/2}" y="${S-4}" text-anchor="middle">1 − ความจำเพาะ</text>
       <text class="t" x="9" y="${(S-p)/2}" text-anchor="middle" transform="rotate(-90 9 ${(S-p)/2})">ความไว</text>
-      <text class="v" x="${X(.62)}" y="${Y(.18)}" text-anchor="middle">AUC ${isNaN(auc)?'—':auc.toFixed(2)}</text></svg>`;
+      <text class="v" x="${X(.62)}" y="${Y(.18)}" text-anchor="middle">AUC ${isNaN(auc)?'ไม่มีข้อมูล':auc.toFixed(2)}</text></svg>`;
   }
   function forest(r){
     if(!r || !isFinite(r.or) || isNaN(r.lo)) return '';
     const w = 124, X = v => 6+(Math.log10(U.clamp(v,.05,200))+1.3)/3.6*(w-12);
     return `<svg class="forest" viewBox="0 0 ${w} 16"><line class="ax" x1="6" x2="${w-6}" y1="8" y2="8"/><line class="one" x1="${X(1)}" x2="${X(1)}" y1="1" y2="15"/><line class="ci" x1="${X(r.lo)}" x2="${X(r.hi)}" y1="8" y2="8"/><rect class="pt${r.lo>1?' s':''}" x="${X(r.or)-3.5}" y="4.5" width="7" height="7"/></svg>`;
   }
-  const pct = v => isNaN(v) ? '—' : Math.round(v*100)+'%';
+  const pct = v => isNaN(v) ? 'ไม่มีข้อมูล' : Math.round(v*100)+'%';
 
   /* ---------- 📉 Logistic regression ---------- */
   function lrModel(W,S){
@@ -94,7 +94,7 @@ OD.mlViews = (function(){
         <label><input type="checkbox" id="mlChild" ${S.ui.mlChild?'checked':''}> ปรับตามอายุ (เด็ก ≤ ๑๕ ปี)</label></div></div>`;
     if(m.empty) return h + `<div class="lockbox" style="padding:16px">เลือกตัวแปรอย่างน้อย ๑ ตัว และต้องมีข้อมูลครบอย่างน้อย ๑๐ แถว</div>`;
     S.flags.vML = true;
-    h += `<div class="ml-step"><b>๒. ผลของโมเดล</b> <span class="faint">— ${U.thaiNum(m.y.length)} แถว (ผู้ป่วย ${m.y.filter(v=>v).length} · กลุ่มควบคุม ${m.y.filter(v=>!v).length})${m.drop?` · ตัดแถวที่ตอบ “ไม่ทราบ” ออก ${m.drop} แถว (complete-case)`:''}</span>
+    h += `<div class="ml-step"><b>๒. ผลของโมเดล</b> <span class="faint">${U.thaiNum(m.y.length)} แถว (ผู้ป่วย ${m.y.filter(v=>v).length} · กลุ่มควบคุม ${m.y.filter(v=>!v).length})${m.drop?` · ตัดแถวที่ตอบ “ไม่ทราบ” ออก ${m.drop} แถว (complete-case)`:''}</span>
       <div class="atable-wrap"><table class="at ml-t"><thead><tr><th>ตัวแปร</th><th>OR หยาบ</th><th>OR ที่ปรับแล้ว <span class="faint">(95% CI)</span></th><th class="pcol">p</th><th class="fcol">0.1 ─ 1 ─ 10 ─ 100</th></tr></thead><tbody>`;
     const notes = [];
     m.cols.forEach((c,i)=>{
@@ -102,7 +102,7 @@ OD.mlViews = (function(){
       let flag = '';
       if(cr && cr.or && cr.lo>1 && !sig){ flag = ' ⚠️'; notes.push(`<b>${c.label}</b>: OR หยาบมีนัยสำคัญ (${U.fmtOR(cr.or)}) แต่หลังปรับตัวแปรอื่นเหลือ ${U.fmtOR(a.or)} และ CI คร่อม 1  ความสัมพันธ์เดิมอาจมาจาก <b>ตัวแปรกวน</b>`); }
       else if(c.t==='exp' && sig) flag = ' ✅';
-      h += `<tr class="${c.t!=='exp'?'adj':''}"><td class="lbl">${c.label}${flag}</td><td>${cr&&cr.or?U.fmtOR(cr.or):'—'}</td>
+      h += `<tr class="${c.t!=='exp'?'adj':''}"><td class="lbl">${c.label}${flag}</td><td>${cr&&cr.or?U.fmtOR(cr.or):'ไม่มีข้อมูล'}</td>
         <td class="${sig?'sig':''}">${U.fmtOR(a.or)}${sig?'*':''}<br><span class="faint" style="font-weight:400">${U.fmtOR(a.lo)}–${U.fmtOR(a.hi)}</span></td><td class="pcol">${U.fmtP(a.p)}</td><td class="fcol">${forest(a)}</td></tr>`;
     });
     h += `</tbody></table></div>`;
@@ -110,8 +110,8 @@ OD.mlViews = (function(){
     const keep = m.cols.map((c,i)=>({c, a:m.fit.coef[i+1]})).filter(x=>x.c.t==='exp' && x.a.lo>1);
     if(keep.length) h += `<div class="note jade" style="font-size:13.5px">ปัจจัยที่ยังสัมพันธ์กับการป่วยแม้ปรับตัวแปรอื่นในโมเดลแล้ว: ${keep.map(x=>`<b>${x.c.label}</b> (OR ${U.fmtOR(x.a.or)})`).join(' · ')}</div>`;
     h += `<div class="ml-perf"><div>${rocChart(m.roc, m.cvAuc)}</div><div class="ml-kpi">
-        <div><span>AUC (ข้อมูลที่ใช้ฝึก)</span><b>${isNaN(m.auc)?'—':m.auc.toFixed(2)}</b></div>
-        <div><span>AUC แบบ 5-fold cross-validation</span><b>${isNaN(m.cvAuc)?'—':m.cvAuc.toFixed(2)}</b></div>
+        <div><span>AUC (ข้อมูลที่ใช้ฝึก)</span><b>${isNaN(m.auc)?'ไม่มีข้อมูล':m.auc.toFixed(2)}</b></div>
+        <div><span>AUC แบบ 5-fold cross-validation</span><b>${isNaN(m.cvAuc)?'ไม่มีข้อมูล':m.cvAuc.toFixed(2)}</b></div>
         <div class="faint" style="font-size:12.5px">AUC 0.5 = เดาสุ่ม · 1.0 = แยกผู้ป่วยได้สมบูรณ์  ค่าจาก cross-validation บอกว่าโมเดลจะทำงานกับข้อมูลใหม่ได้ดีแค่ไหน (ต่ำกว่าค่าจากข้อมูลฝึกเสมอ)</div></div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-sm btn-gold" data-mlsave="1" ${keep.length?'':'disabled'}>📌 บันทึกปัจจัยที่มีนัยสำคัญเป็นหลักฐาน (${keep.length})</button></div></div>`;
     h += `<details class="howto"><summary>Logistic regression ต่างจากตาราง OR อย่างไร?</summary><ul>
@@ -290,13 +290,13 @@ print(fit)
   ];
   function codeHtml(W,S){
     const nS = rows(W,S).length, nL = M.records(W,S).length;
-    return `<div class="ml-step"><b>⬇️ ดาวน์โหลดข้อมูลคดีนี้ไปวิเคราะห์ต่อ</b> <span class="faint">— ข้อมูลใช้รหัสแทนชื่อ (PDPA) และมีปัญหาคุณภาพข้อมูลจริงจากบทที่ ๒ ติดไปด้วย</span>
+    return `<div class="ml-step"><b>⬇️ ดาวน์โหลดข้อมูลคดีนี้ไปวิเคราะห์ต่อ</b> <span class="faint">ข้อมูลใช้รหัสแทนชื่อ (PDPA) และมีปัญหาคุณภาพข้อมูลจริงจากบทที่ ๒ ติดไปด้วย</span>
       <div class="dl-row"><button class="btn btn-sm" data-dl="survey">📄 outbreak_survey.csv <small>(${nS} แถว)</small></button>
         <button class="btn btn-sm" data-dl="linelist">📄 outbreak_linelist.csv <small>(${nL} แถว)</small></button>
         <button class="btn btn-sm btn-gold" data-dl="ipynb">📓 Jupyter Notebook (Python)</button>
         <button class="btn btn-sm" data-dl="r">📊 R script</button></div>
       <div class="faint" style="font-size:12.5px">เปิด notebook ฟรีได้ใน Google Colab / Jupyter / VS Code  อัปโหลดไฟล์ CSV ทั้งสองไว้ในโฟลเดอร์เดียวกัน</div></div>
-      <div class="ml-step"><b>🗄️ SQL console</b> <span class="faint">— ตาราง <code>linelist</code> (รายชื่อผู้ป่วยทั้งหมด) และ <code>survey</code> (ผู้ตอบแบบสอบถาม)</span>
+      <div class="ml-step"><b>🗄️ SQL console</b> <span class="faint">ตาราง <code>linelist</code> (รายชื่อผู้ป่วยทั้งหมด) และ <code>survey</code> (ผู้ตอบแบบสอบถาม)</span>
         <div class="sql-samples">${SAMPLES.map(([t],i)=>`<button class="fchip" data-sqls="${i}">${t}</button>`).join('')}</div>
         <textarea id="sqlIn" class="sql-in" spellcheck="false" rows="5">${U.esc(S.ui.sql || SAMPLES[0][1])}</textarea>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-sm btn-gold" data-sqlrun="1">▶ รันคำสั่ง</button><span class="faint" style="font-size:12.5px">Ctrl+Enter เพื่อรัน · ใช้ alasql (โหลดจากอินเทอร์เน็ตครั้งแรก)</span></div>

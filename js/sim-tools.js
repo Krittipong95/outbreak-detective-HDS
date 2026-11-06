@@ -289,9 +289,9 @@
     const iceShare = ['R1','R2','R3','R4'].filter(r=>s.iceSupplier[r]==='F1').map(r=>F(r));
     const vegShare = ['R1','R2','R3','R4','S'].filter(r=>s.vegSupplier[r]==='F3').map(r=>F(r));
     M.addEvidence(S, {id:'supply', kind:'supply', site:'F1', strength: s.type==='ICE' ? 'strong' : 'none',
-      text:`ห่วงโซ่อุปทาน: ที่ใช้น้ำแข็งจากโรงน้ำแข็งเจริญผล ได้แก่ ${iceShare.join(', ') || '—'}`});
+      text:`ห่วงโซ่อุปทาน: ที่ใช้น้ำแข็งจากโรงน้ำแข็งเจริญผล ได้แก่ ${iceShare.join(', ') || 'ไม่มีข้อมูล'}`});
     M.addEvidence(S, {id:'supply-veg', kind:'supply', site:'F3', strength: s.type==='FARM' ? 'strong' : 'none',
-      text:`ห่วงโซ่อุปทาน: ที่รับผักสดจากสวนผักลุงทอง ได้แก่ ${vegShare.join(', ') || '—'}`});
+      text:`ห่วงโซ่อุปทาน: ที่รับผักสดจากสวนผักลุงทอง ได้แก่ ${vegShare.join(', ') || 'ไม่มีข้อมูล'}`});
     return lines;
   };
   /* แหล่งผลิตที่ส่งวัตถุดิบให้สถานที่นั้น (ใช้ตัดสินว่าหลักฐานของร้านเชื่อมกับโรงน้ำแข็ง/สวนผักได้) */

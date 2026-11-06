@@ -36,6 +36,7 @@ OD.board = (function(){
           </div>`;;
       }
       function render(){
+        if(S.reportDraft){S.reportDraft.links=links;S.reportDraft.screen='board';OD.session?.save('report');}
         const linked = links.size;
         root.innerHTML = `<div class="ch-wrap board-wrap">
           <div class="ch-banner">${OD.art.prajamInline(44)}<div><div class="no">บทที่ ๔</div><h1 class="display gold-text">กระดานสืบสวน</h1></div></div>

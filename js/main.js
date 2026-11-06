@@ -24,7 +24,7 @@ OD.main = (function(){
   };
 
   function title(){
-    const D = M.DIFF;
+    const D = M.DIFF, saved = OD.session.status();
     const desc = {easy:'งบ ฿60,000 · คำใบ้ละเอียด · ความไวแล็บพื้นฐาน ~๙๒%', normal:'งบ ฿45,000 · มีคำใบ้ · ความไวแล็บพื้นฐาน ~๘๒%', hard:'งบ ฿32,000 · ไม่มีคำใบ้ · ความไวแล็บพื้นฐาน ~๗๐% · ชาวบ้านจำคลาดเคลื่อนมากขึ้น'};
     const root = U.$('#scr-title');
     root.innerHTML = `<div class="title-bg">${OD.art.scene('temple')}</div>
@@ -37,6 +37,8 @@ OD.main = (function(){
         <div class="title-sub">ปริศนาแห่งบ้านสุขใจ</div>
         <div class="orn-divider"></div>
         <p class="title-story">ผู้ป่วยท้องร่วงเพิ่มขึ้นผิดปกติในตำบลริมคลอง ข่าวลือแพร่เร็วกว่าเชื้อโรค  คุณคือนักวิทยาศาสตร์ข้อมูลสุขภาพที่ต้องใช้สถิติ ระบาดวิทยา และหลักฐานภาคสนาม ไขปริศนาให้ทันก่อนส่วนกลางจะมาถึง</p>
+        ${saved && !saved.invalid ? `<div class="resume-card"><div><b>แฟ้มคดีของ ${U.esc(saved.name)}</b><small>${saved.label} · ${new Date(saved.at).toLocaleString('th-TH')}</small><small>บันทึกในเบราว์เซอร์นี้ หลังจบแต่ละขั้นตอน</small></div><button class="btn btn-gold" data-t="resume">${saved.stage==='result'?'ดูผลคดีล่าสุด':'เล่นต่อ →'}</button></div>` : saved?.invalid ? `<p class="note">อ่านแฟ้มบันทึกเดิมไม่ได้ คุณยังเริ่มคดีใหม่ได้</p>` : ''}
+        <div class="practice-invite"><div><b>คดีแรกของคุณ เริ่มได้ทีละก้าว</b><small>คดีฝึก 5–10 นาที · มีพี่วิช่วย · ไม่กระทบคดีที่บันทึก</small></div><button class="btn" data-t="practice">🌱 ลองคดีฝึก</button></div>
         <div class="title-form">
           <label>ชื่อของคุณ<input type="text" id="tName" maxlength="20" placeholder="เช่น ต้นกล้า" value="${U.esc(pref.name)}"></label>
           <div><label>ตัวละครของคุณ</label><div class="who-grid">${Object.entries(GENDER).map(([g,o])=>`<button class="diff who ${pref.gender===g?'on':''}" data-g="${g}">${'<span class="avatar">'+OD.art.person('me', pref.gender===g?'smile':'neutral', {gender:g, tag:pref.name})+'</span>'}<span><b>${o.t}</b><small>นักวิทยาศาสตร์ข้อมูลสุขภาพจบใหม่ · ใช้คำลงท้าย “${o.pol}”</small></span></button>`).join('')}</div></div>
@@ -50,15 +52,19 @@ OD.main = (function(){
         <div class="title-foot">สุ่มต้นตอใหม่ทุกคดีจาก ๖ รูปแบบ พร้อมคดีหักมุม · ใช้เวลาเล่นประมาณ ๓๐–๔๕ นาที · ตัวละคร สถานที่ และข้อมูลทั้งหมดเป็นเรื่องสมมติ</div>
         <div class="krajang-band down" style="margin-top:12px"></div>
       </div>`;
-    root.onclick = e=>{
+    root.onclick = async e=>{
       const b = e.target.closest('button'); if(!b) return;
       if(b.dataset.g){ pref.gender = b.dataset.g; title(); }
       if(b.dataset.diff){ pref.diff = b.dataset.diff; title(); }
       if(b.dataset.t==='theme') OD.toggleTheme();
+      if(b.dataset.t==='practice') return OD.practice.open();
+      if(b.dataset.t==='resume'){const stage=OD.session.restore();if(!stage){U.toast('อ่านแฟ้มนี้ไม่ได้ กรุณาเริ่มคดีใหม่');return;}root.onclick=null;return continueCase(stage);}
       if(b.dataset.t==='hb') OD.handbook.open();
       if(b.dataset.t==='howto') OD.handbook.open('howto');
       if(b.dataset.t==='stats') OD.meta.open();
       if(['start','quick','daily'].includes(b.dataset.t)){
+        const prior=OD.session.status();
+        if(prior && prior.stage!=='result'){const choice=await U.ask('<h2>เริ่มคดีใหม่?</h2><p>คดีใหม่จะบันทึกแทนแฟ้มเดิม ถ้ายังอยากสืบคดีเดิม ให้เลือกเล่นต่อจากหน้าแรก</p>',[['back','กลับ',''],['new','เริ่มคดีใหม่','btn-gold']]);if(choice!=='new')return;}
         pref.name = (U.$('#tName').value || '').trim() || 'นักสืบ';
         store.set('name', pref.name); store.set('gender', pref.gender); store.set('diff', pref.diff);
         root.onclick = null;
@@ -89,25 +95,37 @@ OD.main = (function(){
     M.setFest(S.flags.v.fest);
     if(opts.daily) S.flags.daily = true;
     if(skip){ S.acc = {ch1:4, ch1Max:6, ch2:12, ch2Max:16}; S.flags.quick = true; }
-    else {
+    await continueCase(skip?'field':'prologue', true);
+  }
+
+  async function continueCase(stage, fresh=false){
+    const W=OD.W, S=OD.S;
+    if(stage==='result')return OD.reportSaved();
+    if(stage==='prologue'){
+      OD.session.save('prologue');
       await OD.vn.play(OD.story.prologue(W,S));
-      await OD.vn.play(OD.story.ch1_intro(W,S));
-      OD.music.setMood('calm');
-      await OD.ch1.run();
-      await OD.vn.play(OD.story.ch2_intro(W,S));
-      OD.music.setMood('calm');
-      await OD.ch2.run();
+      await OD.vn.play(OD.story.ch1_intro(W,S));stage='ch1';
     }
-    await OD.vn.play(OD.story.field_intro(W,S));
-    await OD.field.run();
-    await OD.report.run();
+    if(stage==='ch1'){
+      OD.session.save('ch1');OD.music.setMood('calm');await OD.ch1.run();
+      await OD.vn.play(OD.story.ch2_intro(W,S));stage='ch2';
+    }
+    if(stage==='ch2'){
+      OD.session.save('ch2');OD.music.setMood('calm');await OD.ch2.run();stage='field';fresh=true;
+    }
+    if(stage==='field'){
+      OD.session.save('field');
+      if(fresh)await OD.vn.play(OD.story.field_intro(W,S));
+      await OD.field.run();stage='report';
+    }
+    if(stage==='report'){OD.session.save('report');await OD.report.run();}
   }
 
   function boot(){
     const th = store.get('theme','dark');
     if(th==='light') document.documentElement.dataset.theme = 'light';
     OD.art.install(th);
-    OD.music.arm();
+    OD.music.arm(); OD.session.init(); OD.guide.init();
     U.$('#hbCtl button').onclick = e=>{ e.stopPropagation(); OD.handbook.open(); };
     title();
   }

@@ -66,11 +66,11 @@ OD.vn = (function(){
     const w = waiter; if(!w) return;
     const chk = setInterval(()=>{
       if(waiter!==w || !auto){ clearInterval(chk); return; }
-      if(typing && typing.done){ clearInterval(chk); setTimeout(()=>{ if(waiter===w && auto){ waiter = null; w(); } }, Math.min(4200, 900 + typing.total*30)); }
+      if(typing && typing.done){ clearInterval(chk); setTimeout(()=>{ if(waiter===w && auto){ if(document.hidden || U.$('#modal').classList.contains('open')){armAuto();return;} waiter = null; w(); } }, Math.min(4200, 900 + typing.total*30)); }
     }, 100);
   }
   const waitClick = () => new Promise(res=>{ waiter = res;
-    if(fast) setTimeout(()=>{ if(waiter===res){ waiter=null; res(); } }, 140);
+    if(fast){const go=()=>{if(waiter!==res)return;if(document.hidden||U.$('#modal').classList.contains('open')){setTimeout(go,140);return;}waiter=null;res();};setTimeout(go,140);}
     else if(auto) armAuto(); });
 
   /* ---------- ตัวละคร ---------- */

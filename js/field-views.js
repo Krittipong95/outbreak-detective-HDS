@@ -152,9 +152,9 @@ OD.fieldViews = (function(){
     const iv = Object.keys(S.ans).length>0;
     return `<div class="map-tools">
       <label>ระบายสี <select id="vColor"><option value="case">ผู้ป่วย</option><option value="onset">วันเริ่มป่วย</option><option value="age">กลุ่มอายุ</option><option value="water" ${iv?'':'disabled'}>น้ำดื่ม (ตามคำตอบ)</option></select></label>
-      <label>ไฮไลต์การสัมผัส <select id="vHl" ${iv?'':'disabled'}><option value="">${iv?'— ไม่เลือก —':'🔒 ต้องสัมภาษณ์ก่อน'}</option>${M.exposures(S).map(e=>`<option value="${e.k}">${e.label}</option>`).join('')}</select></label>
+      <label>ไฮไลต์การสัมผัส <select id="vHl" ${iv?'':'disabled'}><option value="">${iv?'ไม่เลือก':'🔒 ต้องสัมภาษณ์ก่อน'}</option>${M.exposures(S).map(e=>`<option value="${e.k}">${e.label}</option>`).join('')}</select></label>
       ${S.controls.length?`<label><input type="checkbox" id="vCtl" ${S.ui.showCtl?'checked':''}> แสดงกลุ่มควบคุม (□)</label>`:''}
-      <label>🧭 วิเคราะห์เชิงพื้นที่ <select id="vSp"><option value="">— ไม่ใช้ —</option><option value="db">DBSCAN จับกลุ่มผู้ป่วย</option><option value="kde">แผนที่ความร้อน (จำนวน)</option><option value="rate">อัตราป่วยต่อประชากร</option></select></label>
+      <label>🧭 วิเคราะห์เชิงพื้นที่ <select id="vSp"><option value="">ไม่ใช้</option><option value="db">DBSCAN จับกลุ่มผู้ป่วย</option><option value="kde">แผนที่ความร้อน (จำนวน)</option><option value="rate">อัตราป่วยต่อประชากร</option></select></label>
       ${S.ui.spatial?`<label>${S.ui.spatial==='db'?'รัศมี':'แบนด์วิดท์'} <input type="range" id="vEps" min="20" max="110" step="5" value="${S.ui.eps}"> <b>≈ ${U.thaiNum(S.ui.eps*MPU)} ม.</b></label>`:''}</div>`;
   }
   function legend(){
@@ -217,8 +217,8 @@ OD.fieldViews = (function(){
       if(S.ui.sort!=='or' || !hasC){ if(r.g!==g){ g = r.g; h += `<tr class="grp"><td colspan="6">${g}</td></tr>`; } }
       const sig = r.or && r.lo>1;
       h += `<tr class="${S.ui.hl===r.k?'sel':''}" data-k="${r.k}"><td class="lbl">${r.label}</td><td>${r.a}/${r.nCase}<br><span class="faint">${U.pct(r.pCase)}</span></td>
-        <td>${hasC?`${r.b}/${r.nCtrl}<br><span class="faint">${U.pct(r.pCtrl||0)}</span>`:'—'}</td>
-        <td class="${sig?'sig':''}" title="${r.or?'p = '+U.fmtP(r.p):''}">${r.or?`${U.fmtOR(r.or)}${sig?'*':''}<br><span class="faint" style="font-weight:400">${U.fmtOR(r.lo)}–${U.fmtOR(r.hi)}</span>`:'—'}</td><td class="pcol">${r.or?U.fmtP(r.p):'—'}</td><td>${forest(r)}</td></tr>`;
+        <td>${hasC?`${r.b}/${r.nCtrl}<br><span class="faint">${U.pct(r.pCtrl||0)}</span>`:'ไม่มีข้อมูล'}</td>
+        <td class="${sig?'sig':''}" title="${r.or?'p = '+U.fmtP(r.p):''}">${r.or?`${U.fmtOR(r.or)}${sig?'*':''}<br><span class="faint" style="font-weight:400">${U.fmtOR(r.lo)}–${U.fmtOR(r.hi)}</span>`:'ไม่มีข้อมูล'}</td><td class="pcol">${r.or?U.fmtP(r.p):'ไม่มีข้อมูล'}</td><td>${forest(r)}</td></tr>`;
     }
     h += `</tbody></table></div>`;
     if(S.ui.hl && hasC && rows.some(x=>x.k===S.ui.hl)){
@@ -228,15 +228,15 @@ OD.fieldViews = (function(){
         <table class="doc" style="width:auto;background:var(--paper)"><thead><tr><th></th><th>ป่วย</th><th>ไม่ป่วย</th></tr></thead><tbody>
           <tr><td class="l">สัมผัส</td><td>${r.a}</td><td>${r.b}</td></tr><tr><td class="l">ไม่สัมผัส</td><td>${r.c}</td><td>${r.d}</td></tr></tbody></table>
         <div style="flex:1;min-width:240px"><b style="font-size:14px">แยกวิเคราะห์ตามหมู่บ้าน (ควบคุมตัวแปรกวนเชิงพื้นที่)</b>
-          <table class="at" style="margin-top:4px"><tbody>${st.strata.map(s=>`<tr><td>${s.v.short}</td><td class="faint">${s.t.join(' / ')}</td><td>${s.or?U.fmtOR(s.or.or):'—'}</td><td>${s.or?forest(s.or):''}</td></tr>`).join('')}
-          <tr><td><b>Mantel–Haenszel</b></td><td></td><td class="${st.mh.lo>1?'sig':''}"><b>${isFinite(st.mh.or)?U.fmtOR(st.mh.or):'—'}</b></td><td>${isFinite(st.mh.or)&&!isNaN(st.mh.lo)?forest(st.mh):''}</td></tr></tbody></table>
+          <table class="at" style="margin-top:4px"><tbody>${st.strata.map(s=>`<tr><td>${s.v.short}</td><td class="faint">${s.t.join(' / ')}</td><td>${s.or?U.fmtOR(s.or.or):'ไม่มีข้อมูล'}</td><td>${s.or?forest(s.or):''}</td></tr>`).join('')}
+          <tr><td><b>Mantel–Haenszel</b></td><td></td><td class="${st.mh.lo>1?'sig':''}"><b>${isFinite(st.mh.or)?U.fmtOR(st.mh.or):'ไม่มีข้อมูล'}</b></td><td>${isFinite(st.mh.or)&&!isNaN(st.mh.lo)?forest(st.mh):''}</td></tr></tbody></table>
           <div class="faint" style="font-size:12.5px">ตัวเลขในแต่ละหมู่บ้าน: ป่วยสัมผัส / ไม่ป่วยสัมผัส / ป่วยไม่สัมผัส / ไม่ป่วยไม่สัมผัส</div></div></div></div>`;
     }
     h += `<details class="howto"><summary>อ่านตารางนี้อย่างไร?</summary><ul>
-      <li><b>Odds Ratio (OR)</b> = (ผู้ป่วยที่สัมผัส × กลุ่มควบคุมที่ไม่สัมผัส) ÷ (ผู้ป่วยที่ไม่สัมผัส × กลุ่มควบคุมที่สัมผัส)  OR &gt; 1 แปลว่าสัมผัสแล้วเสี่ยงขึ้น</li>
+      <li><b>Odds Ratio (OR)</b> = (ผู้ป่วยที่สัมผัส × กลุ่มควบคุมที่ไม่สัมผัส) ÷ (ผู้ป่วยที่ไม่สัมผัส × กลุ่มควบคุมที่สัมผัส)  OR &gt; 1 ชี้ความสัมพันธ์เชิงบวก แต่ไม่ใช่จำนวนเท่าของความเสี่ยงโดยตรง</li>
       <li><b>95% CI</b> ไม่คร่อม 1 (เส้นประในกราฟ) = มีนัยสำคัญทางสถิติ (ทำเครื่องหมาย *)</li>
       <li>ถาม ${U.thaiNum(M.exposures(S).length)} ข้อ ที่ p &lt; 0.05 อาจเกิดขึ้นโดยบังเอิญได้ราว ๑ ข้อ  ต้องดูขนาดผล ความเป็นไปได้ทางชีววิทยา และหลักฐานอื่น</li>
-      <li>ถ้าสองปัจจัยสูงพร้อมกัน แตะแถวเพื่อ <b>แยกวิเคราะห์ตามหมู่บ้าน</b>  ถ้า OR รวม (Mantel–Haenszel) ลดลงมาใกล้ 1 แสดงว่าเป็นตัวแปรกวน</li></ul></details>`;
+      <li>ถ้าสองปัจจัยสูงพร้อมกัน แตะแถวเพื่อ <b>แยกวิเคราะห์ตามหมู่บ้าน</b>  ถ้า OR ที่ปรับด้วย Mantel–Haenszel ลดลงใกล้ 1 อาจมีตัวแปรกวน ควรพิจารณาหลักฐานอื่นร่วมด้วย</li></ul></details>`;
     return h;
   }
 
@@ -268,12 +268,12 @@ OD.fieldViews = (function(){
     return `<div class="faint" style="font-size:13px;margin-bottom:6px">${R.length} รายการ · ผู้ป่วยยืนยัน ${nConf} · ผู้ป่วยสงสัย ${R.length-nConf}${S.acfAt!=null?` · พบจากการค้นหาเชิงรุก ${nHid}`:' · ยังไม่ได้ค้นหาผู้ป่วยเชิงรุก'} · แถวสีชมพู = รายงานใหม่ · 🔐 ใช้รหัสแทนชื่อ</div>
       <div class="linelist" style="max-height:460px"><table class="doc" style="background:var(--paper)"><thead><tr><th>รหัส</th><th>ประเภท</th><th>อายุ</th><th>เพศ</th><th>หมู่</th><th>เริ่มป่วย</th><th>อาการ</th><th>น้ำดื่ม</th><th>ร้านอาหาร</th><th>ร.ร.</th><th>งานบวช</th></tr></thead><tbody>${
       R.map(r=>{ const p=r.p, a=ans(p);
-        const food = a ? ['R1','R2','R3','R4'].filter(k=>a[k]).map(k=>M.SITES[k].icon).join(' ') || '—' : '';
+        const food = a ? ['R1','R2','R3','R4'].filter(k=>a[k]).map(k=>M.SITES[k].icon).join(' ') || 'ไม่มีข้อมูล' : '';
         const wat = a ? ({W1:'บ่อวัด',W2:'บ่อตลาด',W3:'บ่อริมคลอง'}[['W1','W2','W3'].find(k=>a[k])] || 'น้ำขวด') : '';
         const cls = r.phantom ? 'สงสัย' : M.classOf(S,p);
         return `<tr class="${S.newIds.has(p.id)?'flag':''}"><td>${p.ini||('P'+String(p.id).padStart(3,'0'))}${r.dup?' ²':''}</td><td style="${cls==='ยืนยัน'?'color:#8a1f12;font-weight:700':''}">${cls}${p.hidden?' 🏘️':''}</td><td>${S.clean.ageBad.has(p.id)?p.age+'0':p.age}</td><td>${p.sex}</td><td>${p.v}</td>
           <td>${r.phantom?'15/08/2569':S.clean.dateBad.has(p.id)?M.fmtDateBE(p.onsetDay,true):M.fmtDay(p.onsetDay)}</td><td class="l">${r.phantom?'ท้องร่วงเรื้อรัง':M.SYMPTOMS.filter(([k])=>p.sym[k]).map(([,t])=>t).slice(0,3).join(', ')}${p.admit?' 🏥':''}</td>
-          <td>${a?wat:'<span class="faint">รอสัมภาษณ์</span>'}</td><td>${food}</td><td>${a?(a.S?'✓':'—'):''}</td><td>${a?(a.E?'✓':'—'):''}</td></tr>`; }).join('')}</tbody></table></div>`;
+          <td>${a?wat:'<span class="faint">รอสัมภาษณ์</span>'}</td><td>${food}</td><td>${a?(a.S?'✓':'ไม่มีข้อมูล'):''}</td><td>${a?(a.E?'✓':'ไม่มีข้อมูล'):''}</td></tr>`; }).join('')}</tbody></table></div>`;
   }
   function evid(){
     if(!S.evidence.length) return `<div class="lockbox"><div class="big">🗂️</div><b>ยังไม่มีหลักฐานภาคสนาม</b><div>ตรวจสิ่งแวดล้อม ส่งแล็บ หรือขอข้อมูลห่วงโซ่อุปทาน  หลักฐานทั้งหมดจะถูกรวบรวมไว้ที่นี่เพื่อใช้เขียนรายงาน</div></div>`;
@@ -286,7 +286,7 @@ OD.fieldViews = (function(){
     W = w; S = s;
     U.$('#fMap').innerHTML = `<div class="ptitle"><h2>แผนที่ตำบลบ้านสุขใจ</h2><span class="faint" style="font-size:12.5px">แตะสถานที่เพื่อไฮไลต์ผู้สัมผัส</span></div>
       <button class="walk-cta" data-a="walk"><span class="wc-i">🚶</span><span><b>เดินสำรวจหมู่บ้าน</b><small>เดินไปตรวจสถานที่ คุยกับชาวบ้าน เก็บการ์ดความรู้</small></span><span class="wc-go">เข้าสู่หมู่บ้าน ▶</span></button>${mapTools()}<div class="mapbox">${mapView()}</div>${legend()}`;
-    U.$('#fAna').innerHTML = `<div class="tabs">${TABS.map(([k,l])=>`<button class="tab ${S.ui.tab===k?'on':''}" data-tab="${k}">${l}${k==='ev'&&S.evidence.length?` (${S.evidence.length})`:''}</button>`).join('')}</div><div id="vBody">${TABS.find(t=>t[0]===S.ui.tab)[2]()}</div>`;
+    U.$('#fAna').innerHTML = `<div class="tabs">${TABS.map(([k,l])=>`<button class="tab ${S.ui.tab===k?'on':''}" data-tab="${k}">${l}${k==='ev'&&S.evidence.length?` (${S.evidence.length})`:''}</button>`).join('')}</div><div class="inline-help">${OD.guide?OD.guide.html():''}</div><div id="vBody">${TABS.find(t=>t[0]===S.ui.tab)[2]()}</div>`;
     wire();
   }
   function rerender(){ OD.field.render(); }
@@ -313,7 +313,7 @@ OD.fieldViews = (function(){
       const c = e.target.closest('circle.cs'), g = e.target.closest('.m-site');
       if(c){ const p = W.byId(+c.dataset.id), a = ans(p);
         if(!S.flags.vPlace){ S.flags.vPlace = true; const ck = U.$('#fCk'); if(ck) ck.textContent = `✅ ขั้นตอน ${U.thaiNum(OD.checklist.progress(W,S))}/๑๐`; }
-        U.tip(e, `<div class="tt-h">${p.ini||'ผู้ป่วย'} · ${p.sex} ${p.age} ปี</div>${M.VILLAGES[p.v-1].name}<br>เริ่มป่วย ${p.onsetDay?M.fmtDay(p.onsetDay):'—'}${p.admit?' · 🏥 นอน รพ.':''}${a?`<br>สัมผัส: ${M.EXPOSURES.filter(x=>a[x.k]===true && x.k!=='HH').map(x=>x.label.replace('งานบวช: ','')).slice(0,6).join(', ')}`:'<br><span class="faint">ยังไม่สัมภาษณ์</span>'}`); }
+        U.tip(e, `<div class="tt-h">${p.ini||'ผู้ป่วย'} · ${p.sex} ${p.age} ปี</div>${M.VILLAGES[p.v-1].name}<br>เริ่มป่วย ${p.onsetDay?M.fmtDay(p.onsetDay):'ไม่มีข้อมูล'}${p.admit?' · 🏥 นอน รพ.':''}${a?`<br>สัมผัส: ${M.EXPOSURES.filter(x=>a[x.k]===true && x.k!=='HH').map(x=>x.label.replace('งานบวช: ','')).slice(0,6).join(', ')}`:'<br><span class="faint">ยังไม่สัมภาษณ์</span>'}`); }
       else if(g && g.dataset.unknown){ const st = M.SITES[g.dataset.unknown]; U.tip(e, `<div class="tt-h">${st.icon} ${st.type==='farm'?'สวนผัก':'โรงน้ำแข็ง'}ที่ยังไม่รู้จัก</div>${HIDDEN_TIP}`); }
       else if(g){ const id = g.dataset.site; U.tip(e, `<div class="tt-h">${M.SITES[id].icon} ${nm(id)}</div>${S.inspected[id]?S.inspected[id]:'<span class="faint">ยังไม่ได้ตรวจสิ่งแวดล้อม</span>'}${M.isClosed(S,id)?'<br><b>ปิด/งดใช้อยู่</b>':M.wasReopened(S,id)?'<br><b>ถูกเปิดคืนแล้ว</b>':''}`); }
       else U.hideTip();

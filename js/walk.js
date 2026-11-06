@@ -1241,8 +1241,8 @@ OD.walk = (function(){
   function flagSheet(f){
     const ps = f.f.ps;
     const rows = ps.map(p=>{ const a = S.ans[p.id];
-      return `<li><b>${p.ini || ('P'+String(p.id).padStart(3,'0'))}</b> · ${p.sex} ${p.age} ปี · เริ่มป่วย ${p.onsetDay ? M.fmtDay(p.onsetDay) : '—'}${p.admit?' · 🏥 นอน รพ.':''}${S.newIds.has(p.id)?' · <span style="color:#e8742a">รายงานใหม่</span>':''}
-        <br><small>${a ? 'สัมภาษณ์แล้ว  สัมผัส: ' + (M.EXPOSURES.filter(x=>a[x.k]===true && x.k!=='HH').map(x=>x.label.replace('งานบวช: ','')).slice(0,5).join(', ') || '—') : 'ยังไม่ได้สัมภาษณ์'}</small></li>`; }).join('');
+      return `<li><b>${p.ini || ('P'+String(p.id).padStart(3,'0'))}</b> · ${p.sex} ${p.age} ปี · เริ่มป่วย ${p.onsetDay ? M.fmtDay(p.onsetDay) : 'ไม่มีข้อมูล'}${p.admit?' · 🏥 นอน รพ.':''}${S.newIds.has(p.id)?' · <span style="color:#e8742a">รายงานใหม่</span>':''}
+        <br><small>${a ? 'สัมภาษณ์แล้ว  สัมผัส: ' + (M.EXPOSURES.filter(x=>a[x.k]===true && x.k!=='HH').map(x=>x.label.replace('งานบวช: ','')).slice(0,5).join(', ') || 'ไม่มีข้อมูล') : 'ยังไม่ได้สัมภาษณ์'}</small></li>`; }).join('');
     sheet(head('🚩', `บ้านผู้ป่วย · ${M.VILLAGES[f.f.hh.v-1].name}`, `${ps.length} รายในบ้านนี้`)
       + `<div class="wk-sh-b"><ul class="wk-list">${rows}</ul><p class="faint" style="font-size:13px">🗺️ ธงแดงทุกผืนคือ “แผนที่จุด” (spot map) แบบเดียวกับที่หมอจอห์น สโนว์ใช้ค้นหาบ่อน้ำต้นเหตุอหิวาต์  ลองสังเกตว่าธงกระจุกอยู่ใกล้อะไร</p></div>
         <div class="wk-acts">${cloneActs(['interview'])}</div>`, f);

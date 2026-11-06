@@ -83,7 +83,13 @@ OD.field = (function(){
       draw();
     });
   }
+  let afterBusy=false;
   async function after(){
+    afterBusy=true;
+    try{await processAfter();}finally{afterBusy=false;}
+    if(OD.session?.stage()==='field')OD.session.save();
+  }
+  async function processAfter(){
     reconcileControls();
     S.trust = U.clamp(S.trust, 0, 100);
     F.render();
@@ -180,7 +186,7 @@ OD.field = (function(){
   /* ขั้นตอนที่ ๑: เตรียมอุปกรณ์ภาคสนาม */
   function packKit(){
     return new Promise(res=>{
-      const items = U.shuffle(M.KIT), sel = new Set();
+      const items = U.shuffle(M.KIT), sel = new Set(S.flags.kitDraft || []);
       const kitArt = {
         cary:['หลอดเก็บตัวอย่าง','<rect x="20" y="16" width="24" height="37" rx="8"/><path d="M19 16h26v-5H19z M26 34h12 M32 25v18"/>'],
         bottle:['ขวดเก็บตัวอย่าง','<path d="M27 13h10v8l7 8v22a5 5 0 0 1-5 5H25a5 5 0 0 1-5-5V29l7-8z M25 12h14v5H25z"/><path d="M26 40c3-6 6-9 6-9s6 6 6 9a6 6 0 0 1-12 0z"/>'],
@@ -198,8 +204,8 @@ OD.field = (function(){
         <div class="kit-grid">${items.map(it=>`<button type="button" class="kit-item ${sel.has(it.k)?'selected':''}" data-m="k${it.k}" aria-pressed="${sel.has(it.k)}"><span class="kit-icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${kitArt[it.k][1]}</svg></span><span class="kit-copy"><small>${kitArt[it.k][0]}</small><b>${it.t}</b></span><span class="kit-check" aria-hidden="true">${sel.has(it.k)?'✓':'+'}</span></button>`).join('')}</div>
         <div class="kit-actions"><span>เลือกได้หลายรายการ กดซ้ำเพื่อนำออก</span><div><button class="btn" data-m="hb">📘 เปิดคู่มือ</button><button class="btn btn-gold" data-m="go">ตรวจของและออกเดินทาง →</button></div></div>`,
         async k=>{
-          if(k[0]==='k'){ const x = k.slice(1), scroll = U.$('#modal .m-card').scrollTop; sel.has(x) ? sel.delete(x) : sel.add(x); draw(); const card = U.$('#modal .m-card'); card.scrollTop = scroll; const button = card.querySelector('[data-m="'+k+'"]'); if(button) button.focus({preventScroll:true}); }
-          else if(k==='hb'){ U.closeModal(); OD.handbook.open('lab'); const iv = setInterval(()=>{ if(!U.$('#modal').classList.contains('open')){ clearInterval(iv); draw(); } }, 200); }
+          if(k[0]==='k'){ const x = k.slice(1), scroll = U.$('#modal .m-card').scrollTop; sel.has(x) ? sel.delete(x) : sel.add(x); S.flags.kitDraft=[...sel]; OD.session?.save('field'); draw(); const card = U.$('#modal .m-card'); card.scrollTop = scroll; const button = card.querySelector('[data-m="'+k+'"]'); if(button) button.focus({preventScroll:true}); }
+          else if(k==='hb'){ OD.handbook.open('lab'); }
           else if(k==='go'){
             S.kit = sel;
             const miss = M.KIT.filter(i=>i.ok && !sel.has(i.k)), bad = M.KIT.filter(i=>!i.ok && sel.has(i.k));
@@ -210,6 +216,7 @@ OD.field = (function(){
               ${miss.length ? `<div class="note red"><b>ลืมนำไป:</b><ul style="margin:4px 0 0;padding-left:20px">${miss.map(i=>`<li><b>${i.t}</b>  ${i.why}</li>`).join('')}</ul></div>` : ''}
               ${bad.length ? `<div class="note red"><b>ไม่ควรนำไป:</b><ul style="margin:4px 0 0;padding-left:20px">${bad.map(i=>`<li><b>${i.t}</b>  ${i.why}</li>`).join('')}</ul></div>` : ''}
               ${miss.length ? '<p class="muted">ผลกระทบในเกม: ตัวอย่างที่ต้องใช้อุปกรณ์ที่ขาดจะตรวจพบเชื้อได้น้อยลง หรือวัดค่าบางอย่างไม่ได้</p>' : ''}`, [['ok','ลงพื้นที่','btn-gold']]);
+            S.flags.kitReady=true;delete S.flags.kitDraft;OD.session?.save('field');
             res();
           }
         }, {wide:true, locked:true, cls:'kit-modal'});
@@ -304,7 +311,7 @@ OD.field = (function(){
       <div class="note" style="font-size:13.5px">หลักการเก็บตัวอย่าง: เก็บอุจจาระก่อนให้ยาปฏิชีวนะเมื่อทำได้ · ตัวอย่างเพื่อเพาะเชื้อแบคทีเรียอาจใช้ Cary-Blair · หากสงสัยโนโรไวรัสใช้ตัวอย่างอุจจาระสดตามคำแนะนำห้องแล็บ · น้ำใช้ขวดปลอดเชื้อที่มีโซเดียมไทโอซัลเฟต · อาหาร/น้ำแข็งแช่เย็น ๔ °C · ติดฉลากทุกตัวอย่าง
       ${['cary','bottle','cold'].filter(k=>!M.hasKit(S,k)).map(k=>`<br>⚠️ ไม่ได้นำ <b>${M.KIT.find(i=>i.k===k).t}</b> มา  ตัวอย่างที่เกี่ยวข้องอาจเสื่อม ความไวลดลง`).join('')}</div>
       <div class="pick-grid"><button class="pick ${site==='STOOL'?'sel':''}" data-m="sSTOOL" ${!stoolOK||!can(M.COST.stool)?'disabled':''}><span class="pi">🧫</span><b>อุจจาระผู้ป่วย ๕ ราย</b><small>บอกว่าเป็น “เชื้ออะไร”</small><small>${M.COST.stool.h} ชม. · ${U.baht(M.COST.stool.b)}</small></button></div>
-      <h3 style="font-size:15px;margin:10px 0 0">หรือ ตัวอย่างจากสิ่งแวดล้อม <span class="muted" style="font-weight:400">— ช่วยตรวจสอบแหล่งที่สงสัย · ${M.COST.env.h} ชม. · ${U.baht(M.COST.env.b)}</span></h3>
+      <h3 style="font-size:15px;margin:10px 0 0">หรือ ตัวอย่างจากสิ่งแวดล้อม <span class="muted" style="font-weight:400">ช่วยตรวจสอบแหล่งที่สงสัย · ${M.COST.env.h} ชม. · ${U.baht(M.COST.env.b)}</span></h3>
       <div class="pick-grid">${sites.map(id=>`<button class="pick ${site===id?'sel':''}" data-m="s${id}" ${!M.sampleTypes(W,S,id).length||!can(M.COST.env)?'disabled':''}><span class="pi">${M.SITES[id].icon}</span><b>${nm(id)}</b>${!M.sampleTypes(W,S,id).length?'<small>ไม่มีตัวอย่างเหลือแล้ว</small>':''}</button>`).join('')}</div>
       ${types.length?`<div class="pick-grid">${types.map(([k,t])=>`<button class="pick ${type===k?'sel':''}" data-m="t${k}"><b>${t}</b></button>`).join('')}</div>`:''}
       <div class="m-actions"><button class="btn" data-m="x">ยกเลิก</button><button class="btn btn-gold" data-m="ok" ${(site==='STOOL'||(site&&type))?'':'disabled'}>ส่งตรวจ</button></div>`,
@@ -372,11 +379,12 @@ OD.field = (function(){
   A.walk = ()=>{ if(OD.deadline.snapshot(S).remainingHours<=0) return; S.flags.walked = true; OD.walk.open(F); };
   let actionBusy = false;
   F.act = async (k, arg) => {
-    if(!A[k] || actionBusy || S.flags.reported) return;
+    if(!A[k] || actionBusy || afterBusy || !S.flags.kitReady || S.flags.reported) return;
     actionBusy = true;
     try { return await A[k](arg); }
-    finally { actionBusy = false; }
+    finally { actionBusy = false; if(OD.session?.stage()==='field'&&!document.querySelector('#modal.open')&&document.querySelector('#vn.hidden'))OD.session.save(); }
   };
+  F.isBusy = () => actionBusy || afterBusy;
   F.after = () => after();
   F.hint = () => hint();
   F.can = c => can(c);
@@ -437,7 +445,8 @@ OD.field = (function(){
       <div class="f-stat"><span class="l">ความเชื่อมั่นชุมชน ${Math.round(S.trust)}</span><div class="meter jade"><i style="width:${S.trust}%"></i></div></div>
       ${OD.deadline.html(S)}
       <button class="chip gold ck-chip" id="fCk" data-a="checklist" title="ดูเช็คลิสต์ ๑๐ ขั้นตอน">✅ ขั้นตอน ${U.thaiNum(OD.checklist.progress(W,S))}/๑๐</button>
-      <button class="btn btn-ghost btn-sm" data-a="help" title="วิธีเล่น">📖</button><button class="btn btn-ghost btn-sm" data-a="handbook" title="คู่มือนักสืบมือใหม่">📘</button><button class="btn btn-ghost btn-sm" data-a="theme" title="สลับธีม">🌓</button>`;
+      <span class="save-status" data-save-status role="status">บันทึกอัตโนมัติ</span><button class="btn btn-ghost btn-sm" data-a="help" title="วิธีเล่น">📖</button><button class="btn btn-ghost btn-sm" data-a="handbook" title="คู่มือนักสืบมือใหม่">📘</button><button class="btn btn-ghost btn-sm" data-a="theme" title="สลับธีม">🌓</button>`;
+    OD.session?.paint();
     const mission = nextStep();
     U.$('#fAdv').innerHTML = `<div class="f-mission"><div><small>เป้าหมายถัดไป · ${mission.cost}</small><b>${mission.title}</b><span>${mission.why}</span></div><button class="btn btn-gold" data-a="next">ทำตอนนี้ →</button></div><div class="adv-row"><div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${hint()}</div></div></div>${OD.bonds.html(S)}</div>`;
     OD.deadline.notify(S);
@@ -485,8 +494,8 @@ OD.field = (function(){
   }
 
   F.run = function(){
-    W = OD.W; S = OD.S; fired = new Set();
-    S.ui = {tab:'curve', hl:null, colorBy:'case', showCtl:true, onlyHl:false, sort:'or',
+    W = OD.W; S = OD.S; fired = new Set(S.flags.seen || []); actionBusy=false;
+    S.ui = S.ui || {tab:'curve', hl:null, colorBy:'case', showCtl:true, onlyHl:false, sort:'or',
             mlTab:'lr', mlFeat:null, mlVil:false, mlChild:false, depth:3, minLeaf:3, spatial:'', eps:55, sql:null};
     if(!S.flags.pool) S.flags.pool = U.shuffle(OD.story.POOL).slice(0,3);   // เหตุการณ์สุ่ม ๓ ใน ๗ ต่อคดี (ปกติสุ่มไว้แล้วตอนเริ่มคดี)
     S.flags.jit = S.flags.jit || {};
@@ -515,10 +524,11 @@ OD.field = (function(){
       }
       if(A[a]) F.act(a);
     };
-    log(`เริ่มลงพื้นที่  ฐานข้อมูลผู้ป่วย ${M.records(W,S).length} ราย`);
+    if(!S.flags.kitReady)log(`เริ่มลงพื้นที่  ฐานข้อมูลผู้ป่วย ${M.records(W,S).length} ราย`);
     U.show('scr-field'); F.render();
     (async()=>{
-      await packKit(); log(`เตรียมอุปกรณ์ ${S.kit.size} รายการ`, 'good'); F.render();
+      if(!S.flags.kitReady){await packKit(); log(`เตรียมอุปกรณ์ ${S.kit.size} รายการ`, 'good');}
+      F.render(); OD.session?.save('field');
       let seen = false; try{ seen = localStorage.getItem('od2-tour')==='1'; }catch(e){}
       if(!seen){ try{ localStorage.setItem('od2-tour','1'); }catch(e){} OD.handbook.tour(); }
       else U.toast('🚶 ใหม่! กด <b>เดินสำรวจหมู่บ้าน</b> เหนือแผนที่ เพื่อเดินไปสืบสวนด้วยตัวเอง', '', 6000);

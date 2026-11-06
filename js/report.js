@@ -94,6 +94,7 @@ OD.report = (function(){
       const radio = (grp, k, t) => `<label class="ropt ${sel[grp]===k?'on':''}"><input type="radio" name="${grp}" value="${k}" ${sel[grp]===k?'checked':''}> <span>${t}</span></label>`;
       const check = (grp, k, t) => `<label class="ropt ${sel[grp].has(k)?'on':''}"><input type="checkbox" data-g="${grp}" value="${k}" ${sel[grp].has(k)?'checked':''}> <span>${t}</span></label>`;
       function render(){
+        if(S.reportDraft){S.reportDraft.sel=sel;S.reportDraft.screen='form';OD.session?.save('report');}
         const ok = sel.site && sel.route && sel.p2p && sel.path && sel.pattern;
         root.innerHTML = `<div class="ch-wrap"><div class="ch-banner">${OD.art.prajamInline(44)}<div><div class="no">บทที่ ๔</div><h1 class="display gold-text">รายงานสอบสวนโรค</h1></div></div>
           <div class="paper rep">
@@ -105,13 +106,13 @@ OD.report = (function(){
             <div class="rep-sec"><h3><span class="n">๓.</span> มีการแพร่ต่อแบบคนสู่คนในครัวเรือนอย่างชัดเจนหรือไม่</h3><div class="ropts">${radio('p2p','yes','มี  ผู้ป่วยระลอกหลังเป็นคนในบ้านเดียวกับผู้ป่วยรายแรก')}${radio('p2p','no','ไม่เด่นชัด')}</div></div>
             <div class="rep-sec"><h3><span class="n">๔.</span> เชื้อก่อโรคที่น่าจะเป็น</h3><div class="ropts">${Object.entries(M.PATHOGENS).map(([k,p])=>radio('path',k,p.name)).join('')}</div></div>
             <div class="rep-sec"><h3><span class="n">๕.</span> รูปแบบการระบาด</h3><div class="ropts">${PATTERNS.map(([k,t])=>radio('pattern',k,t)).join('')}</div></div>
-            <div class="rep-sec"><h3><span class="n">๖.</span> หลักฐานสนับสนุน <span class="muted" style="font-size:13px;font-weight:400">— หลักฐานที่ปักไว้กับแหล่งโรคในข้อ ๑ บนกระดานสืบสวน</span></h3>
+            <div class="rep-sec"><h3><span class="n">๖.</span> หลักฐานสนับสนุน <span class="muted" style="font-size:13px;font-weight:400">หลักฐานที่ปักไว้กับแหล่งโรคในข้อ ๑ บนกระดานสืบสวน</span></h3>
               ${(()=>{ const P = sel.site ? evs.filter(e=>links.get(e.id)===sel.site) : [];
                 return (P.length ? `<ul class="rep-ev">${P.map(e=>`<li><span>${catIc[e.cat]}</span>${e.text}</li>`).join('')}</ul>`
                   : `<div class="muted">${sel.site ? `ยังไม่ได้ปักหลักฐานไว้กับ${nm(sel.site)}` : 'เลือกแหล่งโรคในข้อ ๑ ก่อน'}</div>`) +
                   `<button class="btn btn-sm" id="repBoard" style="margin-top:8px">📌 กลับไปแก้ไขกระดานสืบสวน</button>`; })()}</div>
             <div class="rep-sec"><h3><span class="n">๗.</span> มาตรการควบคุมและป้องกัน</h3><div class="ropts">${MEAS.map(([k,t])=>check('meas',k,t)).join('')}</div></div>
-            <div class="rep-sec"><h3><span class="n">๘.</span> ข้อจำกัดของการสอบสวน <span class="muted" style="font-size:13px;font-weight:400">— รายงานที่ดีต้องยอมรับข้อจำกัดอย่างตรงไปตรงมา</span></h3><div class="ropts">${LIMITS.map(([k,t])=>check('lim',k,t)).join('')}</div></div>
+            <div class="rep-sec"><h3><span class="n">๘.</span> ข้อจำกัดของการสอบสวน <span class="muted" style="font-size:13px;font-weight:400">รายงานที่ดีต้องยอมรับข้อจำกัดอย่างตรงไปตรงมา</span></h3><div class="ropts">${LIMITS.map(([k,t])=>check('lim',k,t)).join('')}</div></div>
             <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:22px;flex-wrap:wrap">
               <span class="muted">${ok?'พร้อมส่งรายงาน':'กรุณาตอบข้อ ๑–๕ ให้ครบ'}</span>
               <button class="btn btn-red btn-lg" id="repSend" ${ok?'':'disabled'}>ลงนามและส่งรายงาน</button></div>
@@ -225,7 +226,7 @@ OD.report = (function(){
   /* ---------- สรุปสิ่งที่พลาด (debrief)  ๖ ด้าน ---------- */
   function debrief(W,S,R,sel,evs,links){
     const s = W.scn, T = R.T, G = [], th = U.thaiNum, src = s.culprit;
-    const lab = (arr,k) => (arr.find(x=>x[0]===k)||[0,'—'])[1];
+    const lab = (arr,k) => (arr.find(x=>x[0]===k)||[0,'ไม่มีข้อมูล'])[1];
     const short = t => { const a = Array.from(t); return a.length>80 ? a.slice(0,78).join('')+'…' : t; };
     const kitName = k => M.KIT.find(i=>i.k===k).t;
     const add = (icon, title, items, ok) => G.push({icon, title, items, ok});
@@ -409,14 +410,14 @@ OD.report = (function(){
 
   async function run(){
     const W = OD.W, S = OD.S;
-    await OD.vn.play(OD.story.reportIntro(W,S));
-    // กระดานสืบสวน ↔ แบบฟอร์มรายงาน (กลับไปแก้กระดานได้)
-    const evs = evidenceItems(W,S), links = new Map();
-    let sel = null;
+    if(!S.reportDraft){await OD.vn.play(OD.story.reportIntro(W,S));S.reportDraft={evs:evidenceItems(W,S),links:new Map(),sel:null,screen:'board'};}
+    const draft=S.reportDraft, evs=draft.evs, links=draft.links;
+    let sel=draft.sel;
     for(;;){
-      await OD.board.run(W,S,evs,links);
+      if(draft.screen!=='form'){draft.screen='board';OD.session?.save('report');await OD.board.run(W,S,evs,links);}
+      draft.screen='form';
       const r = await form(W,S,evs,links,sel); sel = r.sel;
-      if(!r.back) break;
+      if(!r.back) break;draft.screen='board';
     }
     const R = score(W,S,sel,evs,links);
     R.timeout = !!S.flags.timeout;
@@ -425,8 +426,10 @@ OD.report = (function(){
     R.debrief = debrief(W,S,R,sel,evs,links);
     R.misses = R.debrief.misses;
     R.meta = OD.meta.record(W,S,R,sel);
+    S.savedResult={R,sel};OD.session?.save('result');
     await OD.vn.play(OD.story.ending(W,S,R));
     result(W,S,R,sel);
   }
+  OD.reportSaved = ()=>{const {R,sel}=OD.S.savedResult;result(OD.W,OD.S,R,sel);};
   return {run, truth, related};
 })();

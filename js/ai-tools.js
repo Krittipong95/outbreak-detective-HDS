@@ -124,7 +124,7 @@ OD.ai = (function(){
       function results(){
         const ents = [...new Set(Object.keys(res.raw).concat(Object.keys(res.sig)))].sort((a,b)=>(res.sig[b]||0)-(res.sig[a]||0) || (res.raw[b]||0)-(res.raw[a]||0)).slice(0,7);
         const mxR = Math.max(1, ...ents.map(k=>res.raw[k]||0)), mxS = Math.max(1, ...ents.map(k=>res.sig[k]||0));
-        const words = CLASSES.map(c=>`<div><b>${CLS[c][0]} ${CLS[c][1]}</b><div class="kw">${model.topWords(c,6).map(w=>`<span class="chip">${U.esc(w.w)}</span>`).join(' ') || '<span class="faint">—</span>'}</div></div>`).join('');
+        const words = CLASSES.map(c=>`<div><b>${CLS[c][0]} ${CLS[c][1]}</b><div class="kw">${model.topWords(c,6).map(w=>`<span class="chip">${U.esc(w.w)}</span>`).join(' ') || '<span class="faint">ไม่มีข้อมูล</span>'}</div></div>`).join('');
         return `<div class="frame tight" style="margin-top:12px"><h3 style="margin:0 0 6px">ผลของโมเดล</h3>
           <div class="ml-kpis"><div><span>ป้ายข้อมูลฝึกที่ถูกต้อง</span><b class="${res.lblOK<7?'up':''}">${U.thaiNum(res.lblOK)}/๙</b></div>
             <div><span>โมเดลทายชุดทดสอบถูก</span><b>${U.thaiNum(res.testOK)}/๙</b></div>
@@ -146,7 +146,7 @@ OD.ai = (function(){
         const n = Object.keys(lab).length, cls = 'nlp-modal' + (first ? '' : ' redraw'); first = false;
         U.modal(`<h2 class="display gold-text">📱 ฟังเสียงโซเชียลด้วย NLP</h2>
           <p style="margin-top:0">ดึงโพสต์สาธารณะที่พูดถึงอาการท้องร่วงในตำบลมา ๑๘ โพสต์  ข่าวลือมักถูกแชร์มากกว่าประสบการณ์จริงหลายเท่า เราจะสอนโมเดลให้แยกโพสต์ก่อนนำไปนับ</p>
-          <h3 style="font-size:16px">๑. ติดป้ายข้อมูลฝึก (labeling) <span class="faint" style="font-weight:400">— ${U.thaiNum(n)}/๙ โพสต์</span></h3>
+          <h3 style="font-size:16px">๑. ติดป้ายข้อมูลฝึก (labeling) <span class="faint" style="font-weight:400">${U.thaiNum(n)}/๙ โพสต์</span></h3>
           <div class="posts">${P.train.map(x=>post(x,'train')).join('')}</div>
           <div class="m-actions" style="justify-content:flex-start"><button class="btn btn-gold" data-m="train" ${n<9||res?'disabled':''}>🧠 ฝึกโมเดล Naive Bayes แล้วทายชุดทดสอบ</button></div>
           ${res ? `<h3 style="font-size:16px;margin-top:14px">๒. โมเดลทายโพสต์ที่ไม่เคยเห็น (ชุดทดสอบ)</h3><div class="posts">${P.test.map(x=>post(x,'test')).join('')}</div>${results()}` : ''}
@@ -305,7 +305,7 @@ OD.ai = (function(){
     const log = S.fc.log, best = log.length ? FC.map(([k])=>({k, e:mae(log,k)})).sort((a,b)=>a.e-b.e)[0] : null;
     const board = log.length ? `<div class="fc-mae">ค่าคลาดเคลื่อนเฉลี่ย (MAE) ย้อนหลัง ${U.thaiNum(log.length)} วัน: ${FC.map(([k,t])=>`<span class="${best&&best.k===k?'best':''}">${t} <b>${r1(mae(log,k))}</b></span>`).join('')}<span>ที่คุณเลือก <b>${r1(mae(log,'pick'))}</b></span></div>` : '';
     const trendTxt = f.dbl ? `ผู้ป่วยรายใหม่เพิ่มเป็นเท่าตัวทุก ~${r1(f.dbl)} วัน` : f.half ? `ผู้ป่วยรายใหม่ลดลงครึ่งหนึ่งทุก ~${r1(f.half)} วัน` : 'ค่อนข้างคงที่';
-    return `<div class="fc"><div class="fc-h">🔮 พยากรณ์ผู้ป่วยรายใหม่ใน ๒๔ ชม. ข้างหน้า <span class="faint">— เลือกโมเดลที่คุณเชื่อ พรุ่งนี้มาดูกันว่าแม่นแค่ไหน</span></div>
+    return `<div class="fc"><div class="fc-h">🔮 พยากรณ์ผู้ป่วยรายใหม่ใน ๒๔ ชม. ข้างหน้า <span class="faint">เลือกโมเดลที่คุณเชื่อ พรุ่งนี้มาดูกันว่าแม่นแค่ไหน</span></div>
       ${evalBox}<div class="fc-picks">${FC.map(([k,t])=>`<button class="pick ${P.pick===k?'sel':''}" data-m="fc:${k}"><b>${r1(P.pred[k])} ราย</b><small>${t}</small></button>`).join('')}</div>
       <div class="faint" style="font-size:12.5px">อัตราการเติบโตจากแนวโน้มล่าสุด ${f.growth>=0?'+':''}${Math.round(f.growth*100)}% ต่อวัน  ${trendTxt}${S.closed && Object.keys(S.closed).length ? ' · ⚠️ หลังปิดแหล่งโรค โมเดลแนวโน้มยังไม่รู้ว่ามีการแทรกแซง จึงมักพยากรณ์สูงเกินจริงช่วงแรก' : ''}</div>${board}</div>`;
   }

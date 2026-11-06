@@ -25,7 +25,7 @@ OD.ch2 = (function(){
       recs.push(b);
       issues.push({icon:'👥', title:'รายงานซ้ำ?', desc:'สองรายการนี้มีชื่อย่อ เพศ อายุ และวันเริ่มป่วยตรงกัน แต่มาจากคนละหน่วยบริการ', recs:[a,b], opts:[
         opt('รวมเป็นรายเดียว  คนเดียวกันถูกรายงานซ้ำ', 1, 'ผู้ป่วยที่นอนโรงพยาบาลมักถูกรายงานทั้งจาก รพ.สต. และโรงพยาบาล ถ้าไม่รวมจะนับซ้ำ และทำให้ผู้ป่วยอาการหนักมีน้ำหนักเกินจริง'),
-        opt('เก็บไว้ทั้งสองรายการ', 0, 'คนเดียวกันจะถูกนับสองครั้งในทุกการวิเคราะห์ ข้อมูลการสัมผัสของคนนี้จะมีน้ำหนักเป็นสองเท่า', ()=>C.dupKept.add(p.id)),
+        opt('เก็บไว้ทั้งสองรายการ', 0, 'คนเดียวกันจะถูกนับสองครั้งในทุกการวิเคราะห์ ข้อมูลการสัมผัสของคนนี้จะมีน้ำหนักเป็นสองเท่า', {key:'dupKept', id:p.id}),
       ]});
     }
     // คนละคนแต่ชื่อย่อเหมือน
@@ -38,7 +38,7 @@ OD.ch2 = (function(){
       const [a,b] = pair; used.add(a.id); used.add(b.id);
       const ra = R(a.id), rb = R(b.id); rb.ini = ra.ini; b.ini = ra.ini;
       issues.push({icon:'🧑‍🤝‍🧑', title:'ชื่อย่อซ้ำกัน', desc:'ระบบพบสองรายการที่มีชื่อย่อเหมือนกันและอยู่หมู่บ้านเดียวกัน', recs:[ra,rb], opts:[
-        opt('รวมเป็นรายเดียว', 0, `อายุต่างกัน (${a.age} กับ ${b.age} ปี)  เป็นคนละคน น่าจะเป็นคนในบ้านเดียวกัน การรวมทำให้เสียผู้ป่วยจริงไป ๑ ราย`, ()=>C.lost.add(b.id)),
+        opt('รวมเป็นรายเดียว', 0, `อายุต่างกัน (${a.age} กับ ${b.age} ปี)  เป็นคนละคน น่าจะเป็นคนในบ้านเดียวกัน การรวมทำให้เสียผู้ป่วยจริงไป ๑ ราย`, {key:'lost', id:b.id}),
         opt('เก็บไว้ทั้งคู่  เป็นคนละคน', 1, 'ชื่อย่อซ้ำกันได้บ่อย ต้องดูตัวแปรอื่นประกอบ เช่น อายุ เพศ วันเริ่มป่วย'),
       ]});
     }
@@ -47,27 +47,27 @@ OD.ch2 = (function(){
     if(p){ const r = R(p.id); r.age = p.age+'0'; r.bad.age=1;
       issues.push({icon:'🔢', title:'อายุผิดปกติ', desc:`อายุ ${r.age} ปี เป็นไปไม่ได้`, recs:[r], opts:[
         opt('ตรวจสอบกับเวชระเบียนต้นทาง แล้วแก้ไขให้ถูก', 1, `เวชระเบียนระบุอายุ ${p.age} ปี  พิมพ์เลข 0 เกินมาหนึ่งตัว แก้เฉพาะช่องที่ผิดก็พอ`),
-        opt('ลบผู้ป่วยรายนี้ออก', 0, 'ข้อมูลผิดเพียงช่องเดียว แต่การลบทำให้เสียผู้ป่วยจริงทั้งราย', ()=>C.lost.add(p.id)),
-        opt('ปล่อยไว้ตามเดิม', 0, 'อายุหลักร้อยจะทำให้กราฟกลุ่มอายุและค่าเฉลี่ยผิดเพี้ยน', ()=>C.ageBad.add(p.id)),
+        opt('ลบผู้ป่วยรายนี้ออก', 0, 'ข้อมูลผิดเพียงช่องเดียว แต่การลบทำให้เสียผู้ป่วยจริงทั้งราย', {key:'lost', id:p.id}),
+        opt('ปล่อยไว้ตามเดิม', 0, 'อายุหลักร้อยจะทำให้กราฟกลุ่มอายุและค่าเฉลี่ยผิดเพี้ยน', {key:'ageBad', id:p.id}),
       ]}); } }
     { const p = take(()=>true);
     if(p){ const r = R(p.id); r.onset = M.fmtDateBE(p.onsetDay, true); r.bad.onset=1;
       issues.push({icon:'📅', title:'ปีของวันเริ่มป่วยผิดรูปแบบ', desc:`รายการอื่นใช้ปี พ.ศ. แต่รายการนี้บันทึกเป็น ${r.onset}`, recs:[r], opts:[
         opt('แปลงเป็น พ.ศ. (๒๐๒๖ + ๕๔๓ = ๒๕๖๙)', 1, 'คลินิกเอกชนใช้ระบบที่บันทึกปี ค.ศ.  การรวมข้อมูลหลายแหล่งต้องแปลงให้เป็นมาตรฐานเดียวกันก่อน'),
-        opt('ลบรายนี้ (วันที่ใช้ไม่ได้)', 0, 'วันที่แปลงได้อย่างชัดเจน การลบทำให้เสียผู้ป่วยจริง', ()=>C.lost.add(p.id)),
-        opt('ปล่อยไว้ตามเดิม', 0, 'ระบบจะตีความเป็น พ.ศ. ๒๐๒๖ (ก่อนปัจจุบัน ๕๔๓ ปี) ผู้ป่วยรายนี้จะหลุดออกจากเส้นโค้งการระบาด', ()=>C.dateBad.add(p.id)),
+        opt('ลบรายนี้ (วันที่ใช้ไม่ได้)', 0, 'วันที่แปลงได้อย่างชัดเจน การลบทำให้เสียผู้ป่วยจริง', {key:'lost', id:p.id}),
+        opt('ปล่อยไว้ตามเดิม', 0, 'ระบบจะตีความเป็น พ.ศ. ๒๐๒๖ (ก่อนปัจจุบัน ๕๔๓ ปี) ผู้ป่วยรายนี้จะหลุดออกจากเส้นโค้งการระบาด', {key:'dateBad', id:p.id}),
       ]}); } }
     { const p = take(()=>true);
     if(p){ const r = R(p.id); const sh = M.VILLAGES[p.v-1].short; r.vill = U.pick([`ม${p.v}`, `บ.${sh}`, `${sh}`]); r.bad.vill=1;
       issues.push({icon:'🏘️', title:'ที่อยู่ไม่เป็นมาตรฐาน', desc:`บันทึกที่อยู่ว่า “${r.vill}”`, recs:[r], opts:[
         opt(`ปรับให้เป็นรูปแบบมาตรฐาน “${vstd(p.v)}”`, 1, 'การจัดรูปแบบข้อมูลให้เหมือนกันทำให้นับและแผนที่ได้ถูกต้อง'),
-        opt('ลบรายนี้ (ระบุหมู่บ้านไม่ได้)', 0, 'ข้อมูลระบุได้ชัดว่าเป็นหมู่บ้านใด การลบทำให้เสียผู้ป่วยจริง', ()=>C.lost.add(p.id)),
+        opt('ลบรายนี้ (ระบุหมู่บ้านไม่ได้)', 0, 'ข้อมูลระบุได้ชัดว่าเป็นหมู่บ้านใด การลบทำให้เสียผู้ป่วยจริง', {key:'lost', id:p.id}),
       ]}); } }
     { const p = take(()=>true);
     if(p){ const r = R(p.id); r.sex = ''; r.bad.sex=1;
       issues.push({icon:'❔', title:'ข้อมูลเพศว่าง', desc:'ช่องเพศไม่ได้บันทึก', recs:[r], opts:[
         opt('คงไว้ และบันทึกเพศว่า “ไม่ระบุ”', 1, 'ข้อมูลขาดหายบางช่องเป็นเรื่องปกติ บันทึกว่าไม่ทราบดีกว่าทิ้งทั้งราย'),
-        opt('ลบรายนี้ (ข้อมูลไม่ครบ)', 0, 'การลบรายที่ข้อมูลไม่ครบทำให้เสียผู้ป่วยจริงและอาจเกิดอคติ', ()=>C.lost.add(p.id)),
+        opt('ลบรายนี้ (ข้อมูลไม่ครบ)', 0, 'การลบรายที่ข้อมูลไม่ครบทำให้เสียผู้ป่วยจริงและอาจเกิดอคติ', {key:'lost', id:p.id}),
         opt('เดาเพศจากชื่อย่อ', 0, 'การเดาข้อมูลส่วนบุคคลทำให้ข้อมูลผิดและไม่เคารพตัวตนของผู้ป่วย ช่องว่างควรบันทึกว่า “ไม่ระบุ”'),
       ]}); } }
     const q = U.pick(W.people.filter(x=>x.inf===null));
@@ -75,7 +75,7 @@ OD.ch2 = (function(){
       recs.push(r);
       issues.push({icon:'🩺', title:'เข้านิยามผู้ป่วยหรือไม่?', desc:'ผู้ป่วยรายนี้มีอาการท้องร่วงจริง แต่เริ่มป่วยตั้งแต่เดือนสิงหาคม', recs:[r], opts:[
         opt('คัดออก  ไม่เข้านิยามผู้ป่วย (เริ่มป่วยก่อน ๒๑ พ.ย. และเป็นโรคเรื้อรัง)', 1, 'นิยามผู้ป่วยกำหนดช่วงเวลาไว้ชัด ผู้ป่วยเรื้อรังไม่ได้เกิดจากการระบาดครั้งนี้'),
-        opt('เก็บไว้  มีอาการท้องร่วงเหมือนกัน', 0, 'ผู้ป่วยที่ไม่เกี่ยวข้องจะทำให้สัญญาณในการวิเคราะห์เจือจางลง', ()=>C.phantom.add(q.id)),
+        opt('เก็บไว้  มีอาการท้องร่วงเหมือนกัน', 0, 'ผู้ป่วยที่ไม่เกี่ยวข้องจะทำให้สัญญาณในการวิเคราะห์เจือจางลง', {key:'phantom', id:q.id}),
       ]}); }
     const vis = {pid:0, src:'คลินิกเอกชน', ini:U.pick(CONS)+'.'+U.pick(CONS)+'.', sex:'หญิง', age:'27', vill:'ต.บางเตย (มาเยี่ยมญาติที่หมู่ ๓)', onset:M.fmtDateBE(3), sym:'ถ่ายเหลว, ปวดท้อง', bad:{vill:1}, extra:true};
     recs.push(vis);
@@ -89,18 +89,20 @@ OD.ch2 = (function(){
 
   function run(){
     return new Promise(resolve=>{
-      const W = OD.W, S = OD.S, {recs, issues} = build(W,S);
-      S.acc.ch2 = 0; S.acc.ch2Max = issues.length*2;
-      let cur = 0;
+      const W=OD.W, S=OD.S;
+      if(!S.chapter2){S.chapter2=build(W,S);S.chapter2.cur=0;S.acc.ch2=0;S.acc.ch2Max=S.chapter2.issues.length*2;}
+      const {recs,issues}=S.chapter2;let cur=S.chapter2.cur||0;
+      OD.session?.save('ch2');
       const root = U.$('#scr-ch2');
       const recCard = r => `<div class="rec"><div class="src">${r.src} · ลำดับที่ ${r.no}</div>
-        ${[['ชื่อย่อ','ini'],['เพศ','sex'],['อายุ','age'],['ที่อยู่','vill'],['วันเริ่มป่วย','onset'],['อาการ','sym']].map(([l,k])=>`<div class="row"><span>${l}</span><span class="${r.bad[k]?'bad':''}">${r[k]||'—'}</span></div>`).join('')}</div>`;
+        ${[['ชื่อย่อ','ini'],['เพศ','sex'],['อายุ','age'],['ที่อยู่','vill'],['วันเริ่มป่วย','onset'],['อาการ','sym']].map(([l,k])=>`<div class="row"><span>${l}</span><span class="${r.bad[k]?'bad':''}">${r[k]||'ไม่มีข้อมูล'}</span></div>`).join('')}</div>`;
       function table(){
         const flag = new Set((issues[cur]||{recs:[]}).recs.map(r=>r.no));
         return `<table class="doc"><thead><tr><th>#</th><th>แหล่ง</th><th>ชื่อย่อ</th><th>เพศ</th><th>อายุ</th><th>ที่อยู่</th><th>เริ่มป่วย</th></tr></thead><tbody>${
-          recs.map(r=>`<tr class="${flag.has(r.no)?'flag':''}"><td>${r.no}</td><td class="l">${r.src}</td><td>${r.ini}</td><td>${r.sex||'—'}</td><td>${r.age}</td><td class="l">${r.vill}</td><td>${r.onset}</td></tr>`).join('')}</tbody></table>`;
+          recs.map(r=>`<tr class="${flag.has(r.no)?'flag':''}"><td>${r.no}</td><td class="l">${r.src}</td><td>${r.ini}</td><td>${r.sex||'ไม่มีข้อมูล'}</td><td>${r.age}</td><td class="l">${r.vill}</td><td>${r.onset}</td></tr>`).join('')}</tbody></table>`;
       }
       function render(){
+        S.chapter2.cur=cur;OD.session?.save('ch2');
         const done = issues.filter(i=>i.choice!=null).length, it = issues[cur];
         root.innerHTML = `<div class="ch-wrap">
           <div class="ch-banner">${OD.art.prajamInline(44)}<div><div class="no">บทที่ ๒</div><h1 class="display gold-text">ข้อมูลไม่เคยสะอาด</h1></div></div>
@@ -131,7 +133,7 @@ OD.ch2 = (function(){
           if(o.ok) S.acc.ch2 += 2;
           else {
             S.mistakes.push({area:'ch2', title:it.title, chosen:o.t, correct:it.opts.find(x=>x.ok).t, why:o.fb});
-            try{ if(o.eff) o.eff(); }catch(err){ console.error(err); }
+            try{ if(o.eff) S.clean[o.eff.key].add(o.eff.id); }catch(err){ console.error(err); }
           }
           render(); return;
         }

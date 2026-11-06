@@ -70,18 +70,52 @@ OD.u = (function(){
     while(box.children.length > 2) box.firstElementChild.remove();   // แสดงพร้อมกันไม่เกิน ๒ อัน ไม่บังแถบสถานะ
     setTimeout(()=>t.remove(), ms);
   };
-  let mh = null;
+  let mh = null, modalOpts = {}, modalFocus = null;
+  const overlays = [];
+  // Keep the actual nodes and handlers so opening help cannot discard a pending choice.
+  U.modalOverlay = function(draw){
+    const root=U.$('#modal');
+    if(root.classList.contains('open')){
+      const focus=root.contains(document.activeElement)?document.activeElement:root.firstElementChild, nodes=document.createDocumentFragment();
+      while(root.firstChild) nodes.append(root.firstChild);
+      overlays.push({nodes, handler:mh, click:root.onclick, opts:modalOpts, focus, origin:modalFocus});
+    }
+    draw();
+  };
   U.modal = function(html, handler, opts={}){
     const root = U.$('#modal');
+    if(!root.classList.contains('open')) modalFocus=document.activeElement;
+    modalOpts=opts;
     root.innerHTML = `<div class="m-card ${opts.paper?'paper':'frame'} ${opts.wide?'wide':''} ${opts.cls||''}" role="dialog" aria-modal="true">${html}</div>`;
     root.classList.add('open'); mh = handler;
     root.onclick = e => {
       if(e.target===root && !opts.locked){ U.closeModal(); return; }
       const b = e.target.closest('[data-m]'); if(b && !b.disabled && mh) mh(b.dataset.m, b, e);
     };
-    return root.firstElementChild;
+    const card=root.firstElementChild; card.tabIndex=-1;
+    const heading=card.querySelector('h1,h2,h3');
+    if(heading){heading.id=heading.id||'modal-heading';card.setAttribute('aria-labelledby',heading.id);}
+    card.focus({preventScroll:true});
+    return card;
   };
-  U.closeModal = () => { const r=U.$('#modal'); r.classList.remove('open'); r.innerHTML=''; r.onclick=null; mh=null; };
+  U.closeModal = () => {
+    const r=U.$('#modal'), previous=overlays.pop(); r.replaceChildren();
+    if(previous){r.append(previous.nodes);r.onclick=previous.click;mh=previous.handler;modalOpts=previous.opts;modalFocus=previous.origin;
+      (previous.focus?.isConnected?previous.focus:r.firstElementChild)?.focus({preventScroll:true});return;}
+    r.classList.remove('open');r.onclick=null;mh=null;modalOpts={};
+    if(modalFocus?.isConnected)modalFocus.focus({preventScroll:true});modalFocus=null;
+  };
+  document.addEventListener('keydown',e=>{
+    const root=U.$('#modal');if(!root?.classList.contains('open'))return;
+    if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();if(!modalOpts.locked)U.closeModal();return;}
+    if(e.key!=='Tab')return;
+    const items=[...root.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]')].filter(el=>el.getClientRects().length);
+    const first=items[0],last=items[items.length-1];
+    if(!first){e.preventDefault();root.firstElementChild.focus();return;}
+    if(!root.contains(document.activeElement)||document.activeElement===root.firstElementChild||(e.shiftKey&&document.activeElement===first)||(!e.shiftKey&&document.activeElement===last)){
+      e.preventDefault();(e.shiftKey?last:first).focus();
+    }
+  },true);
   U.ask = (html, buttons, opts={}) => new Promise(res=>{
     U.modal(html + `<div class="m-actions">${buttons.map(([k,label,cls])=>`<button class="btn ${cls||''}" data-m="${k}">${label}</button>`).join('')}</div>`,
       k=>{ U.closeModal(); res(k); }, Object.assign({locked:true}, opts));

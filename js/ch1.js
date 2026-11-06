@@ -81,9 +81,9 @@ OD.ch1 = (function(){
 
   function run(){
     return new Promise(resolve=>{
-      const W = OD.W, S = OD.S, d = data(W), Q = questions(d);
-      Q.forEach(q=>{ q.opts = U.shuffle(q.opts); q.tries = 0; q.done = false; });
-      S.acc.ch1 = 0; S.acc.ch1Max = Q.length*2;
+      const W = OD.W, S = OD.S, d = S.chapter1?.data || data(W), Q = S.chapter1?.questions || questions(d);
+      if(!S.chapter1){Q.forEach(q=>{q.opts=U.shuffle(q.opts);q.tries=0;q.done=false;});S.acc.ch1=0;S.acc.ch1Max=Q.length*2;S.chapter1={data:d,questions:Q};}
+      OD.session?.save('ch1');
       const yrs = d.hist.map(x=>`<tr><td>${U.thaiNum(x.y)}</td>${x.w.map((v,i)=>`<td>${v}</td>`).join('')}</tr>`).join('');
       const root = U.$('#scr-ch1');
       root.innerHTML = `<div class="ch-wrap">
@@ -119,7 +119,7 @@ OD.ch1 = (function(){
         OD.sfx && OD.sfx(o.ok?'correct':'wrong'); q.tries++; o.state = o.ok ? 'right' : 'wrong'; q.fb = (o.ok?'✅ ':'❌ ') + o.fb;
         if(o.ok){ q.done = true; S.acc.ch1 += q.tries===1 ? 2 : q.tries===2 ? 1 : 0; }
         else S.mistakes.push({area:'ch1', title:q.q.replace(/\*\*/g,''), chosen:o.t, correct:q.opts.find(x=>x.ok).t, why:o.fb});
-        render();
+        render(); OD.session?.save('ch1');
       };
       render();
     });

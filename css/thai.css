@@ -36,21 +36,12 @@ table.doc.conf td.hl2{background:#d9eedc;color:#173923}
 :root[data-theme="light"]{--gold-2:#76530f}
 :root[data-theme="light"] .btn-gold{background:linear-gradient(180deg,#f8e5ad,#d6b45d);color:#24170a;border-color:#98762e}
 :root[data-theme="light"] .chip.gold{background:#e7cd8c;color:#24170a}
-/* แผงเสียงแยกเพลง เอฟเฟกต์ บรรยากาศ และเสียงพูด */
+/* แผงเสียงแยกเพลง เอฟเฟกต์ และบรรยากาศ */
 #musicCtl{overflow:visible;opacity:1}
 .audio-panel{position:absolute;left:0;bottom:calc(100% + 8px);width:min(310px,calc(100vw - 24px));display:grid;gap:7px;padding:14px;background:var(--panel);color:var(--text);border:1px solid var(--gold-3);border-radius:12px;box-shadow:var(--shadow)}
 .audio-panel[hidden]{display:none}
 .audio-panel-title{font-weight:700;color:var(--gold-2);padding-bottom:5px;border-bottom:1px solid var(--line-soft)}
 .audio-row{display:grid;grid-template-columns:36px minmax(0,1fr) 37px;align-items:center;gap:8px}.audio-row label{display:grid;grid-template-columns:75px minmax(0,1fr);align-items:center;gap:5px;font-size:13px;color:var(--text)}
 .music-ctl .audio-row input,.music-ctl:hover .audio-row input,.music-ctl:focus-within .audio-row input{width:100%;min-width:0;opacity:1;margin:0;accent-color:var(--gold)}
-.audio-row output{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}.audio-voice-note{font-size:12px;line-height:1.45;color:var(--muted)}
+.audio-row output{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 @media(max-width:700px){.audio-row{grid-template-columns:30px minmax(0,1fr) 37px}.audio-panel{bottom:calc(100% + 6px)}}
-/* เลือกเสียงตัวละครจากเสียงไทยที่ติดตั้งอยู่ในเครื่อง */
-.audio-panel{max-height:min(70vh,560px);overflow-y:auto}
-.voice-settings{border-top:1px solid var(--line-soft);padding-top:6px;font-size:13px}
-.voice-settings summary{cursor:pointer;color:var(--gold-2);font-weight:700}
-.voice-settings-list{display:grid;gap:7px;margin-top:9px}
-.voice-settings-list label{display:grid;grid-template-columns:minmax(70px,1fr) minmax(0,1.4fr);align-items:center;gap:8px;color:var(--text)}
-.voice-settings-list select{min-width:0;width:100%;padding:5px 6px;font-size:12px;color:var(--text);background:var(--panel-2)}
-.voice-settings-list small{color:var(--muted)}
-.voice-entry{display:flex;align-items:center;gap:6px}.voice-entry label{flex:1;min-width:0}.voice-preview{flex:none;width:30px;height:30px;border:1px solid var(--line);border-radius:7px;background:var(--panel-2);color:var(--gold-2);cursor:pointer}.voice-preview:hover{border-color:var(--gold)}.voice-preview:disabled{opacity:.5;cursor:not-allowed}

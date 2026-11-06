@@ -13,7 +13,6 @@ OD.music = (function(){
   const savedVol = (key, fallback) => { const n=Number(store.get(key, fallback)); return Number.isFinite(n) ? clamp(n,0,100)/100 : fallback/100; };
   let enabled = store.get('music','1')==='1', vol = savedVol('vol',55);
   let sfxEnabled = store.get('sfx','1')==='1', sfxVol = savedVol('sfxVol',55);
-  let voiceDucked = false;
   let song = 'kangkao', target = 'kangkao', pos = 0, nextT = 0, cur = null;
 
   /* ---------- โน้ตไทย ---------- */
@@ -184,8 +183,7 @@ OD.music = (function(){
 
   /* ---------- ควบคุม ---------- */
   function fade(to, sec=1){ if(master) master.gain.setTargetAtTime(to, ctx.currentTime, sec/3); }
-  const musicLevel = () => vol*(moodKey==='field' ? .48 : .7)*(voiceDucked ? .4 : 1);
-  function setVoiceDucking(on){voiceDucked=!!on;if(enabled&&master)fade(musicLevel(),.35);}
+  const musicLevel = () => vol*(moodKey==='field' ? .48 : .7);
   function start(){
     if(!enabled || !init()) return;
     resume();
@@ -211,40 +209,20 @@ OD.music = (function(){
     const box = document.getElementById('musicCtl'); if(!box) return;
     if(!box.dataset.ready){
       const row=(id,icon,label)=>`<div class="audio-row"><button class="music-btn" data-audio="${id}" type="button">${icon}</button><label>${label}<input data-audio="${id}-vol" type="range" min="0" max="100" aria-label="ระดับเสียง${label}"></label><output data-audio="${id}-value"></output></div>`;
-      box.innerHTML = `<button class="music-btn audio-menu" data-audio="menu" type="button" aria-expanded="false" aria-label="ตั้งค่าเสียง">🎚️</button><div class="audio-panel" hidden><div class="audio-panel-title">ตั้งค่าเสียง</div>${row('music','🎵','เพลง')}${row('sfx','🔔','เอฟเฟกต์')}${row('ambient','🌿','บรรยากาศ')}${row('voice','🗣️','เสียงพูด')}<div class="audio-voice-note" data-audio="voice-note"></div><details class="voice-settings"><summary>เลือกเสียงแต่ละตัวละคร</summary><div class="voice-settings-list" data-audio="voice-list"></div></details></div>`;
+      box.innerHTML = `<button class="music-btn audio-menu" data-audio="menu" type="button" aria-expanded="false" aria-label="ตั้งค่าเสียง">🎚️</button><div class="audio-panel" hidden><div class="audio-panel-title">ตั้งค่าเสียง</div>${row('music','🎵','เพลง')}${row('sfx','🔔','เอฟเฟกต์')}${row('ambient','🌿','บรรยากาศ')}</div>`;
       box.dataset.ready='1';
       box.querySelector('[data-audio="menu"]').onclick=e=>{e.stopPropagation();const panel=box.querySelector('.audio-panel');panel.hidden=!panel.hidden;e.currentTarget.setAttribute('aria-expanded',String(!panel.hidden));};
       box.querySelector('[data-audio="music"]').onclick=e=>{e.stopPropagation();toggle();};
       box.querySelector('[data-audio="sfx"]').onclick=e=>{e.stopPropagation();toggleSfx();};
       box.querySelector('[data-audio="ambient"]').onclick=e=>{e.stopPropagation();OD.sound && OD.sound.toggleAmbient();};
-      box.querySelector('[data-audio="voice"]').onclick=e=>{e.stopPropagation();OD.sound && OD.sound.toggleVoice();};
-      for(const [id,fn] of [['music',setVolume],['sfx',setSfxVolume],['ambient',v=>OD.sound&&OD.sound.setAmbient(v)],['voice',v=>OD.sound&&OD.sound.setVoice(v)]]){
+      for(const [id,fn] of [['music',setVolume],['sfx',setSfxVolume],['ambient',v=>OD.sound&&OD.sound.setAmbient(v)]]){
         box.querySelector('[data-audio="'+id+'-vol"]').oninput=e=>{fn(e.target.value/100);box.querySelector('[data-audio="'+id+'-value"]').textContent=e.target.value+'%';};
       }
     }
-    const status=OD.sound?OD.sound.status():{ambientOn:false,ambientVol:0,voiceOn:false,voiceVol:0,voiceAvailable:false};
-    const entries=[['music',enabled,vol,'เพลง'],['sfx',sfxEnabled,sfxVol,'เสียงเอฟเฟกต์'],['ambient',status.ambientOn,status.ambientVol,'เสียงบรรยากาศ'],['voice',status.voiceOn,status.voiceVol,'เสียงพูด']];
+    const status=OD.sound?OD.sound.status():{ambientOn:false,ambientVol:0};
+    const entries=[['music',enabled,vol,'เพลง'],['sfx',sfxEnabled,sfxVol,'เสียงเอฟเฟกต์'],['ambient',status.ambientOn,status.ambientVol,'เสียงบรรยากาศ']];
     for(const [id,on,value,label] of entries){const button=box.querySelector('[data-audio="'+id+'"]');button.classList.toggle('is-muted',!on);button.setAttribute('aria-pressed',String(on));button.title=label+(on?'เปิดอยู่ กดเพื่อปิด':'ปิดอยู่ กดเพื่อเปิด');button.setAttribute('aria-label',button.title);box.querySelector('[data-audio="'+id+'-vol"]').value=Math.round(value*100);box.querySelector('[data-audio="'+id+'-value"]').textContent=Math.round(value*100)+'%';}
-    const note=box.querySelector('[data-audio="voice-note"]');
-    note.textContent=!status.voiceAvailable?'ไม่พบเสียงภาษาไทยในเครื่อง โปรดติดตั้งเสียงไทยในระบบ':status.voiceCount===1?'พบเสียงไทย ๑ เสียง ตัวละครอาจใช้เสียงเดียวกัน ปรับความสูงและจังหวะแยกให้':'พบเสียงไทย '+status.voiceCount+' เสียง เลือกเสียงแต่ละตัวละครได้ (บางคนอาจใช้เสียงเดียวกัน)';
-    const list=box.querySelector('[data-audio="voice-list"]');
-    if(OD.sound && OD.sound.voiceSettings){
-      const settings=OD.sound.voiceSettings(), key=JSON.stringify(settings);
-      if(list.dataset.signature!==key){
-        list.dataset.signature=key;list.replaceChildren();
-        if(!settings.options.length){const msg=document.createElement('small');msg.textContent='ยังไม่มีเสียงไทยในเครื่อง';list.appendChild(msg);}
-        for(const c of settings.characters){
-          const entry=document.createElement('div'),label=document.createElement('label'), name=document.createElement('span'), select=document.createElement('select'), preview=document.createElement('button');entry.className='voice-entry';
-          name.textContent=c.label;select.setAttribute('aria-label','เสียงของ '+c.label);select.dataset.voiceCharacter=c.id;
-          const auto=document.createElement('option');auto.value='';auto.textContent='เลือกอัตโนมัติ';select.appendChild(auto);
-          for(const v of settings.options){const option=document.createElement('option');option.value=v.id;option.textContent=v.name;select.appendChild(option);}
-          select.value=settings.options.some(v=>v.id===c.selected)?c.selected:'';select.disabled=!settings.options.length;
-          select.onchange=()=>OD.sound.setCharacterVoice(c.id,select.value);
-          preview.type='button';preview.className='voice-preview';preview.textContent='▶';preview.setAttribute('aria-label','ฟังตัวอย่างเสียง '+c.label);preview.dataset.voicePreview=c.id;preview.disabled=!settings.options.length;preview.onclick=()=>OD.sound.previewVoice(c.id);label.append(name,select);entry.append(label,preview);list.appendChild(entry);
-        }
-      }
-    }
-    box.classList.toggle('off',!enabled&&!sfxEnabled&&!status.ambientOn&&!status.voiceOn);
+    box.classList.toggle('off',!enabled&&!sfxEnabled&&!status.ambientOn);
   }
   function arm(){ ui(); if(OD.sound) OD.sound.arm(); const go = ()=>{ if(!init()) return; resume(); if(enabled) start(); }; document.addEventListener('pointerdown', go, {once:true}); document.addEventListener('keydown', go, {once:true}); }
 
@@ -298,5 +276,5 @@ OD.music = (function(){
     ({ctx, master, bus, song, target, pos, cur} = keep);
     return {rms:Math.sqrt(sum/d.length), peak};
   }
-  return {arm, ui, start, stop, toggle, toggleSfx, setMood, sceneMood, setVolume, setSfxVolume, setVoiceDucking, renderTest, addSong, parseThai, sfx, songs:()=>Object.keys(SONGS)};
+  return {arm, ui, start, stop, toggle, toggleSfx, setMood, sceneMood, setVolume, setSfxVolume, renderTest, addSong, parseThai, sfx, songs:()=>Object.keys(SONGS)};
 })();

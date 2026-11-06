@@ -37,7 +37,7 @@ OD.vn = (function(){
   }
   function advance(){
     if(typing && !typing.done){ finishTyping(); if(!fast) return; }
-    if(waiter){ if(OD.sound)OD.sound.stopVoice(); const w = waiter; waiter = null; w(); }
+    if(waiter){ const w = waiter; waiter = null; w(); }
   }
 
   /* ---------- ข้อความ ---------- */
@@ -63,10 +63,10 @@ OD.vn = (function(){
   }
   /* โหมดอัตโนมัติ: พิมพ์จบแล้วรอเวลาอ่านตามความยาวข้อความ แล้วไปบรรทัดถัดไปเอง */
   function armAuto(){
-    const w = waiter; if(!w) return; const started=Date.now();
+    const w = waiter; if(!w) return;
     const chk = setInterval(()=>{
       if(waiter!==w || !auto){ clearInterval(chk); return; }
-      if(typing && typing.done && !(OD.sound && OD.sound.speaking() && Date.now()-started<30000)){ clearInterval(chk); setTimeout(()=>{ if(waiter===w && auto){ if(OD.sound)OD.sound.stopVoice(); waiter = null; w(); } }, Math.min(4200, 900 + typing.total*30)); }
+      if(typing && typing.done){ clearInterval(chk); setTimeout(()=>{ if(waiter===w && auto){ waiter = null; w(); } }, Math.min(4200, 900 + typing.total*30)); }
     }, 100);
   }
   const waitClick = () => new Promise(res=>{ waiter = res;
@@ -105,12 +105,12 @@ OD.vn = (function(){
     if(s.say!=null){
       const c = OD.CHARS[s.say];
       if(!charEl(s.say) || !charEl(s.say).classList.contains('on') || (s.expr && charEl(s.say).dataset.expr!==s.expr)) show(s.say, s.expr || (charEl(s.say)||{}).dataset?.expr || 'neutral', s.pos);
-      E.name.innerHTML = `${c.name}<small>${c.title}</small>`; focus(s.say); typeText(s.text); if(OD.sound && !fast)OD.sound.speak(s.text,s.say,s.expr || charEl(s.say)?.dataset.expr || 'neutral');
+      E.name.innerHTML = `${c.name}<small>${c.title}</small>`; focus(s.say); typeText(s.text);
     } else if(s.me!=null){
       if(charEl('me')){ if(s.expr && charEl('me').dataset.expr!==s.expr) show('me', s.expr); focus('me'); }
       else { meFace(s.expr || 'neutral'); focus('__none__'); }
-      E.name.innerHTML = `${U.esc(OD.S.name)}<small>คุณ · ${OD.CHARS['me_'+(OD.S.gender||'m')].title}</small>`; typeText(s.me); if(OD.sound && !fast)OD.sound.speak(s.me,'me',s.expr || 'neutral');
-    } else { if(OD.sound)OD.sound.stopVoice(); E.name.innerHTML = ''; focus(null); typeText(s.narr); }
+      E.name.innerHTML = `${U.esc(OD.S.name)}<small>คุณ · ${OD.CHARS['me_'+(OD.S.gender||'m')].title}</small>`; typeText(s.me);
+    } else { E.name.innerHTML = ''; focus(null); typeText(s.narr); }
     await waitClick();
   }
 
@@ -177,8 +177,7 @@ OD.vn = (function(){
     try { await run(steps, steps); }
     finally {
       fast = false; E.ff.classList.remove('btn-gold');
-      if(OD.sound)OD.sound.stopVoice();
-      if(!opts.keep){ root.classList.add('hidden'); E.chars.innerHTML = ''; if(OD.sound && previousSoundScene)OD.sound.setScene(previousSoundScene.place,previousSoundScene); previousSoundScene=null; }
+            if(!opts.keep){ root.classList.add('hidden'); E.chars.innerHTML = ''; if(OD.sound && previousSoundScene)OD.sound.setScene(previousSoundScene.place,previousSoundScene); previousSoundScene=null; }
     }
   }
   return {play, show, hide, hideAll};

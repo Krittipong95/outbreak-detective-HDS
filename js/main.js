@@ -31,11 +31,12 @@ OD.main = (function(){
       <button class="btn btn-ghost btn-sm" data-t="theme" style="position:absolute;top:14px;right:14px;z-index:2" title="สลับธีม">🌓 ธีม</button>
       <div class="frame title-card">
         <div class="krajang-band"></div>
-        <div class="title-eyebrow" style="margin-top:10px">เกมจำลองการสอบสวนโรค · HEALTH DATA SCIENCE</div>
+        <div class="title-identity"><span class="title-emblem" aria-hidden="true">${OD.art.prajamInline(32)}</span></div>
+        <div class="title-eyebrow">แฟ้มคดีบ้านสุขใจ · เกมสืบสวนโรคระบาด</div>
         <h1 class="display gold-text title-main">นักสืบโรคระบาด<span class="title-num">๒</span></h1>
         <div class="title-sub">ปริศนาแห่งบ้านสุขใจ</div>
         <div class="orn-divider"></div>
-        <p style="max-width:620px;margin:0 auto;color:var(--muted)">ผู้ป่วยท้องร่วงเพิ่มขึ้นผิดปกติในตำบลริมคลอง ข่าวลือแพร่เร็วกว่าเชื้อโรค  คุณคือนักวิทยาศาสตร์ข้อมูลสุขภาพที่ต้องใช้สถิติ ระบาดวิทยา และหลักฐานภาคสนาม ไขปริศนาให้ทันก่อนส่วนกลางจะมาถึง</p>
+        <p class="title-story">ผู้ป่วยท้องร่วงเพิ่มขึ้นผิดปกติในตำบลริมคลอง ข่าวลือแพร่เร็วกว่าเชื้อโรค  คุณคือนักวิทยาศาสตร์ข้อมูลสุขภาพที่ต้องใช้สถิติ ระบาดวิทยา และหลักฐานภาคสนาม ไขปริศนาให้ทันก่อนส่วนกลางจะมาถึง</p>
         <div class="title-form">
           <label>ชื่อของคุณ<input type="text" id="tName" maxlength="20" placeholder="เช่น ต้นกล้า" value="${U.esc(pref.name)}"></label>
           <div><label>ตัวละครของคุณ</label><div class="who-grid">${Object.entries(GENDER).map(([g,o])=>`<button class="diff who ${pref.gender===g?'on':''}" data-g="${g}">${'<span class="avatar">'+OD.art.person('me', pref.gender===g?'smile':'neutral', {gender:g, tag:pref.name})+'</span>'}<span><b>${o.t}</b><small>นักวิทยาศาสตร์ข้อมูลสุขภาพจบใหม่ · ใช้คำลงท้าย “${o.pol}”</small></span></button>`).join('')}</div></div>

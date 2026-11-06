@@ -1,0 +1,38 @@
+/* อัตลักษณ์สมุดคดีไทย และความชัดเจนของตัวอักษร */
+:root{--faint:#b6a481}
+:root[data-theme="light"]{--faint:#69583d}
+#scr-title{padding:36px 16px 48px}
+.title-card{overflow:hidden;border:1px solid var(--gold-3);border-radius:14px;padding:26px clamp(18px,4vw,48px) 20px;background-color:color-mix(in srgb,var(--panel) 95%,transparent);box-shadow:inset 0 0 0 5px var(--panel),inset 0 0 0 6px var(--line),0 20px 60px rgba(0,0,0,.4)}
+.title-card>.krajang-band{opacity:.7}
+.title-identity{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px auto 2px;color:var(--gold-2)}
+.title-identity:before,.title-identity:after{content:"";height:1px;width:clamp(30px,12vw,110px);background:linear-gradient(90deg,transparent,var(--gold-3))}
+.title-identity:after{transform:scaleX(-1)}
+.title-emblem{width:45px;height:45px;display:grid;place-items:center;padding:5px;border:1px solid var(--gold-3);border-radius:50%;background:color-mix(in srgb,var(--gold) 12%,var(--panel));box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 5%,transparent)}
+.title-emblem svg{display:block;width:100%;height:100%}
+.title-eyebrow{letter-spacing:.08em;font-weight:700;color:var(--gold-2);font-size:13px}
+.title-main{font-size:clamp(42px,7.5vw,78px);line-height:1.38}
+.title-sub{display:inline-block;padding:3px 18px;border-radius:999px;border:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--panel));color:var(--text);font-size:16px}
+.title-story{max-width:610px;margin:0 auto;color:var(--muted);line-height:1.75}
+.title-form{gap:16px;margin-top:22px}.title-form input{min-height:44px;border-radius:7px}.diff{border-radius:9px;padding:13px 15px}.diff.on{box-shadow:inset 0 0 0 1px var(--gold),var(--glow)}
+.title-actions .btn{min-height:44px}.title-foot{color:var(--muted);line-height:1.6}
+.ch-banner{position:relative;padding:12px 16px 12px 12px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 12%,var(--panel)),transparent);border-radius:8px 8px 0 0}.ch-banner .pj{filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}.ch-banner h1{line-height:1.45}
+.f-top{border-bottom:2px solid var(--gold-3)}
+.frame.tight,.m-card{border-color:var(--line)}
+/* กระดาษสีอ่อนใช้สีหมึกเข้มเสมอ แม้อยู่ในโหมดมืด */
+.hb-t th,.hb-body kbd,.hb-place,.rec,.rep-ev li{color:#2a1b0e}
+table.conf td.hl2{color:#173923}
+:root:not([data-theme="light"]) .paper .faint,:root[data-theme="light"] .paper .faint{color:#665235}
+:root:not([data-theme="light"]) .faint,:root:not([data-theme="light"]) .log .lt,:root:not([data-theme="light"]) .ev .tm{color:var(--faint)}
+:root:not([data-theme="light"]) .btn:disabled,:root:not([data-theme="light"]) .act:disabled,:root:not([data-theme="light"]) .pick:disabled{opacity:.62}
+:focus-visible{outline:3px solid var(--gold-2);outline-offset:2px}
+@media(max-width:640px){#scr-title{padding:16px 10px 32px}.title-card{padding:20px 14px 18px}.title-identity{margin-top:13px}.title-main{font-size:clamp(38px,10vw,58px)}.title-story{font-size:15px}.ch-banner{padding:10px 12px}}
+/* ตารางข้อมูลบางตารางอยู่บนพื้นมืด จึงกำหนดกระดาษและหมึกเป็นคู่กัน */
+table.doc{background:var(--paper);color:var(--ink)}
+table.doc th,table.doc td{color:var(--ink)}
+table.doc.conf td.hl2{background:#d9eedc;color:#173923}
+.paper .howto{background:#f5e9ce;border-color:#c9ae78;color:var(--ink)}
+.paper .howto summary{color:#704912}
+/* สีทองเข้มสำหรับตัวอักษรบนพื้นสว่าง และสีทองอ่อนสำหรับปุ่ม */
+:root[data-theme="light"]{--gold-2:#76530f}
+:root[data-theme="light"] .btn-gold{background:linear-gradient(180deg,#f8e5ad,#d6b45d);color:#24170a;border-color:#98762e}
+:root[data-theme="light"] .chip.gold{background:#e7cd8c;color:#24170a}

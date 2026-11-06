@@ -15,6 +15,19 @@
     const logit=L.logistic([[0],[0],[0],[1],[1],[1]],[0,0,0,1,1,1]);assert(logit.predict([1])>logit.predict([0]),'logistic direction');
     for(const k of [2,3,5]){const y=[0,0,0,0,0,1,1,1,1,1];const folds=L.folds(y,k,42);assert(folds.length===y.length&&folds.every(i=>i>=0&&i<k),'fold assignment');}
   });
+  test('readable table and text in both themes',()=>{
+    const parse=s=>s.match(/[\d.]+/g).slice(0,3).map(Number), lum=c=>{const v=parse(c).map(n=>{n/=255;return n<=.04045?n/12.92:Math.pow((n+.055)/1.055,2.4)});return .2126*v[0]+.7152*v[1]+.0722*v[2]}, ratio=(a,b)=>{a=lum(a);b=lum(b);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
+    const probe=document.createElement('div');probe.innerHTML='<div class="frame"><span class="faint">ข้อมูลรอง</span><table class="doc conf"><tbody><tr><td>ข้อมูล</td><td class="hl2">ผล</td></tr></tbody></table></div><div class="paper"><span class="faint">คำอธิบาย</span></div>';document.body.append(probe);
+    const prev=document.documentElement.dataset.theme;
+    for(const theme of ['dark','light']){if(theme==='dark')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=theme;
+      const table=probe.querySelector('table'),cells=table.querySelectorAll('td'),paper=probe.querySelector('.paper'),frame=probe.querySelector('.frame');
+      assert(ratio(getComputedStyle(cells[0]).color,getComputedStyle(table).backgroundColor)>=4.5,theme+' table');
+      assert(ratio(getComputedStyle(cells[1]).color,getComputedStyle(cells[1]).backgroundColor)>=4.5,theme+' highlighted table');
+      assert(ratio(getComputedStyle(frame.querySelector('.faint')).color,getComputedStyle(frame).backgroundColor)>=4.5,theme+' secondary text');
+      assert(ratio(getComputedStyle(paper.querySelector('.faint')).color,getComputedStyle(paper).backgroundColor)>=4.5,theme+' paper text');
+    }
+    if(prev)document.documentElement.dataset.theme=prev;else delete document.documentElement.dataset.theme;probe.remove();
+  });
   for(const type of types) for(let seed=1;seed<=20;seed++){
     let W; test(type+' seed '+seed+' build',()=>{
       W=M.build(seed,type); stats.worlds++;

@@ -204,3 +204,8 @@ h1,h2,h3,h4{margin:0 0 .4em;line-height:1.3}
 .paper .note{background:rgba(160,120,40,.10)}
 
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* วางขีดปิดเสียงทับไอคอนให้อยู่ตำแหน่งเดียวกันทุกเบราว์เซอร์ */
+.music-btn.is-muted{position:relative}
+.music-btn.is-muted::after{content:"";position:absolute;left:50%;top:50%;width:24px;height:3px;border-radius:3px;background:#d53b2f;box-shadow:0 0 0 1px rgba(255,255,255,.8);transform:translate(-50%,-50%) rotate(45deg);pointer-events:none}
+@media (max-width:700px){.music-btn.is-muted::after{width:20px}}

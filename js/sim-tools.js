@@ -1,5 +1,5 @@
 /* =========================================================
-   sim-tools — กลไกการสืบสวน: ผู้ป่วยที่เห็น, สัมภาษณ์, case-control,
+   sim-tools  กลไกการสืบสวน: ผู้ป่วยที่เห็น, สัมภาษณ์, case-control,
    ตารางวิเคราะห์, ตรวจสิ่งแวดล้อม, แล็บ, ห่วงโซ่อุปทาน, ผลลัพธ์
    ========================================================= */
 (function(M){
@@ -28,7 +28,7 @@
   });
   /* อุปกรณ์ภาคสนาม (ขั้นตอนที่ ๑ เตรียมการ) */
   M.KIT = [
-    {k:'cary',   ok:true,  t:'ไม้ swab + อาหารเลี้ยงเชื้อขนส่ง Cary-Blair', why:'เก็บอุจจาระ/rectal swab ส่งเพาะเชื้อ ถ้าไม่มี ตัวอย่างจะแห้งและเชื้อตาย'},
+    {k:'cary',   ok:true,  t:'ไม้ swab + อาหารเลี้ยงเชื้อขนส่ง Cary-Blair', why:'เก็บอุจจาระ/rectal swab ส่งเพาะเชื้อ ถ้าเก็บหรือขนส่งไม่เหมาะสม ตัวอย่างอาจเสื่อมและตรวจพบเชื้อได้ยากขึ้น'},
     {k:'bottle', ok:true,  t:'ขวดเก็บน้ำปลอดเชื้อ (มีโซเดียมไทโอซัลเฟต)', why:'เก็บน้ำตรวจแบคทีเรีย สารนี้หยุดฤทธิ์คลอรีนไม่ให้ฆ่าเชื้อในขวดระหว่างขนส่ง'},
     {k:'chlor',  ok:true,  t:'ชุดทดสอบคลอรีนอิสระคงเหลือ', why:'วัดได้ทันทีในพื้นที่ว่าน้ำได้รับการฆ่าเชื้อเพียงพอหรือไม่ (เกณฑ์ ๐.๒–๐.๕ มก./ล.)'},
     {k:'cold',   ok:true,  t:'กล่องเย็นและไอซ์แพ็ก (๔ °C)', why:'รักษาอุณหภูมิตัวอย่างอาหาร น้ำ และน้ำแข็งระหว่างขนส่ง'},
@@ -80,6 +80,20 @@
     for(const pid of C.dupKept){ const p=W.byId(pid); if(M.isCase(W,S,p,t)) out.push({p, dup:true}); }
     for(const pid of C.phantom) out.push({p:W.byId(pid), dup:false, phantom:true});
     return out;
+  };
+
+  // คนในกลุ่มควบคุมที่ถูกรายงานเป็นผู้ป่วยภายหลังต้องออกจากกลุ่มควบคุม
+  // และสัมภาษณ์ใหม่ในฐานะผู้ป่วย ก่อนนำไปวิเคราะห์อีกครั้ง
+  M.reconcileControls = function(W,S){
+    if(!S.controls.length) return [];
+    const cases = new Set(M.records(W,S).map(r=>r.p.id));
+    const moved = S.controls.filter(id=>cases.has(id));
+    if(!moved.length) return moved;
+    const movedSet = new Set(moved);
+    S.controls = S.controls.filter(id=>!movedSet.has(id));
+    for(const id of moved) delete S.ans[id];
+    S.ver++;
+    return moved;
   };
 
   /* ---------- สัมภาษณ์ / ตอบแบบสอบถาม ---------- */
@@ -260,7 +274,7 @@
     const R = M.records(W,S).filter(r=>!r.dup && !r.phantom).map(r=>r.p), n = R.length || 1;
     const pc = k => Math.round(R.filter(p=>p.sym[k]).length/n*100);
     const adm = R.filter(p=>p.admit).length;
-    const text = `ทบทวนเวชระเบียน ${R.length} ราย (นอนโรงพยาบาล ${adm} ราย): ถ่ายเหลว ${pc('diar')}% · ถ่ายเป็นน้ำ ${pc('watery')}% · อาเจียน ${pc('vomit')}% · มีไข้ ${pc('fever')}% · ปวดท้อง ${pc('cramp')}% · มูกเลือด ${pc('blood')}% — ไม่พบอาการทางระบบประสาทหรือประวัติสัมผัสสารเคมี เข้าได้กับโรคติดเชื้อทางเดินอาหารเฉียบพลัน`;
+    const text = `ทบทวนเวชระเบียน ${R.length} ราย (นอนโรงพยาบาล ${adm} ราย): ถ่ายเหลว ${pc('diar')}% · ถ่ายเป็นน้ำ ${pc('watery')}% · อาเจียน ${pc('vomit')}% · มีไข้ ${pc('fever')}% · ปวดท้อง ${pc('cramp')}% · มูกเลือด ${pc('blood')}%  ไม่พบอาการทางระบบประสาทหรือประวัติสัมผัสสารเคมี เข้าได้กับโรคติดเชื้อทางเดินอาหารเฉียบพลัน`;
     S.reviewed = true;
     M.addEvidence(S, {id:'clinical', kind:'clinical', strength:'weak', text});
     return text;

@@ -1,5 +1,5 @@
 /* =========================================================
-   field-ml — แท็บ 🤖 ML ในภาคสนาม
+   field-ml  แท็บ 🤖 ML ในภาคสนาม
    📉 Logistic regression หลายตัวแปร (ปรับตัวแปรกวน) · 🌳 Decision tree + cross-validation
    💻 ดาวน์โหลดข้อมูล (CSV · Jupyter Notebook · R) และ SQL console
    ========================================================= */
@@ -100,7 +100,7 @@ OD.mlViews = (function(){
     m.cols.forEach((c,i)=>{
       const a = m.fit.coef[i+1], cr = c.t==='exp' ? crude[c.k] : null, sig = a.lo>1;
       let flag = '';
-      if(cr && cr.or && cr.lo>1 && !sig){ flag = ' ⚠️'; notes.push(`<b>${c.label}</b>: OR หยาบมีนัยสำคัญ (${U.fmtOR(cr.or)}) แต่หลังปรับตัวแปรอื่นเหลือ ${U.fmtOR(a.or)} และ CI คร่อม 1 — ความสัมพันธ์เดิมอาจมาจาก <b>ตัวแปรกวน</b>`); }
+      if(cr && cr.or && cr.lo>1 && !sig){ flag = ' ⚠️'; notes.push(`<b>${c.label}</b>: OR หยาบมีนัยสำคัญ (${U.fmtOR(cr.or)}) แต่หลังปรับตัวแปรอื่นเหลือ ${U.fmtOR(a.or)} และ CI คร่อม 1  ความสัมพันธ์เดิมอาจมาจาก <b>ตัวแปรกวน</b>`); }
       else if(c.t==='exp' && sig) flag = ' ✅';
       h += `<tr class="${c.t!=='exp'?'adj':''}"><td class="lbl">${c.label}${flag}</td><td>${cr&&cr.or?U.fmtOR(cr.or):'—'}</td>
         <td class="${sig?'sig':''}">${U.fmtOR(a.or)}${sig?'*':''}<br><span class="faint" style="font-weight:400">${U.fmtOR(a.lo)}–${U.fmtOR(a.hi)}</span></td><td class="pcol">${U.fmtP(a.p)}</td><td class="fcol">${forest(a)}</td></tr>`;
@@ -112,14 +112,14 @@ OD.mlViews = (function(){
     h += `<div class="ml-perf"><div>${rocChart(m.roc, m.cvAuc)}</div><div class="ml-kpi">
         <div><span>AUC (ข้อมูลที่ใช้ฝึก)</span><b>${isNaN(m.auc)?'—':m.auc.toFixed(2)}</b></div>
         <div><span>AUC แบบ 5-fold cross-validation</span><b>${isNaN(m.cvAuc)?'—':m.cvAuc.toFixed(2)}</b></div>
-        <div class="faint" style="font-size:12.5px">AUC 0.5 = เดาสุ่ม · 1.0 = แยกผู้ป่วยได้สมบูรณ์ — ค่าจาก cross-validation บอกว่าโมเดลจะทำงานกับข้อมูลใหม่ได้ดีแค่ไหน (ต่ำกว่าค่าจากข้อมูลฝึกเสมอ)</div></div></div>
+        <div class="faint" style="font-size:12.5px">AUC 0.5 = เดาสุ่ม · 1.0 = แยกผู้ป่วยได้สมบูรณ์  ค่าจาก cross-validation บอกว่าโมเดลจะทำงานกับข้อมูลใหม่ได้ดีแค่ไหน (ต่ำกว่าค่าจากข้อมูลฝึกเสมอ)</div></div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-sm btn-gold" data-mlsave="1" ${keep.length?'':'disabled'}>📌 บันทึกปัจจัยที่มีนัยสำคัญเป็นหลักฐาน (${keep.length})</button></div></div>`;
     h += `<details class="howto"><summary>Logistic regression ต่างจากตาราง OR อย่างไร?</summary><ul>
       <li>ตาราง OR ดูทีละปัจจัย (OR หยาบ) ส่วน <b>logistic regression</b> ใส่หลายปัจจัยพร้อมกัน แล้วให้ <b>OR ที่ปรับแล้ว</b> = ผลของปัจจัยนั้นเมื่อปัจจัยอื่นในโมเดลคงที่</li>
-      <li>ถ้า OR หยาบสูงแต่ OR ที่ปรับแล้วลดลงใกล้ 1 แปลว่าความสัมพันธ์เดิมถูก “ยืม” มาจากปัจจัยอื่น — นี่คือการควบคุม <b>ตัวแปรกวน</b> แบบเดียวกับ Mantel–Haenszel แต่ทำได้หลายตัวพร้อมกัน</li>
+      <li>ถ้า OR หยาบสูงแต่ OR ที่ปรับแล้วลดลงใกล้ 1 แปลว่าความสัมพันธ์เดิมถูก “ยืม” มาจากปัจจัยอื่น  นี่คือการควบคุม <b>ตัวแปรกวน</b> แบบเดียวกับ Mantel–Haenszel แต่ทำได้หลายตัวพร้อมกัน</li>
       <li>ใส่ตัวแปรมากเกินไปเมื่อข้อมูลน้อย ช่วงความเชื่อมั่นจะกว้างมาก (กฎคร่าว ๆ: ผู้ป่วยราว ๑๐ รายต่อหนึ่งตัวแปร)</li>
       <li>เกมนี้ใส่ ridge เล็กน้อย (λ = 0.1) กันค่าพุ่งเป็นอนันต์เมื่อทุกคนในกลุ่มหนึ่งป่วยหมด (separation) และตัดแถวที่ตอบ “ไม่ทราบ” ออก</li>
-      <li><b>AUC</b> และ <b>cross-validation</b> ใช้ประเมินพลังทำนาย แต่การสอบสวนโรคต้องการรู้ “สาเหตุ” — โมเดลที่ทำนายแม่นไม่ได้แปลว่าทุกตัวแปรเป็นสาเหตุ</li></ul></details>`;
+      <li><b>AUC</b> และ <b>cross-validation</b> ใช้ประเมินพลังทำนาย แต่การสอบสวนโรคต้องการรู้ “สาเหตุ”  โมเดลที่ทำนายแม่นไม่ได้แปลว่าทุกตัวแปรเป็นสาเหตุ</li></ul></details>`;
     return h;
   }
   function saveLR(W,S){
@@ -176,8 +176,8 @@ OD.mlViews = (function(){
         <div><span>ความแม่นยำ (5-fold CV)</span><b class="${gap>.08?'up':''}">${pct(cur.cv.acc)}</b></div>
         <div><span>ความไว / ความจำเพาะ (CV)</span><b>${pct(cur.cv.sens)} / ${pct(cur.cv.spec)}</b></div>
         <div><span>เดาว่า “ไม่ป่วย” ทุกคน</span><b>${pct(base)}</b></div></div>`;
-    if(gap>.08) h += `<div class="note red" style="font-size:13.5px">⚠️ <b>Overfitting</b> — ต้นไม้จำข้อมูลฝึกได้ดี (${pct(cur.tr.acc)}) แต่ทายข้อมูลที่ไม่เคยเห็นได้แย่กว่ามาก (${pct(cur.cv.acc)}) กิ่งลึก ๆ มักเป็นการแยกตามความบังเอิญ</div>`;
-    else if(dep===bestDep) h += `<div class="note jade" style="font-size:13.5px">✅ ความลึก ${U.thaiNum(dep)} ให้ความแม่นยำแบบ cross-validation สูงสุด — ซับซ้อนพอดีกับข้อมูล</div>`;
+    if(gap>.08) h += `<div class="note red" style="font-size:13.5px">⚠️ <b>Overfitting</b>  ต้นไม้จำข้อมูลฝึกได้ดี (${pct(cur.tr.acc)}) แต่ทายข้อมูลที่ไม่เคยเห็นได้แย่กว่ามาก (${pct(cur.cv.acc)}) กิ่งลึก ๆ มักเป็นการแยกตามความบังเอิญ</div>`;
+    else if(dep===bestDep) h += `<div class="note jade" style="font-size:13.5px">✅ ความลึก ${U.thaiNum(dep)} ให้ความแม่นยำแบบ cross-validation สูงสุด  ซับซ้อนพอดีกับข้อมูล</div>`;
     h += `<div class="ml-two"><div><b style="font-size:14px">ความแม่นยำตามความลึกของต้นไม้</b>
         ${lineChart({x:curve.map(c=>U.thaiNum(c.dep)), lo:.5, hi:1, step:.1, fmt:v=>Math.round(v*100)+'%', base, mark:dep-1, xt:'ความลึก',
           series:[{name:'ข้อมูลฝึก', cls:'l2', v:curve.map(c=>c.tr.acc)}, {name:'cross-validation', cls:'l1', v:curve.map(c=>c.cv.acc)}]})}
@@ -187,11 +187,11 @@ OD.mlViews = (function(){
       <b style="font-size:14px;display:block;margin-top:10px">ต้นไม้ตัดสินใจ (${U.thaiNum(tree.leaves)} ใบ)</b>
       <ul class="dtree">${treeNode(tree.root, d.cols, '')}</ul>
       <details class="howto"><summary>อ่านต้นไม้ตัดสินใจอย่างไร?</summary><ul>
-        <li>ต้นไม้ถามคำถามใช่/ไม่ทีละข้อ เลือกคำถามที่แยกผู้ป่วยออกจากคนไม่ป่วยได้ “บริสุทธิ์” ที่สุด (Gini impurity) — คำถามบนสุดคือปัจจัยที่แยกได้ดีที่สุด</li>
-        <li><b>Cross-validation</b>: แบ่งข้อมูล ๕ ส่วน ฝึกด้วย ๔ ส่วนแล้วทดสอบกับส่วนที่เหลือ วนจนครบ — วัดว่าโมเดลใช้กับคนที่ไม่เคยเห็นได้ดีแค่ไหน</li>
+        <li>ต้นไม้ถามคำถามใช่/ไม่ทีละข้อ เลือกคำถามที่แยกผู้ป่วยออกจากคนไม่ป่วยได้ “บริสุทธิ์” ที่สุด (Gini impurity)  คำถามบนสุดคือปัจจัยที่แยกได้ดีที่สุด</li>
+        <li><b>Cross-validation</b>: แบ่งข้อมูล ๕ ส่วน ฝึกด้วย ๔ ส่วนแล้วทดสอบกับส่วนที่เหลือ วนจนครบ  วัดว่าโมเดลใช้กับคนที่ไม่เคยเห็นได้ดีแค่ไหน</li>
         <li>ต้นไม้ลึกเกินไปจะ <b>overfit</b> คือจำข้อมูลฝึกได้หมดแต่ทำนายข้อมูลใหม่แย่ลง ลองเลื่อนความลึกแล้วดูเส้นสีทองกับสีแดงแยกกัน</li>
-        <li>ข้อมูลไม่สมดุล (ไม่ป่วยมากกว่าป่วย) ทำให้ “ความแม่นยำ” หลอกตาได้ — เดาว่าไม่ป่วยทุกคนก็ได้ ${pct(base)} แล้ว จึงต้องดูความไวและความจำเพาะด้วย</li>
-        <li>ต้นไม้หาความสัมพันธ์ ไม่ได้พิสูจน์สาเหตุ — ใช้ช่วย <b>ตั้งสมมติฐาน</b> แล้วยืนยันด้วยสิ่งแวดล้อมและแล็บ (ค่าที่ตอบ “ไม่ทราบ” ถูกนับเป็น “ไม่สัมผัส”)</li></ul></details>`;
+        <li>ข้อมูลไม่สมดุล (ไม่ป่วยมากกว่าป่วย) ทำให้ “ความแม่นยำ” หลอกตาได้  เดาว่าไม่ป่วยทุกคนก็ได้ ${pct(base)} แล้ว จึงต้องดูความไวและความจำเพาะด้วย</li>
+        <li>ต้นไม้หาความสัมพันธ์ ไม่ได้พิสูจน์สาเหตุ  ใช้ช่วย <b>ตั้งสมมติฐาน</b> แล้วยืนยันด้วยสิ่งแวดล้อมและแล็บ (ค่าที่ตอบ “ไม่ทราบ” ถูกนับเป็น “ไม่สัมผัส”)</li></ul></details>`;
     return h;
   }
 
@@ -222,9 +222,9 @@ OD.mlViews = (function(){
   function pyCode(W,S){
     const F = feats(W,S).length ? feats(W,S) : ['W1','W2','W3'], ex = M.exposures(S).map(e=>e.k);
     return [
-['md', `# นักสืบโรคระบาด ๒ — วิเคราะห์ข้อมูลคดีที่ ${W.seed%10000} ต่อด้วย Python\nใช้คู่กับไฟล์ **outbreak_survey.csv** (ผู้ป่วยที่สัมภาษณ์แล้ว + กลุ่มควบคุม) และ **outbreak_linelist.csv** (รายชื่อผู้ป่วยทั้งหมด) วางไว้โฟลเดอร์เดียวกับ notebook นี้\n\nคอลัมน์ \`is_case\` = 1 ผู้ป่วย / 0 กลุ่มควบคุม · คอลัมน์ปัจจัยเสี่ยงเป็น 1 สัมผัส / 0 ไม่สัมผัส / ว่าง = ไม่ทราบ`],
+['md', `# นักสืบโรคระบาด ๒  วิเคราะห์ข้อมูลคดีที่ ${W.seed%10000} ต่อด้วย Python\nใช้คู่กับไฟล์ **outbreak_survey.csv** (ผู้ป่วยที่สัมภาษณ์แล้ว + กลุ่มควบคุม) และ **outbreak_linelist.csv** (รายชื่อผู้ป่วยทั้งหมด) วางไว้โฟลเดอร์เดียวกับ notebook นี้\n\nคอลัมน์ \`is_case\` = 1 ผู้ป่วย / 0 กลุ่มควบคุม · คอลัมน์ปัจจัยเสี่ยงเป็น 1 สัมผัส / 0 ไม่สัมผัส / ว่าง = ไม่ทราบ`],
 ['code', `import pandas as pd\nimport numpy as np\n\ndf = pd.read_csv("outbreak_survey.csv")\nll = pd.read_csv("outbreak_linelist.csv")\nprint(df.shape, ll.shape)\ndf.head()`],
-['md', `## 1) ตรวจคุณภาพข้อมูล\nคนเดียวกันได้ \`id\` เดิมเสมอ — ถ้าบทที่ ๒ ยังเก็บรายงานซ้ำไว้จะเห็นที่นี่ · ลองหาอายุที่ผิดปกติ และวันที่ที่ปีไม่เป็น พ.ศ. ด้วย`],
+['md', `## 1) ตรวจคุณภาพข้อมูล\nคนเดียวกันได้ \`id\` เดิมเสมอ  ถ้าบทที่ ๒ ยังเก็บรายงานซ้ำไว้จะเห็นที่นี่ · ลองหาอายุที่ผิดปกติ และวันที่ที่ปีไม่เป็น พ.ศ. ด้วย`],
 ['code', `print("id ซ้ำ:", df[df.duplicated("id", keep=False)].id.unique())\nprint(ll.describe())\nll[~ll.onset_date.astype(str).str.endswith("2569")]`],
 ['md', `## 2) เส้นโค้งการระบาด (ระบาดวิทยาเชิงพรรณนา)`],
 ['code', `ll.groupby("onset_day").size().plot(kind="bar", title="ผู้ป่วยตามวันเริ่มป่วย");`],
@@ -234,7 +234,7 @@ OD.mlViews = (function(){
 ['code', `import statsmodels.formula.api as smf\n\nfeatures = ${JSON.stringify(F)}\nd = df.dropna(subset=features)\nm = smf.logit("is_case ~ " + " + ".join(features) + " + C(village)", data=d).fit(disp=0)\nprint(m.summary())\nnp.exp(pd.concat([m.params, m.conf_int()], axis=1)).set_axis(["OR", "low", "high"], axis=1).round(2)`],
 ['md', `## 5) Decision tree + cross-validation (scikit-learn)`],
 ['code', `from sklearn.tree import DecisionTreeClassifier, export_text\nfrom sklearn.model_selection import cross_val_score\n\nX = df[exposures].fillna(0); y = df.is_case\nfor depth in range(1, 7):\n    clf = DecisionTreeClassifier(max_depth=depth, min_samples_leaf=3, random_state=0)\n    print(depth, "CV accuracy =", cross_val_score(clf, X, y, cv=5).mean().round(3))\n\nclf = DecisionTreeClassifier(max_depth=3, min_samples_leaf=3, random_state=0).fit(X, y)\nprint(export_text(clf, feature_names=list(X.columns)))`],
-['md', `## แบบฝึกหัดต่อยอด\n1. ลบข้อมูลซ้ำ แล้วคำนวณ OR ใหม่ — เปลี่ยนไปมากไหม\n2. ลอง \`RandomForestClassifier\` แล้วเทียบ feature importance กับต้นไม้ต้นเดียว\n3. คำนวณ Mantel–Haenszel OR ด้วย \`statsmodels.stats.contingency_tables.StratifiedTable\`\n4. ถ้าข้อมูลน้อยมาก ลอง Firth logistic regression หรือ exact logistic regression`],
+['md', `## แบบฝึกหัดต่อยอด\n1. ลบข้อมูลซ้ำ แล้วคำนวณ OR ใหม่  เปลี่ยนไปมากไหม\n2. ลอง \`RandomForestClassifier\` แล้วเทียบ feature importance กับต้นไม้ต้นเดียว\n3. คำนวณ Mantel–Haenszel OR ด้วย \`statsmodels.stats.contingency_tables.StratifiedTable\`\n4. ถ้าข้อมูลน้อยมาก ลอง Firth logistic regression หรือ exact logistic regression`],
     ];
   }
   function notebook(W,S){
@@ -244,7 +244,7 @@ OD.mlViews = (function(){
   }
   function rCode(W,S){
     const F = feats(W,S).length ? feats(W,S) : ['W1','W2','W3'];
-    return `# นักสืบโรคระบาด ๒ — คดีที่ ${W.seed%10000} วิเคราะห์ต่อด้วย R
+    return `# นักสืบโรคระบาด ๒  คดีที่ ${W.seed%10000} วิเคราะห์ต่อด้วย R
 df <- read.csv("outbreak_survey.csv", fileEncoding = "UTF-8-BOM")
 str(df)
 
@@ -270,7 +270,7 @@ print(fit)
 `;
   }
 
-  /* SQL console — โหลดตัวประมวลผล SQL (alasql) จาก CDN เมื่อเปิดใช้ครั้งแรกเท่านั้น */
+  /* SQL console  โหลดตัวประมวลผล SQL (alasql) จาก CDN เมื่อเปิดใช้ครั้งแรกเท่านั้น */
   const SQL_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/alasql/4.19.1/alasql.min.js';
   let sqlLoad = null;
   const loadSql = () => sqlLoad || (sqlLoad = new Promise((res, rej)=>{
@@ -295,7 +295,7 @@ print(fit)
         <button class="btn btn-sm" data-dl="linelist">📄 outbreak_linelist.csv <small>(${nL} แถว)</small></button>
         <button class="btn btn-sm btn-gold" data-dl="ipynb">📓 Jupyter Notebook (Python)</button>
         <button class="btn btn-sm" data-dl="r">📊 R script</button></div>
-      <div class="faint" style="font-size:12.5px">เปิด notebook ฟรีได้ใน Google Colab / Jupyter / VS Code — อัปโหลดไฟล์ CSV ทั้งสองไว้ในโฟลเดอร์เดียวกัน</div></div>
+      <div class="faint" style="font-size:12.5px">เปิด notebook ฟรีได้ใน Google Colab / Jupyter / VS Code  อัปโหลดไฟล์ CSV ทั้งสองไว้ในโฟลเดอร์เดียวกัน</div></div>
       <div class="ml-step"><b>🗄️ SQL console</b> <span class="faint">— ตาราง <code>linelist</code> (รายชื่อผู้ป่วยทั้งหมด) และ <code>survey</code> (ผู้ตอบแบบสอบถาม)</span>
         <div class="sql-samples">${SAMPLES.map(([t],i)=>`<button class="fchip" data-sqls="${i}">${t}</button>`).join('')}</div>
         <textarea id="sqlIn" class="sql-in" spellcheck="false" rows="5">${U.esc(S.ui.sql || SAMPLES[0][1])}</textarea>
@@ -312,7 +312,7 @@ print(fit)
     box.innerHTML = '<span class="faint">กำลังประมวลผล…</span>';
     let A;
     try{ A = await loadSql(); }
-    catch(e){ box.innerHTML = '<div class="note red">โหลดตัวประมวลผล SQL ไม่สำเร็จ — ต้องต่ออินเทอร์เน็ตครั้งแรก (ระหว่างนี้ใช้ปุ่มดาวน์โหลด CSV แล้ววิเคราะห์ในโปรแกรมอื่นได้)</div>'; return; }
+    catch(e){ box.innerHTML = '<div class="note red">โหลดตัวประมวลผล SQL ไม่สำเร็จ  ต้องต่ออินเทอร์เน็ตครั้งแรก (ระหว่างนี้ใช้ปุ่มดาวน์โหลด CSV แล้ววิเคราะห์ในโปรแกรมอื่นได้)</div>'; return; }
     try{
       const db = new A.Database();
       db.exec('CREATE TABLE linelist'); db.tables.linelist.data = linelistTable(W,S);
@@ -340,7 +340,7 @@ print(fit)
     const sub = S.ui.mlTab || 'lr';
     let body;
     if(sub==='code') body = codeHtml(W,S);
-    else if(!ready(S)) body = `<div class="lockbox"><div class="big">🤖</div><b>ยังไม่มีข้อมูลสำหรับฝึกโมเดล</b><div>Machine learning แบบมีผู้สอน (supervised) ต้องมี “ป้ายกำกับ” ทั้งผู้ป่วยและคนไม่ป่วย — สัมภาษณ์ผู้ป่วยแล้ว <b>เก็บกลุ่มควบคุม</b> ก่อน</div><div style="margin-top:8px">ระหว่างนี้ลองแท็บ <b>💻 ข้อมูล · โค้ด · SQL</b> ได้</div></div>`;
+    else if(!ready(S)) body = `<div class="lockbox"><div class="big">🤖</div><b>ยังไม่มีข้อมูลสำหรับฝึกโมเดล</b><div>Machine learning แบบมีผู้สอน (supervised) ต้องมี “ป้ายกำกับ” ทั้งผู้ป่วยและคนไม่ป่วย  สัมภาษณ์ผู้ป่วยแล้ว <b>เก็บกลุ่มควบคุม</b> ก่อน</div><div style="margin-top:8px">ระหว่างนี้ลองแท็บ <b>💻 ข้อมูล · โค้ด · SQL</b> ได้</div></div>`;
     else body = sub==='lr' ? lrHtml(W,S) : treeHtml(W,S);
     return `<div class="ml-sub">${SUB.map(([k,t])=>`<button class="mls ${sub===k?'on':''}" data-mls="${k}">${t}</button>`).join('')}</div>${body}`;
   }
@@ -350,7 +350,7 @@ print(fit)
       const t = e.target.closest('[data-mls],[data-mlf],[data-mlsave],[data-dl],[data-sqls],[data-sqlrun]'); if(!t) return;
       if(t.dataset.mls){ S.ui.mlTab = t.dataset.mls; rerender(); return; }
       if(t.dataset.mlf){ const k = t.dataset.mlf, f = feats(W,S); const i = f.indexOf(k);
-        if(i>=0) f.splice(i,1); else if(f.length<MAXF) f.push(k); else { U.toast(`ใส่ได้ไม่เกิน ${U.thaiNum(MAXF)} ตัวแปร — ข้อมูลน้อยแต่ตัวแปรมาก โมเดลจะไม่เสถียร`); return; }
+        if(i>=0) f.splice(i,1); else if(f.length<MAXF) f.push(k); else { U.toast(`ใส่ได้ไม่เกิน ${U.thaiNum(MAXF)} ตัวแปร  ข้อมูลน้อยแต่ตัวแปรมาก โมเดลจะไม่เสถียร`); return; }
         S.ui.mlFeat = f; rerender(); return; }
       if(t.dataset.mlsave){ saveLR(W,S); rerender(); return; }
       if(t.dataset.dl){ dlClick(W,S,t.dataset.dl); return; }
@@ -370,7 +370,7 @@ print(fit)
   /* หน้าต่างดาวน์โหลดข้อมูล (ใช้ในหน้าผลลัพธ์ท้ายเกม) */
   function downloadModal(W,S){
     U.modal(`<h2 class="display gold-text">💻 วิเคราะห์คดีนี้ต่อด้วยโค้ด</h2>
-      <p>ดาวน์โหลดข้อมูลคดีที่ ${U.thaiNum(W.seed%10000)} พร้อม notebook ที่เขียนโค้ดไว้ให้แล้ว เปิดได้ฟรีใน Google Colab, Jupyter หรือ RStudio — เหมาะใช้ต่อในห้องเรียน</p>
+      <p>ดาวน์โหลดข้อมูลคดีที่ ${U.thaiNum(W.seed%10000)} พร้อม notebook ที่เขียนโค้ดไว้ให้แล้ว เปิดได้ฟรีใน Google Colab, Jupyter หรือ RStudio  เหมาะใช้ต่อในห้องเรียน</p>
       <div class="dl-row"><button class="btn btn-sm" data-m="survey">📄 outbreak_survey.csv</button><button class="btn btn-sm" data-m="linelist">📄 outbreak_linelist.csv</button>
         <button class="btn btn-sm btn-gold" data-m="ipynb">📓 Jupyter Notebook</button><button class="btn btn-sm" data-m="r">📊 R script</button></div>
       <div class="m-actions"><button class="btn btn-gold" data-m="x">ปิด</button></div>`,

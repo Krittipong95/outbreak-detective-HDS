@@ -1,6 +1,6 @@
 /* =========================================================
-   meta — สถิติข้ามคดี: ตารางคะแนน · คดีประจำวัน · เหรียญ · แฟ้มคดี
-   เก็บในเครื่องนี้ (localStorage) — เหมาะกับบูธที่ใช้เครื่องเดียวหลายคน
+   meta  สถิติข้ามคดี: ตารางคะแนน · คดีประจำวัน · เหรียญ · แฟ้มคดี
+   เก็บในเครื่องนี้ (localStorage)  เหมาะกับบูธที่ใช้เครื่องเดียวหลายคน
    ========================================================= */
 OD.meta = (function(){
   const U = OD.u, M = OD.sim, KEY = 'od2-meta';
@@ -35,7 +35,6 @@ OD.meta = (function(){
     {id:'ear',    icon:'🎙️', t:'นักสัมภาษณ์',          d:'สัมภาษณ์เชิงลึกโดยขอความยินยอม และไม่ใช้คำถามชี้นำ',              ok:c=>c.deepGood},
     {id:'daily',  icon:'📅', t:'คดีประจำวัน',          d:'เล่นคดีประจำวันจนจบ',                                          ok:c=>c.daily},
     /* ---------- เครื่องมือ HDS ---------- */
-    {id:'alarm',  icon:'🚨', t:'ระบบเตือนภัยแม่นยำ',     d:'ตั้งระบบเตือนภัยการระบาด (บทที่ ๑) ได้ตามเป้าตั้งแต่ครั้งแรก',       ok:c=>c.alarmFirst},
     {id:'model',  icon:'🤖', t:'นักสร้างโมเดล',          d:'ปักผล logistic regression ที่ชี้ต้นตอจริงไว้บนกระดานสืบสวน',       ok:c=>c.mlRight},
     {id:'overfit',icon:'🌳', t:'รู้ทันโอเวอร์ฟิต',         d:'ตั้งความลึกของ decision tree ตรงจุดที่ cross-validation ดีที่สุด',  ok:c=>c.treeBest},
     {id:'nlp',    icon:'📱', t:'นักฟังโซเชียล',          d:'ติดป้ายข้อมูลฝึกโมเดล NLP ถูกอย่างน้อย ๘ ใน ๙ โพสต์',             ok:c=>c.nlpAcc!=null && c.nlpAcc>=8},
@@ -94,7 +93,7 @@ OD.meta = (function(){
       <div class="meta-sum"><span class="chip gold">คดีทั้งหมด ${U.thaiNum(su.cases)}</span><span class="chip">คะแนนสูงสุด ${su.best}</span><span class="chip">เหรียญ ${U.thaiNum(su.ach)}/${U.thaiNum(su.achMax)}</span><span class="chip">ไขได้ ${U.thaiNum(su.solvedTypes)}/๖ ต้นตอ</span></div>
       <h3 class="meta-h">📅 คดีประจำวัน · ${fmtDate(td)}</h3>${table(daily)}
       <h3 class="meta-h">🏅 คะแนนสูงสุดตลอดกาล</h3>${table(best)}
-      <h3 class="meta-h">🗂️ แฟ้มคดี — ต้นตอที่เคยไขได้</h3>
+      <h3 class="meta-h">🗂️ แฟ้มคดี  ต้นตอที่เคยไขได้</h3>
       <div class="files">${M.SCN_TYPES.map(t=>{ const n = m.cases.filter(c=>c.type===t).length, s = m.cases.filter(c=>c.type===t && c.solved).length;
         return `<div class="file ${s?'on':''}"><span class="fi">${{WELL:'💧',REST:'🍜',ICE:'🧊',SCHOOL:'🏫',EVENT:'🛕',FARM:'🥬'}[t]}</span><b>${M.SCN_NAME[t]}</b><small>${s?`ไขได้ ${U.thaiNum(s)}/${U.thaiNum(n)} คดี`:n?`ยังไม่เคยไขได้ (${U.thaiNum(n)} คดี)`:'🔒 ยังไม่เคยเจอ'}</small></div>`; }).join('')}</div>
       <h3 class="meta-h">📜 เหตุการณ์ที่เคยเจอ (${U.thaiNum(seenCount(m))}/${U.thaiNum(SEEN_ALL.length)})</h3>

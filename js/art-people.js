@@ -1,6 +1,6 @@
 /* =========================================================
-   ตัวละคร — ภาพครึ่งตัวเวกเตอร์สไตล์ไทยแบบน่ารัก (viewBox 400x520)
-   หัวโตขึ้น คอสั้น ตาโต หน้ากลม — ศีรษะทั้งหมดอยู่ในกลุ่มเดียวที่ขยายจากจุดคาง
+   ตัวละคร  ภาพครึ่งตัวเวกเตอร์สไตล์ไทยแบบน่ารัก (viewBox 400x520)
+   หัวโตขึ้น คอสั้น ตาโต หน้ากลม  ศีรษะทั้งหมดอยู่ในกลุ่มเดียวที่ขยายจากจุดคาง
    ถ้าตั้ง OD.config.customPortraits = true จะใช้รูปใน img/ แทน (ดู vn.js)
    expr: neutral | smile | worried | serious | surprised
    ========================================================= */
@@ -18,19 +18,19 @@ OD.CHARS = {
            skin:'#efc8a4', hair:'#110b08', face:'young', fem:true, lip:'#d27274', hairS:'long', outfit:'lab', acc:['mask','pin']},
   monk:   {name:'หลวงพ่อทองดี', full:'หลวงพ่อทองดี', title:'เจ้าอาวาสวัดบ้านสุขใจ', color:'#c9781f',
            skin:'#c88d5e', hair:null, face:'monk', fem:false, hairS:'shaved', outfit:'robe', acc:['wrinkle']},
-  /* ตัวละครของผู้เล่น — เลือกชาย/หญิงที่หน้าแรก (id 'me' จะเลือกตามเพศที่ผู้เล่นเลือก) */
+  /* ตัวละครของผู้เล่น  เลือกชาย/หญิงที่หน้าแรก (id 'me' จะเลือกตามเพศที่ผู้เล่นเลือก) */
   me_m:   {name:'คุณ', title:'นักวิทยาศาสตร์ข้อมูลสุขภาพ · ทีม HDS', color:'#2f7f6c',
            skin:'#ebbd96', hair:'#2a1d17', face:'hunk', fem:false, hs:true, glam:true, hairS:'swoop', outfit:'hdsj', acc:[]},
   me_f:   {name:'คุณ', title:'นักวิทยาศาสตร์ข้อมูลสุขภาพ · ทีม HDS', color:'#2f7f6c',
            skin:'#f3cfac', hair:'#3a2219', face:'vF', fem:true, glam:true, lip:'#dc6478', hairS:'wave', outfit:'hdsj', acc:['stud']},
-  /* ชาวบ้าน — ชื่อและตำแหน่งกำหนดตามเหตุการณ์ */
+  /* ชาวบ้าน  ชื่อและตำแหน่งกำหนดตามเหตุการณ์ */
   vendorF:{name:'ป้าแดง', title:'เจ้าของร้านส้มตำ', color:'#c0392b',
            skin:'#c98d5f', hair:'#231a14', face:'elderF', fem:true, lip:'#a85f55', hairS:'wrap', outfit:'apron', acc:['earring']},
   vendorM:{name:'ลุงชัย', title:'เจ้าของก๋วยเตี๋ยวเรือ', color:'#7a5a2a',
            skin:'#b67a4e', hair:'#2a2420', face:'elderM', fem:false, hairS:'short', outfit:'pakama', acc:['wrinkle']},
   director:{name:'ผอ.สมศรี', title:'ผู้อำนวยการโรงเรียนบ้านสุขใจ', color:'#2b3a5c',
            skin:'#e0b088', hair:'#1c1410', face:'elderF', fem:true, lip:'#b8606a', hairS:'bob', outfit:'blazer', acc:['glasses']},
-  /* ผู้ป่วย/ญาติในการสัมภาษณ์เชิงลึก — ชื่อกำหนดตอนสัมภาษณ์ */
+  /* ผู้ป่วย/ญาติในการสัมภาษณ์เชิงลึก  ชื่อกำหนดตอนสัมภาษณ์ */
   patientF:{name:'ป้าสมใจ', title:'ผู้ป่วย', color:'#c76b8a',
            skin:'#d9a37a', hair:'#3a2a20', face:'young', fem:true, lip:'#b46a66', hairS:'bob', outfit:'tee', shirt:'#c76b8a', acc:['earring']},
   patientM:{name:'ลุงสมชาย', title:'ผู้ป่วย', color:'#4f7fa8',
@@ -56,7 +56,7 @@ OD.CHARS = {
     monk:   'M200 86 C259 86 286 133 284 201 C283 251 264 287 231 304 C217 311 183 311 169 304 C136 287 117 251 116 201 C114 133 141 86 200 86 Z',
     vF:     'M200 97 C254 97 281 138 279 198 C278 240 263 274 238 296 C224 307 211 313 200 313 C189 313 176 307 162 296 C137 274 122 240 121 198 C119 138 146 97 200 97 Z',  // หน้าเรียวรูปไข่ (ผู้เล่นหญิง)
   };
-  /* ลำตัวกลมแบบตุ๊กตา — หัวโตวางทับไหล่พอดี ไม่เห็นคอ */
+  /* ลำตัวกลมแบบตุ๊กตา  หัวโตวางทับไหล่พอดี ไม่เห็นคอ */
   const BODY_M = 'M58 520 C56 424 108 354 200 352 C292 354 344 424 342 520 Z';
   const BODY_F = 'M70 520 C68 430 114 358 200 356 C286 358 332 430 330 520 Z';
   const EY = 214;            // ระดับดวงตา (ต่ำลงเล็กน้อยให้หน้าดูเด็ก)
@@ -65,30 +65,11 @@ OD.CHARS = {
   /* ---------- ดวงตาโต มีประกาย ---------- */
   /* glam = ดวงตาแบบละเอียดของตัวละครผู้เล่น: ตาโตขึ้นเล็กน้อย ชั้นตาสองชั้น ขอบม่านตา ประกายเพิ่ม (ผู้หญิงมีถุงใต้ตาแบบ aegyo-sal) */
   function eye(k, n, cx, cy, side, fem, expr, skDD, hs, glam){
-    const w = (fem ? 23 : hs ? 22.5 : 21.5) + (glam ? 1 : 0);
-    const h = (expr==='surprised' ? 14 : expr==='smile' ? 6.5 : hs ? 10 : 11.5) + (glam && expr!=='smile' ? (fem ? 2 : 1.2) : 0), lift = fem ? 3.5 : hs ? 4 : 1.5;
-    const xi = cx - side*w*.9, yi = cy + 2, xo = cx + side*w, yo = cy - lift;
-    const up = `Q${cx+side*3} ${cy-h-6} ${xo} ${yo}`;
-    const lo = expr==='smile' ? `Q${cx} ${cy+h*.1} ${xi} ${yi}` : `Q${cx-side*2} ${cy+h*.95} ${xi} ${yi}`;
-    const shape = `M${xi} ${yi} ${up} ${lo} Z`, ir = (fem ? 12.5 : 11.5) + (glam ? 1 : 0);
-    let s = `<clipPath id="${k}e${n}"><path d="${shape}"/></clipPath><path d="${shape}" fill="#fbf6ef"/>`;
-    s += `<g clip-path="url(#${k}e${n})"><circle cx="${cx+side*.5}" cy="${cy+1}" r="${ir}" fill="url(#${k}${glam?'irisG':'iris'})"/>`;
-    if(glam) s += `<circle cx="${cx+side*.5}" cy="${cy+1}" r="${ir-.8}" fill="none" stroke="#1a0b05" stroke-width="1.6" opacity=".75"/>`;   // ขอบม่านตา
-    s += `<circle cx="${cx+side*.5}" cy="${cy+1}" r="5.2" fill="#0b0604"/>`;
-    s += `<circle cx="${cx+4.5}" cy="${cy-3.8}" r="3.9" fill="#fff"/><circle cx="${cx-3.8}" cy="${cy+4.6}" r="1.8" fill="#fff" opacity=".85"/><circle cx="${cx+7}" cy="${cy+2.5}" r="1.1" fill="#fff" opacity=".8"/>`;
-    if(glam) s += `<path d="M${cx-side*6} ${cy+8} Q${cx+side*.5} ${cy+11} ${cx+side*7} ${cy+7}" stroke="#ffd9a8" stroke-width="2" fill="none" opacity=".55" stroke-linecap="round"/><circle cx="${cx-side*1}" cy="${cy-6.5}" r="1.3" fill="#fff"/>`;
-    s += `<path d="M${cx-32} ${cy-h-9} H${cx+32} V${cy-h*.2} Q${cx} ${cy-h-5} ${cx-32} ${cy-h*.2} Z" fill="#3a2010" opacity=".14"/></g>`;
-    s += `<path d="M${xi} ${yi} ${up}" fill="none" stroke="#160c07" stroke-width="${fem||hs?3.8:3.2}" stroke-linecap="round"/>`;
-    if(glam && expr!=='smile') s += `<path d="M${xi+side*3} ${yi-7} Q${cx+side*3} ${cy-h-12.5} ${xo-side*2} ${yo-5.5}" fill="none" stroke="#5a3324" stroke-width="1.6" opacity=".55" stroke-linecap="round"/>`;   // ชั้นตาสองชั้น
-    if(glam && fem) s += `<path d="M${xi+side*1} ${yi+5} Q${cx} ${cy+h+(expr==='smile'?9:7)} ${xo-side*4} ${yo+8}" stroke="#fff" stroke-width="3" fill="none" opacity=".22" stroke-linecap="round"/>`;
-    if(hs) s += `<path d="M${xo} ${yo} q${side*5} ${-1} ${side*7.5} ${-4.5}" fill="none" stroke="#160c07" stroke-width="2.4" stroke-linecap="round"/>`;
-    if(fem){
-      s += `<path d="M${xo} ${yo} q${side*7} ${-1.5} ${side*10.5} ${-7.5}" fill="none" stroke="#160c07" stroke-width="2.4" stroke-linecap="round"/>`;
-      for(const t of [.55,.72,.88]){ const x = xi+(xo-xi)*t, y = yi+(yo-yi)*t-(h+4)*Math.sin(Math.PI*t)*.95; s += `<path d="M${x} ${y} l${side*2.6} ${-4.2}" stroke="#160c07" stroke-width="1.4" stroke-linecap="round"/>`; }
-    }
-    if(expr!=='smile' && !glam) s += `<path d="M${xi+side*2} ${yi-9} Q${cx+side*3} ${cy-h-14} ${xo-side*1.5} ${yo-7}" fill="none" stroke="${skDD}" stroke-width="${hs?1.6:1.3}" opacity="${hs?.55:.35}"/>`;
-    s += `<path d="M${xi-side*3} ${yi+1} Q${cx} ${cy+h+(expr==='smile'?8:4.5)} ${xo-side*3} ${yo+5}" fill="none" stroke="${skDD}" stroke-width="1.1" opacity="${expr==='smile'?.4:.2}"/>`;
-    return s;
+    // ตากลมและประกายเล็ก ๆ ใช้ร่วมกันทุกตัวละคร โดยยังแสดงอารมณ์ตามบท
+    const w = fem ? 17 : 16, h = expr==='surprised' ? 20 : 17;
+    if(expr==='smile') return `<path d="M${cx-w} ${cy+2} Q${cx} ${cy-13} ${cx+w} ${cy+2}" fill="none" stroke="#42291f" stroke-width="4" stroke-linecap="round"/><path d="M${cx-8} ${cy+9} q8 3 16 0" fill="none" stroke="${skDD}" stroke-width="1.5" opacity=".3"/>`;
+    const y = expr==='worried' ? cy+1 : cy;
+    return `<ellipse cx="${cx}" cy="${y}" rx="${w}" ry="${h}" fill="#fffaf1" stroke="#513024" stroke-width="2.3"/><ellipse cx="${cx+side}" cy="${y+2}" rx="${fem?10.5:10}" ry="${h-2}" fill="url(#${k}iris)"/><ellipse cx="${cx+side}" cy="${y+2}" rx="6" ry="${h-5}" fill="#281710"/><circle cx="${cx-4}" cy="${y-5}" r="4.5" fill="#fff"/><circle cx="${cx+5}" cy="${y+6}" r="2" fill="#fff" opacity=".8"/><path d="M${cx-w} ${y-1} Q${cx} ${y-h-5} ${cx+w} ${y-1}" fill="none" stroke="#43291e" stroke-width="3" stroke-linecap="round"/>${fem?`<path d="M${cx+side*(w-2)} ${y-7} l${side*4} -3" fill="none" stroke="#43291e" stroke-width="2" stroke-linecap="round"/>`:''}`;
   }
   function brow(cx, cy, side, expr, col, fem, mono, hs){
     let inY=0, outY=0, lift=0;
@@ -97,21 +78,16 @@ OD.CHARS = {
     if(expr==='surprised') lift=-8;
     if(expr==='smile') lift=-2;
     const xin = cx - side*18, xout = cx + side*24;
-    const w = mono ? 3 : fem ? 3.6 : hs ? 6.4 : 5.2, op = mono ? .28 : 1;
+    const w = mono ? 2.5 : fem ? 3 : hs ? 4.2 : 3.6, op = mono ? .28 : .82;
     return `<path d="M${xin} ${cy+inY+lift} Q${cx+side*5} ${cy-(fem?10:hs?6:7)+lift+(inY+outY)/2} ${xout} ${cy+outY+lift+(fem?4:2)}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round" opacity="${op}"/>`;
   }
-  function lips(expr, col, fem, hs){
-    const lo = shade(col,.16), ln = shade(col,-.4), sw = fem ? 1 : .8;
-    if(hs && expr==='neutral') return `<path d="M188 275 Q200 280 213 272" stroke="${ln}" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M190 279 Q200 284 210 279" stroke="${lo}" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>`;
-    switch(expr){
-      case 'smile': return `<path d="M178 268 Q200 292 222 268 Q211 271 200 270 Q189 271 178 268 Z" fill="#5a1d18"/><path d="M182 270 Q200 276 218 270 L216 274.5 Q200 280 184 274.5 Z" fill="#f7f1e7"/>`+
-        `<path d="M176 267 Q188 262 200 266 Q212 262 224 267" stroke="${col}" stroke-width="${fem?3.4:2.4}" fill="none" stroke-linecap="round"/><path d="M188 288 Q200 293 212 288" stroke="${lo}" stroke-width="${fem?3:2}" fill="none" stroke-linecap="round" opacity=".8"/>`;
-      case 'surprised': return `<ellipse cx="200" cy="279" rx="7.5" ry="9.5" fill="#4b1813"/><ellipse cx="200" cy="279" rx="8" ry="10" fill="none" stroke="${col}" stroke-width="${fem?3:2.2}"/>`;
-      case 'worried': return `<path d="M186 277 Q200 270 214 277 Q200 279 186 277 Z" fill="${col}" opacity="${sw}"/><path d="M188 278 Q200 284 212 278 Q200 281 188 278 Z" fill="${lo}" opacity="${sw}"/><path d="M185 278 Q200 272 215 278" stroke="${ln}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
-      case 'serious': return `<path d="M186 274 Q200 271 214 274 Q200 276 186 274 Z" fill="${col}" opacity="${sw}"/><path d="M188 275 Q200 280 212 275 Q200 278 188 275 Z" fill="${lo}" opacity="${sw}"/><path d="M185 274.5 L215 274.5" stroke="${ln}" stroke-width="1.6" stroke-linecap="round"/>`;
-      default: return `<path d="M185 273 Q192 268 197 269.5 Q200 268.5 203 269.5 Q208 268 215 273 Q200 276 185 273 Z" fill="${col}" opacity="${sw}"/><path d="M186 274 Q200 285 214 274 Q200 278.5 186 274 Z" fill="${lo}" opacity="${sw}"/>`+
-        `<path d="M185 273.6 Q200 277 215 273.6" stroke="${ln}" stroke-width="1.4" fill="none" stroke-linecap="round"/>${fem?`<ellipse cx="201" cy="279" rx="5" ry="1.5" fill="#fff" opacity=".3"/>`:''}`;
-    }
+  function lips(expr, col){
+    const stroke = shade(col,-.25);
+    if(expr==='surprised') return `<ellipse cx="200" cy="276" rx="5.5" ry="7" fill="#82463c"/><ellipse cx="200" cy="273" rx="2" ry="1" fill="#fff" opacity=".45"/>`;
+    if(expr==='worried') return `<path d="M190 278 Q200 271 210 278" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round"/>`;
+    if(expr==='serious') return `<path d="M190 275 Q200 276 210 275" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round"/>`;
+    const depth=expr==='smile'?14:7;
+    return `<path d="M187 272 Q200 ${272+depth} 213 272" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/><path d="M191 284 Q200 287 209 284" fill="none" stroke="${col}" stroke-width="1.5" opacity=".25" stroke-linecap="round"/>`;
   }
 
   /* ---------- ผม ---------- */
@@ -322,23 +298,18 @@ OD.CHARS = {
     const face = FACE[c.face];
     h += `<path d="${face}" fill="url(#${k}face)"/>`;
     h += `<clipPath id="${k}fc"><path d="${face}"/></clipPath><g clip-path="url(#${k}fc)" filter="url(#${k}soft)">`+
-      `<path d="M264 124 C292 184 286 262 236 304 L300 320 L300 100 Z" fill="${skDD}" opacity=".3"/>`+
+      `<path d="M264 124 C292 184 286 262 236 304 L300 320 L300 100 Z" fill="${skDD}" opacity=".16"/>`+
       `<path d="M128 152 C122 202 130 252 150 282" stroke="#fff" stroke-width="10" fill="none" opacity=".1"/>`+
-      (c.hairS!=='shaved' ? `<path d="M120 172 Q200 132 282 172" stroke="${skDD}" stroke-width="16" fill="none" opacity=".32"/>` : '')+
+      (c.hairS!=='shaved' ? `<path d="M120 172 Q200 132 282 172" stroke="${skDD}" stroke-width="16" fill="none" opacity=".18"/>` : '')+
       `</g>`;
-    h += `<ellipse cx="150" cy="258" rx="21" ry="12" fill="#f08a86" opacity="${fem?.32:.17}"/><ellipse cx="250" cy="258" rx="21" ry="12" fill="#f08a86" opacity="${fem?.32:.17}"/>`;
+    h += `<ellipse cx="150" cy="258" rx="19" ry="9" fill="#ef8d89" opacity="${fem?.27:.20}"/><ellipse cx="250" cy="258" rx="21" ry="12" fill="#f08a86" opacity="${fem?.32:.17}"/>`;
     if(c.acc.includes('wrinkle')) h += `<path d="M168 150 Q200 143 232 150" stroke="${skDD}" stroke-width="1.4" fill="none" opacity=".3"/><path d="M176 252 Q168 268 177 284 M224 252 Q232 268 223 284" stroke="${skDD}" stroke-width="1.7" fill="none" opacity=".32"/><path d="M134 212 l-7 3 M266 212 l7 3" stroke="${skDD}" stroke-width="1.3" opacity=".35"/>`;
     h += eye(k, 1, 165, EY, -1, fem, expr, skDD, c.hs, c.glam) + eye(k, 2, 235, EY, 1, fem, expr, skDD, c.hs, c.glam);
     const bc = c.hairS==='bun' ? '#4a4440' : c.hairS==='shaved' ? skDD : hrD;
     h += brow(165, 182, -1, expr, bc, fem, c.hairS==='shaved', c.hs) + brow(235, 182, 1, expr, bc, fem, c.hairS==='shaved', c.hs);
-    h += `<path d="M197 232 Q195 242 192 248" stroke="${skDD}" stroke-width="2" fill="none" opacity=".35" stroke-linecap="round"/>`+
-      `<path d="M191 252 Q196 256.5 200 256 Q204 256.5 209 252" stroke="${skDD}" stroke-width="2" fill="none" opacity=".5" stroke-linecap="round"/>`+
-      `<ellipse cx="194.5" cy="252.5" rx="2.8" ry="1.7" fill="${skDD}" opacity=".45"/><ellipse cx="205.5" cy="252.5" rx="2.8" ry="1.7" fill="${skDD}" opacity=".45"/>`+
-      `<ellipse cx="201" cy="246" rx="4" ry="3" fill="#fff" opacity=".18"/>`;
+    h += `<path d="M196 247 Q200 250 204 247" stroke="${skDD}" stroke-width="2" fill="none" opacity=".35" stroke-linecap="round"/>`;
     if(c.acc.includes('mustache')) h += `<path d="M176 263 Q188 255 200 260 Q212 255 224 263 Q213 268 200 264 Q187 268 176 263 Z" fill="#3a3532"/>`;
     h += `<g transform="translate(200 275) scale(.9) translate(-200 -275)">${lips(expr, lipC, fem, c.hs)}</g>`;
-    // ลิปกลอส (ผู้เล่นหญิง)
-    if(c.glam && fem && expr!=='surprised') h += `<ellipse cx="${expr==='smile'?208:204}" cy="${expr==='smile'?283:279}" rx="5.5" ry="1.6" fill="#fff" opacity=".5"/>`;
     h += hairFront(c, k, hrD);
     if(c.acc.includes('pin')){
       h += `<path d="M236 104 L282 150" stroke="#c99a35" stroke-width="3.2" stroke-linecap="round"/>`;

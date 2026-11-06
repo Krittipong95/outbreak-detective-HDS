@@ -1,5 +1,5 @@
 /* =========================================================
-   main — หน้าชื่อเกม ลำดับบท และการตั้งค่า
+   main  หน้าชื่อเกม ลำดับบท และการตั้งค่า
    ========================================================= */
 OD.main = (function(){
   const U = OD.u, M = OD.sim;
@@ -9,7 +9,7 @@ OD.main = (function(){
   let pref = {name:store.get('name',''), gender:store.get('gender', store.get('pol','ครับ')==='ค่ะ' ? 'f' : 'm'), diff:savedDiff || 'easy'};
   const GENDER = {m:{t:'ชาย', pol:'ครับ'}, f:{t:'หญิง', pol:'ค่ะ'}};
 
-  /* ภาพหน้าตัวละครของผู้เล่น (วงกลม) — เก็บแคชไว้เพราะถูกวาดซ้ำบ่อย */
+  /* ภาพหน้าตัวละครของผู้เล่น (วงกลม)  เก็บแคชไว้เพราะถูกวาดซ้ำบ่อย */
   const faceCache = new Map();
   OD.meFace = function(expr='neutral', cls=''){
     const g = (OD.S && OD.S.gender) || pref.gender, nm = (OD.S && OD.S.name) || pref.name, key = [g,nm,expr].join('|');
@@ -25,7 +25,7 @@ OD.main = (function(){
 
   function title(){
     const D = M.DIFF;
-    const desc = {easy:'งบ ฿60,000 · คำใบ้ละเอียด · แล็บแม่นยำ ~๙๒%', normal:'งบ ฿45,000 · มีคำใบ้ · แล็บแม่นยำ ~๘๒%', hard:'งบ ฿32,000 · ไม่มีคำใบ้ · แล็บ ~๗๐% · ชาวบ้านจำคลาดเคลื่อนมากขึ้น'};
+    const desc = {easy:'งบ ฿60,000 · คำใบ้ละเอียด · ความไวแล็บพื้นฐาน ~๙๒%', normal:'งบ ฿45,000 · มีคำใบ้ · ความไวแล็บพื้นฐาน ~๘๒%', hard:'งบ ฿32,000 · ไม่มีคำใบ้ · ความไวแล็บพื้นฐาน ~๗๐% · ชาวบ้านจำคลาดเคลื่อนมากขึ้น'};
     const root = U.$('#scr-title');
     root.innerHTML = `<div class="title-bg">${OD.art.scene('temple')}</div>
       <button class="btn btn-ghost btn-sm" data-t="theme" style="position:absolute;top:14px;right:14px;z-index:2" title="สลับธีม">🌓 ธีม</button>
@@ -35,7 +35,7 @@ OD.main = (function(){
         <h1 class="display gold-text title-main">นักสืบโรคระบาด<span class="title-num">๒</span></h1>
         <div class="title-sub">ปริศนาแห่งบ้านสุขใจ</div>
         <div class="orn-divider"></div>
-        <p style="max-width:620px;margin:0 auto;color:var(--muted)">ผู้ป่วยท้องร่วงเพิ่มขึ้นผิดปกติในตำบลริมคลอง ข่าวลือแพร่เร็วกว่าเชื้อโรค — คุณคือนักวิทยาศาสตร์ข้อมูลสุขภาพที่ต้องใช้สถิติ ระบาดวิทยา และหลักฐานภาคสนาม ไขปริศนาให้ทันก่อนส่วนกลางจะมาถึง</p>
+        <p style="max-width:620px;margin:0 auto;color:var(--muted)">ผู้ป่วยท้องร่วงเพิ่มขึ้นผิดปกติในตำบลริมคลอง ข่าวลือแพร่เร็วกว่าเชื้อโรค  คุณคือนักวิทยาศาสตร์ข้อมูลสุขภาพที่ต้องใช้สถิติ ระบาดวิทยา และหลักฐานภาคสนาม ไขปริศนาให้ทันก่อนส่วนกลางจะมาถึง</p>
         <div class="title-form">
           <label>ชื่อของคุณ<input type="text" id="tName" maxlength="20" placeholder="เช่น ต้นกล้า" value="${U.esc(pref.name)}"></label>
           <div><label>ตัวละครของคุณ</label><div class="who-grid">${Object.entries(GENDER).map(([g,o])=>`<button class="diff who ${pref.gender===g?'on':''}" data-g="${g}">${'<span class="avatar">'+OD.art.person('me', pref.gender===g?'smile':'neutral', {gender:g, tag:pref.name})+'</span>'}<span><b>${o.t}</b><small>นักวิทยาศาสตร์ข้อมูลสุขภาพจบใหม่ · ใช้คำลงท้าย “${o.pol}”</small></span></button>`).join('')}</div></div>
@@ -74,10 +74,10 @@ OD.main = (function(){
     const W = OD.W = M.build(seed);
     const S = OD.S = M.newState(W, opts.diff || pref.diff, pref.name);
     S.gender = pref.gender; S.pol = GENDER[pref.gender].pol;
-    // สุ่มรูปแบบเรื่องราวต่อคดี (ผูกกับ seed — คดีประจำวันจึงได้เรื่องเดียวกันทุกคน)
+    // สุ่มรูปแบบเรื่องราวต่อคดี (ผูกกับ seed  คดีประจำวันจึงได้เรื่องเดียวกันทุกคน)
     U.seed((seed ^ 0x2545F491)>>>0);
     const closable = ['W1','W2','W3','R1','R2','R3','R4','S'], cul = W.scn.culprit;
-    // ข่าวลือในเฟซบุ๊ก/ที่กำนันกดดัน: ส่วนใหญ่ผิด แต่บางครั้ง (๒๐%) ก็ถูก — ต้องดูข้อมูลเสมอ
+    // ข่าวลือในเฟซบุ๊ก/ที่กำนันกดดัน: ส่วนใหญ่ผิด แต่บางครั้ง (๒๐%) ก็ถูก  ต้องดูข้อมูลเสมอ
     S.flags.rumor = closable.includes(cul) && U.r() < .2 ? cul : U.pick(closable.filter(x=>x!==cul));
     S.flags.rumor0 = U.pick(['E','R1','R2','R3','R4','S','W1','W2','W3'].filter(x=>x!==S.flags.rumor));   // ข่าวลือแรกในสายโทรศัพท์
     S.flags.v = {pressure:U.pick(['hall','protest','live']), patient:U.pick(['thongbai','baby','boonsong']),

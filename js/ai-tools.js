@@ -1,7 +1,7 @@
 /* =========================================================
-   ai-tools — เครื่องมือ AI ในภาคสนาม
+   ai-tools  เครื่องมือ AI ในภาคสนาม
    📱 ฟังเสียงโซเชียล: ติดป้ายข้อมูล → ฝึก Naive Bayes → ดึงชื่อสถานที่จากโพสต์ (NLP / event-based surveillance)
-   🤖 ผู้ช่วย AI ของจังหวัด: มั่นใจเกินจริง บางครั้งแต่งข้อมูล — ฝึกใช้ AI อย่างรับผิดชอบ (model card · XAI · ตรวจสอบก่อนเชื่อ)
+   🤖 ผู้ช่วย AI ของจังหวัด: มั่นใจเกินจริง บางครั้งแต่งข้อมูล  ฝึกใช้ AI อย่างรับผิดชอบ (model card · XAI · ตรวจสอบก่อนเชื่อ)
    🔮 พยากรณ์ผู้ป่วยในรายงานเช้า (naive · ค่าเฉลี่ยเคลื่อนที่ · แนวโน้มเอ็กซ์โพเนนเชียล)
    ========================================================= */
 OD.ai = (function(){
@@ -111,8 +111,8 @@ OD.ai = (function(){
         const pred = {}; P.test.forEach(x=>{ pred[x.id] = model.predict(x.t); });
         const lblOK = P.train.filter(x=>lab[x.id]===x.c).length, testOK = P.test.filter(x=>pred[x.id].c===x.c).length;
         const conf = Object.fromEntries(CLASSES.map(a=>[a, Object.fromEntries(CLASSES.map(b=>[b, P.test.filter(x=>x.c===a && pred[x.id].c===b).length]))]));
-        // ดึงชื่อสถานที่/อาหาร (entity extraction) — เทียบนับจากทุกโพสต์ กับนับเฉพาะโพสต์ที่เป็นอาการจริง
-        // ปริมาณการพูดถึงแบบดิบนับยอดแชร์ด้วย (เหมือนเครื่องมือ social listening ทั่วไป) — ข่าวลือที่ถูกแชร์ซ้ำจึงดูดังกว่าความจริง
+        // ดึงชื่อสถานที่/อาหาร (entity extraction)  เทียบนับจากทุกโพสต์ กับนับเฉพาะโพสต์ที่เป็นอาการจริง
+        // ปริมาณการพูดถึงแบบดิบนับยอดแชร์ด้วย (เหมือนเครื่องมือ social listening ทั่วไป)  ข่าวลือที่ถูกแชร์ซ้ำจึงดูดังกว่าความจริง
         const all = P.train.concat(P.test), isSig = x => (x.id<100 ? lab[x.id] : pred[x.id].c)==='sig';
         const count = (list, w) => { const c = {}; list.forEach(x=>entities(x.t).forEach(k=>{ c[k] = (c[k]||0) + w(x); })); return c; };
         const raw = count(all, x=>1+x.shares), sig = count(all.filter(isSig), ()=>1);
@@ -136,16 +136,16 @@ OD.ai = (function(){
           <div class="ent">${ents.map(k=>`<div class="er"><span>${ENT_NAME(k)}</span><div class="eb"><i class="raw" style="width:${(res.raw[k]||0)/mxR*100}%"></i><i class="sg" style="width:${(res.sig[k]||0)/mxS*100}%"></i></div><span class="faint">${(res.raw[k]||0).toLocaleString('th-TH')} / <b style="color:var(--text)">${res.sig[k]||0}</b></span></div>`).join('') || '<div class="faint">ไม่พบชื่อสถานที่ในโพสต์</div>'}</div>
           <div class="legend"><span><i style="background:var(--faint)"></i>ปริมาณการพูดถึงทั้งหมด (รวมยอดแชร์)</span><span><i style="background:var(--red-2)"></i>จำนวนโพสต์ที่เล่าอาการจริง</span></div>
           <div class="mentor" style="margin-top:10px">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${
-            res.rawTop && res.top && res.rawTop!==res.top ? `ถ้าดูแค่ปริมาณการพูดถึง จะเห็น <b>${ENT_NAME(res.rawTop)}</b> ดังที่สุด เพราะข่าวลือถูกแชร์ซ้ำเป็นร้อยครั้ง แต่พอกรองเหลือเฉพาะโพสต์ที่เล่าอาการจริง กลับชี้ไปที่ <b>${ENT_NAME(res.top)}</b> — กระแสบนโซเชียลไม่ใช่ข้อมูลทางระบาดวิทยา ต้องจำแนกข้อความก่อนนับ`
-            : res.top ? `โพสต์ที่เล่าอาการจริงพูดถึง <b>${ENT_NAME(res.top)}</b> บ่อยที่สุด — ใช้เป็นเบาะแสตั้งสมมติฐานได้ แต่คำบอกเล่าบนโซเชียลยังเป็นหลักฐานอ่อน ต้องทดสอบด้วย case-control`
-            : 'โพสต์ที่เล่าอาการจริงยังไม่ได้พูดถึงสถานที่ชัดเจน — ข้อมูลโซเชียลมีสัญญาณรบกวนสูง'}
-            ${res.lblOK<7 ? '<br>⚠️ ป้ายข้อมูลฝึกผิดหลายโพสต์ โมเดลจึงเรียนรู้ผิดตามไปด้วย — <b>garbage in, garbage out</b>' : ''}</div></div></div>`;
+            res.rawTop && res.top && res.rawTop!==res.top ? `ถ้าดูแค่ปริมาณการพูดถึง จะเห็น <b>${ENT_NAME(res.rawTop)}</b> ดังที่สุด เพราะข่าวลือถูกแชร์ซ้ำเป็นร้อยครั้ง แต่พอกรองเหลือเฉพาะโพสต์ที่เล่าอาการจริง กลับชี้ไปที่ <b>${ENT_NAME(res.top)}</b>  กระแสบนโซเชียลไม่ใช่ข้อมูลทางระบาดวิทยา ต้องจำแนกข้อความก่อนนับ`
+            : res.top ? `โพสต์ที่เล่าอาการจริงพูดถึง <b>${ENT_NAME(res.top)}</b> บ่อยที่สุด  ใช้เป็นเบาะแสตั้งสมมติฐานได้ แต่คำบอกเล่าบนโซเชียลยังเป็นหลักฐานอ่อน ต้องทดสอบด้วย case-control`
+            : 'โพสต์ที่เล่าอาการจริงยังไม่ได้พูดถึงสถานที่ชัดเจน  ข้อมูลโซเชียลมีสัญญาณรบกวนสูง'}
+            ${res.lblOK<7 ? '<br>⚠️ ป้ายข้อมูลฝึกผิดหลายโพสต์ โมเดลจึงเรียนรู้ผิดตามไปด้วย  <b>garbage in, garbage out</b>' : ''}</div></div></div>`;
       }
       let first = true;
       function draw(){
         const n = Object.keys(lab).length, cls = 'nlp-modal' + (first ? '' : ' redraw'); first = false;
         U.modal(`<h2 class="display gold-text">📱 ฟังเสียงโซเชียลด้วย NLP</h2>
-          <p style="margin-top:0">ดึงโพสต์สาธารณะที่พูดถึงอาการท้องร่วงในตำบลมา ๑๘ โพสต์ — ข่าวลือมักถูกแชร์มากกว่าประสบการณ์จริงหลายเท่า เราจะสอนโมเดลให้แยกโพสต์ก่อนนำไปนับ</p>
+          <p style="margin-top:0">ดึงโพสต์สาธารณะที่พูดถึงอาการท้องร่วงในตำบลมา ๑๘ โพสต์  ข่าวลือมักถูกแชร์มากกว่าประสบการณ์จริงหลายเท่า เราจะสอนโมเดลให้แยกโพสต์ก่อนนำไปนับ</p>
           <h3 style="font-size:16px">๑. ติดป้ายข้อมูลฝึก (labeling) <span class="faint" style="font-weight:400">— ${U.thaiNum(n)}/๙ โพสต์</span></h3>
           <div class="posts">${P.train.map(x=>post(x,'train')).join('')}</div>
           <div class="m-actions" style="justify-content:flex-start"><button class="btn btn-gold" data-m="train" ${n<9||res?'disabled':''}>🧠 ฝึกโมเดล Naive Bayes แล้วทายชุดทดสอบ</button></div>
@@ -158,7 +158,7 @@ OD.ai = (function(){
               U.closeModal();
               const acc = res.lblOK;
               D(S, {id:'nlp', title:'ติดป้ายข้อมูลฝึกโมเดล NLP', choice:`ติดป้ายถูก ${acc}/9 โพสต์`, verdict: acc>=8 ? 'good' : acc>=6 ? 'ok' : 'mixed',
-                why: acc>=8 ? 'ข้อมูลฝึกมีคุณภาพ โมเดลจึงแยกโพสต์ได้ดี' : 'ป้ายข้อมูลที่ผิดสอนให้โมเดลเรียนรู้ผิด — คุณภาพของ label สำคัญพอ ๆ กับอัลกอริทึม'});
+                why: acc>=8 ? 'ข้อมูลฝึกมีคุณภาพ โมเดลจึงแยกโพสต์ได้ดี' : 'ป้ายข้อมูลที่ผิดสอนให้โมเดลเรียนรู้ผิด  คุณภาพของ label สำคัญพอ ๆ กับอัลกอริทึม'});
               if(res.top){
                 const t = res.top, truth = related(W).includes(t) || t===W.scn.culprit || isVenue(W,t);
                 M.addEvidence(S, {id:'nlp', kind:'nlp', truth, strength:'weak', site: M.SITES[t] ? t : null,
@@ -174,7 +174,7 @@ OD.ai = (function(){
   }
 
   /* ---------- 🤖 ผู้ช่วย AI ของจังหวัด ---------- */
-  /* AI แบบง่ายเกินไป: ดูแค่ "สัดส่วนผู้ป่วยที่สัมผัส" ไม่มีกลุ่มควบคุม — ถ้ายังไม่มีแบบสอบถาม ใช้กระแสโซเชียลแทน */
+  /* AI แบบง่ายเกินไป: ดูแค่ "สัดส่วนผู้ป่วยที่สัมผัส" ไม่มีกลุ่มควบคุม  ถ้ายังไม่มีแบบสอบถาม ใช้กระแสโซเชียลแทน */
   const AI_CAND = ['W1','W2','W3','R1','R2','R3','R4','S','E'];
   function aiPick(W,S){
     const cs = M.records(W,S).filter(r=>S.ans[r.p.id]);
@@ -188,10 +188,10 @@ OD.ai = (function(){
   function aiEventScript(W,S){
     const a = aiPick(W,S), right = a.k===W.scn.culprit;
     S.flags.aiFirst = a.k;
-    const card = `<b>🤖 HDS-Assist v2.1</b> — ต้นตอที่น่าจะเป็นที่สุดคือ <b>${M.SITES[a.k].icon} ${nm(a.k)}</b> · ความมั่นใจ <b>${a.conf}%</b> · แนะนำ: ${verb(a.k)}ทันที`;
+    const card = `<b>🤖 HDS-Assist v2.1</b>  ต้นตอที่น่าจะเป็นที่สุดคือ <b>${M.SITES[a.k].icon} ${nm(a.k)}</b> · ความมั่นใจ <b>${a.conf}%</b> · แนะนำ: ${verb(a.k)}ทันที`;
     return [
       {bg:'office'},
-      {narr:'ช่วงพักเที่ยงที่ รพ.สต. — เจ้าหน้าที่ไอทีจาก สสจ. เปิดโน้ตบุ๊กวางบนโต๊ะ หน้าจอเต็มไปด้วยกราฟสีสดใส'},
+      {narr:'ช่วงพักเที่ยงที่ รพ.สต.  เจ้าหน้าที่ไอทีจาก สสจ. เปิดโน้ตบุ๊กวางบนโต๊ะ หน้าจอเต็มไปด้วยกราฟสีสดใส'},
       {say:'itofficer', expr:'smile', pos:'right', text:'สวัสดีครับ จังหวัดเพิ่งได้ระบบ **AI ทำนายต้นตอการระบาด** มาทดลองใช้ ใส่ข้อมูลผู้ป่วยปุ๊บ ได้คำตอบปั๊บ ไม่ต้องเก็บกลุ่มควบคุมให้เสียเวลาเลย'},
       {say:'itofficer', expr:'neutral', text: a.basis==='prop' ? `ผมใส่แบบสอบถามผู้ป่วย ${a.n} รายที่ทีมเก็บไว้ลงไปแล้ว ผลออกมาแบบนี้ครับ` : 'ยังไม่มีแบบสอบถาม ผมเลยให้มันอ่านกระแสโพสต์ในโซเชียลแทน ผลออกมาแบบนี้ครับ'},
       {narr:`🤖 HDS-Assist: ต้นตอที่น่าจะเป็นที่สุดคือ **${nm(a.k)}** · ความมั่นใจ **${a.conf}%** · แนะนำให้${verb(a.k)}ทันที`},
@@ -201,21 +201,21 @@ OD.ai = (function(){
           if(a.k!=='E') OD.field.closeSite(a.k, 'ตามคำแนะนำของระบบ AI'); else { S.trust -= 5; S.flags.aiBlame = 'E'; }
           S.flags.aiUse = 'blind';
           D(S,{id:'aiTool', title:'ระบบ AI ทำนายต้นตอ', choice:`เชื่อ AI และ${verb(a.k)}`, verdict: right ? 'mixed' : 'bad', why: right
-            ? 'บังเอิญถูก แต่ตัดสินใจโดยไม่รู้ว่า AI คิดอย่างไร (automation bias) — ครั้งหน้าถ้า AI ผิด เราจะไม่รู้ตัว'
-            : `AI ดูแค่สัดส่วนผู้ป่วยที่สัมผัส โดยไม่เทียบกับคนไม่ป่วย — ${nm(a.k)}ไม่ใช่ต้นตอ การเชื่อโดยไม่ตรวจสอบ (automation bias) ทำให้ลงมือผิดที่`}); }},
-        {text:'“ขอดู model card ก่อน{p} — AI เรียนรู้จากข้อมูลอะไร ดูจากอะไร มีข้อจำกัดอะไร”', hint:'ตรวจสอบก่อนเชื่อ', do:()=>{ S.flags.aiUse = 'card'; }},
+            ? 'บังเอิญถูก แต่ตัดสินใจโดยไม่รู้ว่า AI คิดอย่างไร (automation bias)  ครั้งหน้าถ้า AI ผิด เราจะไม่รู้ตัว'
+            : `AI ดูแค่สัดส่วนผู้ป่วยที่สัมผัส โดยไม่เทียบกับคนไม่ป่วย  ${nm(a.k)}ไม่ใช่ต้นตอ การเชื่อโดยไม่ตรวจสอบ (automation bias) ทำให้ลงมือผิดที่`}); }},
+        {text:'“ขอดู model card ก่อน{p}  AI เรียนรู้จากข้อมูลอะไร ดูจากอะไร มีข้อจำกัดอะไร”', hint:'ตรวจสอบก่อนเชื่อ', do:()=>{ S.flags.aiUse = 'card'; }},
         {text:'“ไม่ต้องใช้{p} AI พวกนี้เชื่อไม่ได้”', hint:'ไม่เสียเวลา', do:()=>{ S.flags.aiUse = 'ignore';
-          D(S,{id:'aiTool', title:'ระบบ AI ทำนายต้นตอ', choice:'ปฏิเสธการใช้ AI ทั้งหมด', verdict:'ok', why:'ไม่ผิด แต่ AI ช่วยงานบางอย่างได้จริง เช่น ร่างข้อความสื่อสาร หรือช่วยคิดสมมติฐาน — ถ้ารู้ข้อจำกัดและตรวจสอบผลทุกครั้ง'}); }},
+          D(S,{id:'aiTool', title:'ระบบ AI ทำนายต้นตอ', choice:'ปฏิเสธการใช้ AI ทั้งหมด', verdict:'ok', why:'ไม่ผิด แต่ AI ช่วยงานบางอย่างได้จริง เช่น ร่างข้อความสื่อสาร หรือช่วยคิดสมมติฐาน  ถ้ารู้ข้อจำกัดและตรวจสอบผลทุกครั้ง'}); }},
       ]},
       {if:()=>S.flags.aiUse==='card', then:[
         {say:'itofficer', expr:'worried', text:'เอ่อ… ตาม model card ระบบเรียนจาก **ข้อมูลผู้ป่วยในโรงพยาบาลเมืองใหญ่** ไม่มีข้อมูลชุมชนชนบท และไม่มีผู้ป่วยที่ไม่ได้ไปโรงพยาบาลเลยครับ'},
         {say:'itofficer', expr:'neutral', text:'มันให้คะแนนจาก **สัดส่วนผู้ป่วยที่สัมผัสแต่ละอย่าง** อย่างเดียว ส่วนตัวเลขความมั่นใจ… ผู้ขายบอกว่ายังไม่ได้ปรับเทียบกับข้อมูลจริง (uncalibrated)'},
-        {say:'doctor', expr:'smile', text:'นั่นไง — ถ้าคนทั้งตำบลก็ทำสิ่งนั้นอยู่แล้ว สัดส่วนในผู้ป่วยก็สูงตามธรรมชาติ AI ตัวนี้ไม่มีกลุ่มเปรียบเทียบ'},
+        {say:'doctor', expr:'smile', text:'นั่นไง  ถ้าคนทั้งตำบลก็ทำสิ่งนั้นอยู่แล้ว สัดส่วนในผู้ป่วยก็สูงตามธรรมชาติ AI ตัวนี้ไม่มีกลุ่มเปรียบเทียบ'},
         {choice:[
           {text:`“ใช้ผลของ AI เป็นสมมติฐานหนึ่ง{p} แล้วทดสอบด้วย case-control และตรวจสิ่งแวดล้อม”`, hint:'มนุษย์ตัดสินใจ AI ช่วยคิด (human-in-the-loop)', do:()=>{ S.flags.aiUse = 'hyp';
             D(S,{id:'aiTool', title:'ระบบ AI ทำนายต้นตอ', choice:'ตรวจ model card แล้วใช้เป็นสมมติฐานเพื่อทดสอบ', verdict:'good', why:'รู้ข้อจำกัดของโมเดล (selection bias · ไม่มีกลุ่มควบคุม · ความมั่นใจไม่ได้ปรับเทียบ) และให้ข้อมูลจริงเป็นตัวตัดสิน'}); }},
           {text:`“ข้อมูลไม่ตรงกับพื้นที่เรา ${verb(a.k)}ไม่ได้{p} ขอไม่ใช้ผลนี้”`, hint:'ปลอดภัยไว้ก่อน', do:()=>{ S.flags.aiUse = 'reject';
-            D(S,{id:'aiTool', title:'ระบบ AI ทำนายต้นตอ', choice:'ตรวจ model card แล้วไม่ใช้ผล', verdict:'good', why:'ตรวจสอบข้อมูลที่ใช้ฝึกก่อนตัดสินใจ — โมเดลที่เรียนจากประชากรต่างกลุ่มใช้กับพื้นที่เราไม่ได้ตรง ๆ'}); }},
+            D(S,{id:'aiTool', title:'ระบบ AI ทำนายต้นตอ', choice:'ตรวจ model card แล้วไม่ใช้ผล', verdict:'good', why:'ตรวจสอบข้อมูลที่ใช้ฝึกก่อนตัดสินใจ  โมเดลที่เรียนจากประชากรต่างกลุ่มใช้กับพื้นที่เราไม่ได้ตรง ๆ'}); }},
         ]},
       ]},
       {if:()=>S.flags.aiUse==='blind', then:[
@@ -230,7 +230,7 @@ OD.ai = (function(){
   const at = OD.story.events.findIndex(e=>e.id==='lowtrust');
   OD.story.events.splice(at<0 ? OD.story.events.length : at, 0, evAI);
 
-  /* หน้าต่างผู้ช่วย AI — คำทำนาย · อธิบายเหตุผล · เทียบกับข้อมูลจริง · ถาม-ตอบ · model card */
+  /* หน้าต่างผู้ช่วย AI  คำทำนาย · อธิบายเหตุผล · เทียบกับข้อมูลจริง · ถาม-ตอบ · model card */
   function labPath(S){ const e = S.evidence.find(x=>x.kind==='lab' && x.pathogen); return e ? e.pathogen : null; }
   function assistant(W,S){
     const a = aiPick(W,S), seen = {}; S.flags.aiAsked = true;
@@ -239,42 +239,42 @@ OD.ai = (function(){
       why:()=>a.basis==='prop' ? `ผู้ป่วย ${Math.round(a.sc[0].v*100)}% ตอบว่าสัมผัส${nm(a.k)} ซึ่งสูงที่สุดในทุกสถานที่ ผมจึงมั่นใจ ${a.conf}% ครับ` : `มีโพสต์พูดถึง${nm(a.k)}มากที่สุดในโซเชียล ผมจึงมั่นใจ ${a.conf}% ครับ`,
       germ:()=>{ const p = labPath(S); return p ? `จากผลแล็บที่บันทึกในระบบ เชื้อคือ ${M.PATHOGENS[p].name} ครับ` :
         'เชื้อคือ <b>อหิวาตกโรค (Vibrio cholerae O1)</b> แน่นอน 97% ครับ'; },
-      proof:()=>`มีครับ — <i>สมชาย ใจดี และคณะ (๒๕๖๗) “การระบาดของโรคอุจจาระร่วงจาก${nm(a.k)}ในชุมชนภาคกลาง” วารสารระบาดวิทยาชนบท ปีที่ ๑๒ ฉบับที่ ๓ หน้า ๔๕–๕๒</i> ยืนยันว่าสถานที่ประเภทนี้เป็นต้นเหตุถึง 83% ของการระบาด`,
+      proof:()=>`มีครับ  <i>สมชาย ใจดี และคณะ (๒๕๖๗) “การระบาดของโรคอุจจาระร่วงจาก${nm(a.k)}ในชุมชนภาคกลาง” วารสารระบาดวิทยาชนบท ปีที่ ๑๒ ฉบับที่ ๓ หน้า ๔๕–๕๒</i> ยืนยันว่าสถานที่ประเภทนี้เป็นต้นเหตุถึง 83% ของการระบาด`,
       draft:()=>'ร่างข้อความ: “ขณะนี้ทีมสาธารณสุขกำลังสอบสวนหาสาเหตุผู้ป่วยท้องร่วงในตำบล ขอให้ทุกบ้าน <b>ดื่มน้ำต้มสุก กินอาหารปรุงสุกใหม่ ใช้ช้อนกลาง ล้างมือด้วยสบู่</b> ถ้ามีอาการให้ดื่มผงเกลือแร่ (ORS) และไปสถานพยาบาลเมื่อซึม ปัสสาวะน้อย หรือถ่ายเป็นเลือด ทีมจะแจ้งความคืบหน้าทุกวัน”',
       data:()=>'ผมเรียนรู้จากรายงานผู้ป่วยในโรงพยาบาล ๑๒ จังหวัด พ.ศ. ๒๕๖๐–๒๕๖๕ ครับ (ส่วนใหญ่เป็นโรงพยาบาลในเมือง)',
     };
     const NOTE = {
-      why:'⚠️ AI ดูแค่สัดส่วนในผู้ป่วย ไม่มีกลุ่มเปรียบเทียบ — ถ้าคนทั้งตำบลก็สัมผัสสิ่งนั้น สัดส่วนในผู้ป่วยก็สูงตามธรรมชาติ',
-      germ: labPath(S) ? '✅ ครั้งนี้ AI อ้างผลแล็บที่มีอยู่จริงในระบบ — ตรวจย้อนกลับได้' : '⚠️ ยังไม่มีผลแล็บเลย — AI “เดา” จากโรคที่พบบ่อยในข้อมูลฝึก แต่พูดด้วยความมั่นใจสูง ห้ามนำไปบอกสื่อหรือชาวบ้าน',
+      why:'⚠️ AI ดูแค่สัดส่วนในผู้ป่วย ไม่มีกลุ่มเปรียบเทียบ  ถ้าคนทั้งตำบลก็สัมผัสสิ่งนั้น สัดส่วนในผู้ป่วยก็สูงตามธรรมชาติ',
+      germ: labPath(S) ? '✅ ครั้งนี้ AI อ้างผลแล็บที่มีอยู่จริงในระบบ  ตรวจย้อนกลับได้' : '⚠️ ยังไม่มีผลแล็บเลย  AI “เดา” จากโรคที่พบบ่อยในข้อมูลฝึก แต่พูดด้วยความมั่นใจสูง ห้ามนำไปบอกสื่อหรือชาวบ้าน',
       proof:'__cite__',
-      draft:'✅ งานร่างข้อความเป็นจุดแข็งของ AI ภาษา — แต่ต้องตรวจทานก่อนเผยแพร่ และห้ามใส่ชื่อผู้ป่วยหรือชื่อร้านที่ยังไม่มีหลักฐาน',
-      data:'⚠️ ข้อมูลฝึกมาจากโรงพยาบาลในเมือง — ไม่มีผู้ป่วยชนบทหรือผู้ป่วยอาการน้อยที่ไม่ไปโรงพยาบาล (selection bias) จึงอาจใช้กับตำบลนี้ได้ไม่ดี',
+      draft:'✅ งานร่างข้อความเป็นจุดแข็งของ AI ภาษา  แต่ต้องตรวจทานก่อนเผยแพร่ และห้ามใส่ชื่อผู้ป่วยหรือชื่อร้านที่ยังไม่มีหลักฐาน',
+      data:'⚠️ ข้อมูลฝึกมาจากโรงพยาบาลในเมือง  ไม่มีผู้ป่วยชนบทหรือผู้ป่วยอาการน้อยที่ไม่ไปโรงพยาบาล (selection bias) จึงอาจใช้กับตำบลนี้ได้ไม่ดี',
     };
     const QS = [['why',`ทำไมคิดว่าเป็น${nm(a.k)}?`],['proof','มีงานวิจัยยืนยันไหม?'],['germ','เชื้อก่อโรคคืออะไร?'],['draft','ช่วยร่างข้อความเตือนชาวบ้านหน่อย'],['data','คุณเรียนรู้จากข้อมูลอะไร?']];
     const compare = () => {
-      if(!rows) return '<div class="faint">ยังไม่มีกลุ่มควบคุม — เทียบผลของ AI กับข้อมูลจริงไม่ได้ (AI เองก็ไม่มีกลุ่มควบคุม!)</div>';
+      if(!rows) return '<div class="faint">ยังไม่มีกลุ่มควบคุม  เทียบผลของ AI กับข้อมูลจริงไม่ได้ (AI เองก็ไม่มีกลุ่มควบคุม!)</div>';
       const r = rows[a.k], top = Object.values(rows).filter(x=>x.or && x.lo>1).sort((x,y)=>y.or-x.or)[0];
       if(!r || !r.or) return '<div class="faint">ข้อมูลยังไม่พอคำนวณ OR ของสถานที่ที่ AI เลือก</div>';
       const ok = r.lo>1;
       return `<div class="note ${ok?'jade':'red'}" style="margin:0">${nm(a.k)}: ผู้ป่วยสัมผัส <b>${U.pct(r.pCase)}</b> · กลุ่มควบคุมสัมผัส <b>${U.pct(r.pCtrl||0)}</b> → OR ${U.fmtOR(r.or)} (${U.fmtOR(r.lo)}–${U.fmtOR(r.hi)})<br>${ok
-        ? 'ข้อมูล case-control <b>สอดคล้อง</b>กับ AI — แต่ยังต้องยืนยันด้วยสิ่งแวดล้อมและแล็บ และระวังตัวแปรกวน'
-        : `ข้อมูล case-control <b>ไม่สนับสนุน</b> AI — คนไม่ป่วยก็สัมผัสพอ ๆ กัน${top?` ปัจจัยที่ OR สูงสุดในข้อมูลจริงคือ <b>${top.label}</b> (OR ${U.fmtOR(top.or)})`:''}`}</div>`;
+        ? 'ข้อมูล case-control <b>สอดคล้อง</b>กับ AI  แต่ยังต้องยืนยันด้วยสิ่งแวดล้อมและแล็บ และระวังตัวแปรกวน'
+        : `ข้อมูล case-control <b>ไม่สนับสนุน</b> AI  คนไม่ป่วยก็สัมผัสพอ ๆ กัน${top?` ปัจจัยที่ OR สูงสุดในข้อมูลจริงคือ <b>${top.label}</b> (OR ${U.fmtOR(top.or)})`:''}`}</div>`;
     };
     let first = true;
     const draw = () => U.modal(`<h2 class="display gold-text">🤖 ผู้ช่วย AI <span class="faint" style="font-size:14px;font-family:var(--font-body)">HDS-Assist v2.1 · ระบบทดลองของจังหวัด</span></h2>
       <div class="ai-card"><div class="ai-big">${M.SITES[a.k].icon}</div><div><div class="faint" style="font-size:12.5px">ต้นตอที่ AI ทำนาย</div><b style="font-size:20px">${nm(a.k)}</b>
         <div class="meter red" style="margin-top:4px;width:220px"><i style="width:${a.conf}%"></i></div><small class="faint">ความมั่นใจ ${a.conf}% (ยังไม่ได้ปรับเทียบ)</small></div></div>
-      <div class="ai-grid"><div><h4>🔍 AI ดูจากอะไร (Explainable AI)</h4>${a.sc.length ? `<div class="imps">${a.sc.slice(0,5).map(x=>`<div class="imp"><span>${M.SITES[x.k].icon} ${nm(x.k)}</span><span class="tbar"><i style="width:${Math.round(x.v*100)}%"></i></span><b>${Math.round(x.v*100)}%</b></div>`).join('')}</div><div class="faint" style="font-size:12.5px">สัดส่วนผู้ป่วยที่ตอบว่าสัมผัส (ไม่มีข้อมูลคนไม่ป่วย)</div>` : '<div class="faint">ยังไม่มีแบบสอบถาม — AI ใช้จำนวนโพสต์ในโซเชียล (ข่าวลือถูกแชร์มากที่สุด)</div>'}</div>
+      <div class="ai-grid"><div><h4>🔍 AI ดูจากอะไร (Explainable AI)</h4>${a.sc.length ? `<div class="imps">${a.sc.slice(0,5).map(x=>`<div class="imp"><span>${M.SITES[x.k].icon} ${nm(x.k)}</span><span class="tbar"><i style="width:${Math.round(x.v*100)}%"></i></span><b>${Math.round(x.v*100)}%</b></div>`).join('')}</div><div class="faint" style="font-size:12.5px">สัดส่วนผู้ป่วยที่ตอบว่าสัมผัส (ไม่มีข้อมูลคนไม่ป่วย)</div>` : '<div class="faint">ยังไม่มีแบบสอบถาม  AI ใช้จำนวนโพสต์ในโซเชียล (ข่าวลือถูกแชร์มากที่สุด)</div>'}</div>
         <div><h4>⚖️ เทียบกับข้อมูลของคุณ</h4>${compare()}</div></div>
       <h4 style="margin:12px 0 6px">💬 ถาม AI</h4><div class="fchips">${QS.map(([k,t])=>`<button class="fchip ${seen[k]?'on':''}" data-m="q:${k}">${t}</button>`).join('')}</div>
       <div class="ai-chat">${QS.filter(([k])=>seen[k]).map(([k,t])=>`<div class="q">🧑 ${t}</div><div class="ans">🤖 ${QA[k]()}</div>${
-        NOTE[k]==='__cite__' ? (seen.cite ? '<div class="note red" style="font-size:13px">❌ ตรวจแล้ว: <b>ไม่มีบทความนี้อยู่จริง</b> ไม่พบทั้งในฐานข้อมูลวารสาร (TCI) และในสารบัญของวารสาร — AI “แต่ง” แหล่งอ้างอิงขึ้นมาเอง (hallucination) ห้ามนำไปอ้างต่อ</div>'
+        NOTE[k]==='__cite__' ? (seen.cite ? '<div class="note red" style="font-size:13px">❌ ตรวจแล้ว: <b>ไม่มีบทความนี้อยู่จริง</b> ไม่พบทั้งในฐานข้อมูลวารสาร (TCI) และในสารบัญของวารสาร  AI “แต่ง” แหล่งอ้างอิงขึ้นมาเอง (hallucination) ห้ามนำไปอ้างต่อ</div>'
           : '<button class="btn btn-sm" data-m="cite">🔎 ตรวจสอบแหล่งอ้างอิงนี้</button>') : `<div class="note ${NOTE[k][0]==='✅'?'jade':''}" style="font-size:13px">${NOTE[k]}</div>`}`).join('')}</div>
-      <details class="howto"><summary>📋 Model card — เอกสารกำกับโมเดล</summary><ul>
+      <details class="howto"><summary>📋 Model card  เอกสารกำกับโมเดล</summary><ul>
         <li><b>วัตถุประสงค์:</b> จัดลำดับสถานที่ที่น่าสงสัยจากข้อมูลผู้ป่วย เพื่อช่วยตั้งสมมติฐาน (ไม่ใช่เพื่อสั่งปิดสถานที่)</li>
-        <li><b>ข้อมูลที่ใช้ฝึก:</b> รายงานผู้ป่วยในโรงพยาบาล ๑๒ จังหวัด พ.ศ. ๒๕๖๐–๒๕๖๕ — ไม่มีชุมชนชนบท ไม่มีผู้ป่วยที่ไม่ไปโรงพยาบาล</li>
+        <li><b>ข้อมูลที่ใช้ฝึก:</b> รายงานผู้ป่วยในโรงพยาบาล ๑๒ จังหวัด พ.ศ. ๒๕๖๐–๒๕๖๕  ไม่มีชุมชนชนบท ไม่มีผู้ป่วยที่ไม่ไปโรงพยาบาล</li>
         <li><b>วิธีคิด:</b> ให้คะแนนตามสัดส่วนผู้ป่วยที่สัมผัส ไม่ใช้กลุ่มควบคุม ไม่ปรับตัวแปรกวน</li>
-        <li><b>ความมั่นใจ:</b> ยังไม่ได้ปรับเทียบ (uncalibrated) — 90% ไม่ได้แปลว่าถูก 9 ใน 10 ครั้ง</li>
+        <li><b>ความมั่นใจ:</b> ยังไม่ได้ปรับเทียบ (uncalibrated)  90% ไม่ได้แปลว่าถูก 9 ใน 10 ครั้ง</li>
         <li><b>ข้อควรระวัง:</b> อาจสร้างข้อมูลหรือแหล่งอ้างอิงที่ไม่มีจริง · ต้องมีมนุษย์ตรวจสอบทุกครั้ง (human-in-the-loop) · ห้ามป้อนข้อมูลระบุตัวตนผู้ป่วย (PDPA)</li></ul></details>
       <div class="m-actions"><button class="btn btn-gold" data-m="x">ปิด</button></div>`,
       k=>{
@@ -307,7 +307,7 @@ OD.ai = (function(){
     const trendTxt = f.dbl ? `ผู้ป่วยรายใหม่เพิ่มเป็นเท่าตัวทุก ~${r1(f.dbl)} วัน` : f.half ? `ผู้ป่วยรายใหม่ลดลงครึ่งหนึ่งทุก ~${r1(f.half)} วัน` : 'ค่อนข้างคงที่';
     return `<div class="fc"><div class="fc-h">🔮 พยากรณ์ผู้ป่วยรายใหม่ใน ๒๔ ชม. ข้างหน้า <span class="faint">— เลือกโมเดลที่คุณเชื่อ พรุ่งนี้มาดูกันว่าแม่นแค่ไหน</span></div>
       ${evalBox}<div class="fc-picks">${FC.map(([k,t])=>`<button class="pick ${P.pick===k?'sel':''}" data-m="fc:${k}"><b>${r1(P.pred[k])} ราย</b><small>${t}</small></button>`).join('')}</div>
-      <div class="faint" style="font-size:12.5px">อัตราการเติบโตจากแนวโน้มล่าสุด ${f.growth>=0?'+':''}${Math.round(f.growth*100)}% ต่อวัน — ${trendTxt}${S.closed && Object.keys(S.closed).length ? ' · ⚠️ หลังปิดแหล่งโรค โมเดลแนวโน้มยังไม่รู้ว่ามีการแทรกแซง จึงมักพยากรณ์สูงเกินจริงช่วงแรก' : ''}</div>${board}</div>`;
+      <div class="faint" style="font-size:12.5px">อัตราการเติบโตจากแนวโน้มล่าสุด ${f.growth>=0?'+':''}${Math.round(f.growth*100)}% ต่อวัน  ${trendTxt}${S.closed && Object.keys(S.closed).length ? ' · ⚠️ หลังปิดแหล่งโรค โมเดลแนวโน้มยังไม่รู้ว่ามีการแทรกแซง จึงมักพยากรณ์สูงเกินจริงช่วงแรก' : ''}</div>${board}</div>`;
   }
   function fcPick(S, k){ if(S.fc && S.fc.pending && FC.some(x=>x[0]===k)){ S.fc.pending.pick = k; S.fc.lastPick = k; } }
   function fcScore(S){ const log = (S.fc && S.fc.log) || []; return {n:log.length, mae: log.length ? mae(log,'pick') : null}; }

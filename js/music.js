@@ -1,7 +1,7 @@
 /* =========================================================
-   music — เพลงประกอบสำนวนเพลงไทยเดิม เขียนด้วย "โน้ตไทย" (ด ร ม ฟ ซ ล ท)
+   music  เพลงประกอบสำนวนเพลงไทยเดิม เขียนด้วย "โน้ตไทย" (ด ร ม ฟ ซ ล ท)
    วงแบบปี่พาทย์: ระนาดเอก (ตีเก็บ/คู่แปด) · ฆ้องวง (ทำนองหลัก) · ขลุ่ย ·
-   ฉิ่ง–ฉับ · ตะโพน/โทน · กลองยาว   — สังเคราะห์เสียงสด ไม่ใช้ไฟล์เพลง
+   ฉิ่ง–ฉับ · ตะโพน/โทน · กลองยาว    สังเคราะห์เสียงสด ไม่ใช้ไฟล์เพลง
    เพิ่มเพลงเองได้ที่ js/songs-custom.js (เช่น เพลงไทยเดิมที่มีโน้ตอยู่แล้ว)
    ========================================================= */
 window.OD = window.OD || {};
@@ -50,7 +50,7 @@ OD.music = (function(){
     if(o.mood) MOOD[o.mood] = [key];
     return SONGS[key];
   }
-  /* ค้างคาวกินกล้วย — เพลงไทยเดิม (สาธารณสมบัติ) ถอดจากโน้ตที่ผู้ใช้ให้มา แต่ละท่อนบรรเลงสองเที่ยว */
+  /* ค้างคาวกินกล้วย  เพลงไทยเดิม (สาธารณสมบัติ) ถอดจากโน้ตที่ผู้ใช้ให้มา แต่ละท่อนบรรเลงสองเที่ยว */
   const KK1 = `- ล - ซ  ซ ซ - มํ  - - ซํ มํ  - - รํ มํ  - - ซํ มํ  - - รํ มํ  ซํ มํ รํ ดํ  - รํ - มํ
                - ล - ซ  ซ ซ - มํ  - - ซํ มํ  - - รํ มํ  - - ซํ มํ  - - รํ มํ  ซํ มํ รํ ดํ  - รํ - ดํ`;
   const KK2 = `- - - -  - รํ - รํ  - - มํ รํ  ดํ รํ - -  มํ รํ ดํ รํ  มํ รํ ดํ ท  ล ซ ล ท  ล ท ดํ รํ
@@ -86,7 +86,7 @@ OD.music = (function(){
   const SCENE = {office_night:'night', lab:'field', ice_factory:'field', hall:'field', market:'field', temple:'calm', village:'calm', office:'calm',
                  well_temple:'field', well_market:'field', well_canal:'field', somtam:'field', noodle_boat:'field', chicken_rice:'field', mookata:'night',
                  school:'calm', farm:'calm', clinic:'field'};
-  /* หน้าทับกลอง ๘ ตำแหน่ง (สองห้อง): L = เสียงทุ้ม (ทั่ง/ตุ๊บ)  S = เสียงตบ (ปะ/ป๊ะ) — จังหวะหนักอยู่ท้ายห้อง */
+  /* หน้าทับกลอง ๘ ตำแหน่ง (สองห้อง): L = เสียงทุ้ม (ทั่ง/ตุ๊บ)  S = เสียงตบ (ปะ/ป๊ะ)  จังหวะหนักอยู่ท้ายห้อง */
   const DRUM = {chandiao:'.S.L.SSL', taphon:'..SL.S.L', rua:'LS.LLS.L', klongyao:'LS.LSLSL', none:'........'};
   const mtof = m => 440*Math.pow(2,(m-69)/12);
 
@@ -214,8 +214,8 @@ OD.music = (function(){
       box.querySelector('[data-audio="sfx-vol"]').oninput = e=>{ setSfxVolume(e.target.value/100); };
     }
     const mb=box.querySelector('[data-audio="music"]'), sb=box.querySelector('[data-audio="sfx"]');
-    mb.textContent = enabled ? '🎵' : '🎵̸'; mb.title = enabled ? `เพลงเปิดอยู่: ${SONGS[song].name} · กดเพื่อปิดเพลง` : 'เพลงปิดอยู่ · กดเพื่อเปิดเพลง'; mb.setAttribute('aria-label',mb.title);
-    sb.textContent = sfxEnabled ? '🔔' : '🔕'; sb.title = sfxEnabled ? 'เสียงเอฟเฟกต์เปิดอยู่ · กดเพื่อปิด' : 'เสียงเอฟเฟกต์ปิดอยู่ · กดเพื่อเปิด'; sb.setAttribute('aria-label',sb.title);
+    mb.textContent = '🎵'; mb.classList.toggle('is-muted', !enabled); mb.title = enabled ? `เพลงเปิดอยู่: ${SONGS[song].name} · กดเพื่อปิดเพลง` : 'เพลงปิดอยู่ · กดเพื่อเปิดเพลง'; mb.setAttribute('aria-label',mb.title);
+    sb.textContent = '🔔'; sb.classList.toggle('is-muted', !sfxEnabled); sb.title = sfxEnabled ? 'เสียงเอฟเฟกต์เปิดอยู่ · กดเพื่อปิด' : 'เสียงเอฟเฟกต์ปิดอยู่ · กดเพื่อเปิด'; sb.setAttribute('aria-label',sb.title);
     box.querySelector('[data-audio="music-vol"]').value = Math.round(vol*100);
     box.querySelector('[data-audio="sfx-vol"]').value = Math.round(sfxVol*100);
     box.classList.toggle('off', !enabled && !sfxEnabled);

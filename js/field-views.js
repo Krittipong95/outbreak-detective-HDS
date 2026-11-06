@@ -1,5 +1,5 @@
 /* =========================================================
-   field-views — แผนที่ เส้นโค้งการระบาด ตาราง OR (forest plot)
+   field-views  แผนที่ เส้นโค้งการระบาด ตาราง OR (forest plot)
    แยกวิเคราะห์ตามหมู่บ้าน อาการ/ระยะฟักตัว รายชื่อ หลักฐาน
    ========================================================= */
 OD.fieldViews = (function(){
@@ -120,10 +120,10 @@ OD.fieldViews = (function(){
     const sp = spatial(); if(!sp) return '';
     if(sp.mode==='db') return `<div class="sp-sum"><b>DBSCAN</b> (รัศมี ≈ ${U.thaiNum(S.ui.eps*MPU)} ม. · อย่างน้อย ๔ รายต่อกลุ่ม): พบ ${U.thaiNum(sp.cl.length)} กลุ่ม · ผู้ป่วยกระจายเดี่ยว (noise) ${U.thaiNum(sp.noise)} ราย
       ${sp.cl.length ? `<ul>${sp.cl.map((c,i)=>`<li><i style="background:${CLC[i%CLC.length]}"></i>กลุ่ม ${U.thaiNum(i+1)}: ${c.n} ราย · ${Math.round(c.vShare*100)}% อยู่${M.VILLAGES[c.topV-1].short}${c.near?` · ใกล้ ${M.SITES[c.near.id].icon} ${M.SITES[c.near.id].name} (~${U.thaiNum(Math.round(c.near.d*MPU/10)*10)} ม.)`:''}</li>`).join('')}</ul>` : ''}
-      <div class="faint">กลุ่มที่อยู่ใกล้สถานที่ใด ไม่ได้แปลว่าสถานที่นั้นเป็นต้นตอ — คนในหมู่บ้านเดียวกันใช้หลายอย่างร่วมกัน (ตัวแปรกวนเชิงพื้นที่) ใช้เป็นเบาะแสตั้งสมมติฐานเท่านั้น</div></div>`;
+      <div class="faint">กลุ่มที่อยู่ใกล้สถานที่ใด ไม่ได้แปลว่าสถานที่นั้นเป็นต้นตอ  คนในหมู่บ้านเดียวกันใช้หลายอย่างร่วมกัน (ตัวแปรกวนเชิงพื้นที่) ใช้เป็นเบาะแสตั้งสมมติฐานเท่านั้น</div></div>`;
     return `<div class="sp-sum">${sp.mode==='kde'
-      ? '<b>แผนที่ความร้อน (KDE)</b> ของ <b>จำนวน</b>ผู้ป่วย — จุดร้อนมักซ้อนกับที่ที่คนอยู่หนาแน่น ลองเปลี่ยนเป็น “อัตราป่วยต่อประชากร” เพื่อดูความเสี่ยงจริง'
-      : '<b>อัตราป่วยต่อประชากร</b> = ความหนาแน่นผู้ป่วย ÷ ความหนาแน่นประชากร (KDE ทั้งสองชั้น) — สีเข้มคือพื้นที่ที่คนป่วยเป็นสัดส่วนสูง ไม่ใช่แค่คนเยอะ (ซ่อนพื้นที่ที่แทบไม่มีคนอาศัย)'}
+      ? '<b>แผนที่ความร้อน (KDE)</b> ของ <b>จำนวน</b>ผู้ป่วย  จุดร้อนมักซ้อนกับที่ที่คนอยู่หนาแน่น ลองเปลี่ยนเป็น “อัตราป่วยต่อประชากร” เพื่อดูความเสี่ยงจริง'
+      : '<b>อัตราป่วยต่อประชากร</b> = ความหนาแน่นผู้ป่วย ÷ ความหนาแน่นประชากร (KDE ทั้งสองชั้น)  สีเข้มคือพื้นที่ที่คนป่วยเป็นสัดส่วนสูง ไม่ใช่แค่คนเยอะ (ซ่อนพื้นที่ที่แทบไม่มีคนอาศัย)'}
       · แบนด์วิดท์ ≈ ${U.thaiNum(S.ui.eps*MPU)} ม.</div>`;
   }
   function mapView(){
@@ -140,7 +140,7 @@ OD.fieldViews = (function(){
       const st = M.SITES[id], col = {water:'#2f6a8a', food:'#b8762a', school:'#2f7a63', event:'#9a7424', ice:'#5a7fa8', farm:'#4a8a3a'}[st.type];
       s += `<g class="m-site${hl===id?' hl':''}${M.isClosed(S,id)?' closed':''}" data-site="${id}" transform="translate(${st.x} ${st.y})"><circle class="ring" r="27"/><circle class="b" r="22" style="stroke:${col}"/><text class="e">${st.icon}</text><text class="m-txt" x="${labelPos(st).x}" y="${labelPos(st).y}" text-anchor="${labelPos(st).anchor}">${st.name}</text><path class="x" d="M-15 -15 L15 15 M15 -15 L-15 15"/></g>`;
     }
-    // แหล่งผลิตที่ยังไม่ค้นพบ (โรงน้ำแข็ง สวนผัก) — แสดงเป็นจุด ❓ ให้รู้ว่ายังมีที่ที่ต้องสืบต่อ
+    // แหล่งผลิตที่ยังไม่ค้นพบ (โรงน้ำแข็ง สวนผัก)  แสดงเป็นจุด ❓ ให้รู้ว่ายังมีที่ที่ต้องสืบต่อ
     for(const id of Object.keys(M.SITES).filter(x=>M.SITES[x].hidden && !S.known.has(x))){
       const st = M.SITES[id];
       const lp = labelPos(st);
@@ -190,9 +190,9 @@ OD.fieldViews = (function(){
       ${OD.barChart({labels:days.map(d=>{const dt=M.dateOf(d);return String(dt.getDate());}), vals, sub, inc:Math.max(0,nd-2), marks, xt:'วันที่เริ่มป่วย (พ.ย.–ธ.ค. ๒๕๖๙)'})}
       <div class="legend">${hl?`<span><i style="background:var(--red-2);border-radius:2px"></i>ตอบว่าสัมผัส “${EXL(hl)}”</span><span><i style="background:var(--faint);border-radius:2px"></i>ไม่สัมผัส/ยังไม่สัมภาษณ์</span>`:''}<span><i style="background:var(--red-2);opacity:.4;border-radius:2px"></i>ยังรายงานไม่ครบ</span></div>
       <details class="howto"><summary>อ่านกราฟนี้อย่างไร?</summary><ul>
-        <li><b>แหล่งโรคครั้งเดียว (point source)</b> — ทุกคนสัมผัสพร้อมกัน กราฟพุ่งขึ้นยอดเดียวแล้วลดภายในช่วงระยะฟักตัว</li>
-        <li><b>แหล่งโรคร่วมต่อเนื่อง (continuous common source)</b> — แหล่งโรคยังปล่อยเชื้อ กราฟยืดยาวหรือเพิ่มขึ้นเรื่อย ๆ จนกว่าจะปิดแหล่ง</li>
-        <li><b>แพร่กระจายคนสู่คน (propagated)</b> — เป็นระลอกห่างกันประมาณหนึ่งช่วงระยะฟักตัว</li>
+        <li><b>แหล่งโรคครั้งเดียว (point source)</b>  ทุกคนสัมผัสพร้อมกัน กราฟพุ่งขึ้นยอดเดียวแล้วลดภายในช่วงระยะฟักตัว</li>
+        <li><b>แหล่งโรคร่วมต่อเนื่อง (continuous common source)</b>  แหล่งโรคยังปล่อยเชื้อ กราฟยืดยาวหรือเพิ่มขึ้นเรื่อย ๆ จนกว่าจะปิดแหล่ง</li>
+        <li><b>แพร่กระจายคนสู่คน (propagated)</b>  เป็นระลอกห่างกันประมาณหนึ่งช่วงระยะฟักตัว</li>
         <li>สองวันล่าสุดยังไม่ครบ เพราะผู้ป่วยบางรายยังไม่ถูกรายงาน</li></ul></details>`;
   }
 
@@ -210,7 +210,7 @@ OD.fieldViews = (function(){
     if(S.ui.sort==='or' && hasC) list.sort((a,b)=>(b.or||0)-(a.or||0));
     let h = `<div class="ptitle"><h3 style="font-size:15.5px;margin:0">${hasC?'การศึกษาแบบ case-control':'สัดส่วนการสัมผัสในผู้ป่วย'}</h3>
       ${hasC?`<label class="muted" style="font-size:13px">เรียงตาม <select id="vSort"><option value="grp">กลุ่มคำถาม</option><option value="or">Odds Ratio</option></select></label>`:''}</div>
-      ${hasC?'':`<div class="note">มีแต่ข้อมูลผู้ป่วย — สัดส่วนสูงไม่ได้แปลว่าเสี่ยง ถ้าคนทั้งตำบลก็สัมผัสสิ่งนั้นเหมือนกัน ต้อง <b>เก็บกลุ่มควบคุม</b> มาเทียบ</div>`}
+      ${hasC?'':`<div class="note">มีแต่ข้อมูลผู้ป่วย  สัดส่วนสูงไม่ได้แปลว่าเสี่ยง ถ้าคนทั้งตำบลก็สัมผัสสิ่งนั้นเหมือนกัน ต้อง <b>เก็บกลุ่มควบคุม</b> มาเทียบ</div>`}
       <div class="atable-wrap"><table class="at"><thead><tr><th>ปัจจัย</th><th>ผู้ป่วย</th><th>กลุ่มควบคุม</th><th>OR <span class="faint">(95% CI)</span></th><th class="pcol">p</th><th>0.1 ─ 1 ─ 10 ─ 100</th></tr></thead><tbody>`;
     let g = null;
     for(const r of list){
@@ -233,10 +233,10 @@ OD.fieldViews = (function(){
           <div class="faint" style="font-size:12.5px">ตัวเลขในแต่ละหมู่บ้าน: ป่วยสัมผัส / ไม่ป่วยสัมผัส / ป่วยไม่สัมผัส / ไม่ป่วยไม่สัมผัส</div></div></div></div>`;
     }
     h += `<details class="howto"><summary>อ่านตารางนี้อย่างไร?</summary><ul>
-      <li><b>Odds Ratio (OR)</b> = (ผู้ป่วยที่สัมผัส × กลุ่มควบคุมที่ไม่สัมผัส) ÷ (ผู้ป่วยที่ไม่สัมผัส × กลุ่มควบคุมที่สัมผัส) — OR &gt; 1 แปลว่าสัมผัสแล้วเสี่ยงขึ้น</li>
+      <li><b>Odds Ratio (OR)</b> = (ผู้ป่วยที่สัมผัส × กลุ่มควบคุมที่ไม่สัมผัส) ÷ (ผู้ป่วยที่ไม่สัมผัส × กลุ่มควบคุมที่สัมผัส)  OR &gt; 1 แปลว่าสัมผัสแล้วเสี่ยงขึ้น</li>
       <li><b>95% CI</b> ไม่คร่อม 1 (เส้นประในกราฟ) = มีนัยสำคัญทางสถิติ (ทำเครื่องหมาย *)</li>
-      <li>ถาม ${U.thaiNum(M.exposures(S).length)} ข้อ ที่ p &lt; 0.05 อาจเกิดขึ้นโดยบังเอิญได้ราว ๑ ข้อ — ต้องดูขนาดผล ความเป็นไปได้ทางชีววิทยา และหลักฐานอื่น</li>
-      <li>ถ้าสองปัจจัยสูงพร้อมกัน แตะแถวเพื่อ <b>แยกวิเคราะห์ตามหมู่บ้าน</b> — ถ้า OR รวม (Mantel–Haenszel) ลดลงมาใกล้ 1 แสดงว่าเป็นตัวแปรกวน</li></ul></details>`;
+      <li>ถาม ${U.thaiNum(M.exposures(S).length)} ข้อ ที่ p &lt; 0.05 อาจเกิดขึ้นโดยบังเอิญได้ราว ๑ ข้อ  ต้องดูขนาดผล ความเป็นไปได้ทางชีววิทยา และหลักฐานอื่น</li>
+      <li>ถ้าสองปัจจัยสูงพร้อมกัน แตะแถวเพื่อ <b>แยกวิเคราะห์ตามหมู่บ้าน</b>  ถ้า OR รวม (Mantel–Haenszel) ลดลงมาใกล้ 1 แสดงว่าเป็นตัวแปรกวน</li></ul></details>`;
     return h;
   }
 
@@ -256,7 +256,7 @@ OD.fieldViews = (function(){
       const inc = ev.map(r=>r.p.onset-12.5), bins = Array.from({length:10},(_,i)=>inc.filter(x=>x>=i*12&&x<(i+1)*12).length);
       h += `<h3 style="font-size:15.5px;margin-top:12px">ถ้าติดจากงานบวช: ระยะฟักตัว (เวลาเริ่มป่วย − ส. ๒๑ พ.ย. ๑๒:๓๐ น.)</h3>` +
         OD.barChart({labels:bins.map((_,i)=>`${i*12}`), vals:bins, h:190, xt:'ชั่วโมงหลังงานเลี้ยง'}) +
-        `<div class="legend"><span>ผู้ป่วยที่ตอบว่าไปงานบวช ${ev.length} ราย · มัธยฐาน <b style="color:var(--gold-2)">${Math.round(U.median(inc))} ชม.</b> — ถ้าการกระจายแคบและสอดคล้องกับเชื้อใดเชื้อหนึ่ง จึงน่าจะเป็นแหล่งโรคครั้งเดียว</span></div>`;
+        `<div class="legend"><span>ผู้ป่วยที่ตอบว่าไปงานบวช ${ev.length} ราย · มัธยฐาน <b style="color:var(--gold-2)">${Math.round(U.median(inc))} ชม.</b>  ถ้าการกระจายแคบและสอดคล้องกับเชื้อใดเชื้อหนึ่ง จึงน่าจะเป็นแหล่งโรคครั้งเดียว</span></div>`;
     }
     return h + `<details class="howto"><summary>ใช้อาการช่วยอนุมานเชื้ออย่างไร?</summary><ul><li>อาเจียนเด่นและหายเร็ว → นึกถึงไวรัส (โนโรไวรัส)</li><li>ไข้สูง + ปวดท้อง → นึกถึงซาลโมเนลลา</li><li>ถ่ายเป็นน้ำมากจนขาดน้ำ ไม่มีไข้ → นึกถึงอหิวาตกโรค</li><li>เปิด 📚 คู่มือเชื้อก่อโรค เพื่อเทียบระยะฟักตัว</li></ul></details>`;
   }
@@ -276,7 +276,7 @@ OD.fieldViews = (function(){
           <td>${a?wat:'<span class="faint">รอสัมภาษณ์</span>'}</td><td>${food}</td><td>${a?(a.S?'✓':'—'):''}</td><td>${a?(a.E?'✓':'—'):''}</td></tr>`; }).join('')}</tbody></table></div>`;
   }
   function evid(){
-    if(!S.evidence.length) return `<div class="lockbox"><div class="big">🗂️</div><b>ยังไม่มีหลักฐานภาคสนาม</b><div>ตรวจสิ่งแวดล้อม ส่งแล็บ หรือขอข้อมูลห่วงโซ่อุปทาน — หลักฐานทั้งหมดจะถูกรวบรวมไว้ที่นี่เพื่อใช้เขียนรายงาน</div></div>`;
+    if(!S.evidence.length) return `<div class="lockbox"><div class="big">🗂️</div><b>ยังไม่มีหลักฐานภาคสนาม</b><div>ตรวจสิ่งแวดล้อม ส่งแล็บ หรือขอข้อมูลห่วงโซ่อุปทาน  หลักฐานทั้งหมดจะถูกรวบรวมไว้ที่นี่เพื่อใช้เขียนรายงาน</div></div>`;
     const ic = {env:'🔎', lab:'🧪', supply:'📦', rumor:'💬', clinical:'🩺', interview:'🎙️', ml:'🤖', nlp:'📱'};
     return `<div class="evs">${S.evidence.slice().reverse().map(e=>`<div class="ev"><span class="k">${ic[e.kind]||'📄'}</span><div><div>${e.text}</div><div class="tm">${M.fmtT(e.t)}</div></div></div>`).join('')}</div>`;
   }
@@ -302,7 +302,7 @@ OD.fieldViews = (function(){
     U.$$('#vBody tr[data-k]').forEach(tr=>tr.onclick = ()=>{ S.ui.hl = S.ui.hl===tr.dataset.k ? null : tr.dataset.k; rerender(); });
     if(S.ui.tab==='ml') OD.mlViews.wire(W,S,rerender);
     const svg = U.$('#fmapsvg');
-    const HIDDEN_TIP = 'ยังไม่รู้ว่าที่นี่ส่งวัตถุดิบให้ใคร — ค้นพบได้จาก 🔎 ตรวจสิ่งแวดล้อมร้านอาหาร/โรงอาหาร (ดูว่าซื้อน้ำแข็ง/ผักจากไหน) หรือ 📦 ห่วงโซ่อุปทาน';
+    const HIDDEN_TIP = 'ยังไม่รู้ว่าที่นี่ส่งวัตถุดิบให้ใคร  ค้นพบได้จาก 🔎 ตรวจสิ่งแวดล้อมร้านอาหาร/โรงอาหาร (ดูว่าซื้อน้ำแข็ง/ผักจากไหน) หรือ 📦 ห่วงโซ่อุปทาน';
     svg.onclick = e=>{
       if(e.target.closest('[data-unknown]')){ U.toast('❓ ' + HIDDEN_TIP); return; }
       const g = e.target.closest('.m-site'); if(!g) return; const id = g.dataset.site;

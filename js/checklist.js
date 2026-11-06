@@ -1,6 +1,6 @@
 /* =========================================================
-   checklist — ๑๐ ขั้นตอนการสอบสวนการระบาด (ตามแนวทางสากลและกรมควบคุมโรค)
-   และ "สิ่งที่ต้องรู้ให้ได้" — สถานะคำนวณจากสิ่งที่ผู้เล่นทำ ไม่เฉลยคำตอบ
+   checklist  ๑๐ ขั้นตอนการสอบสวนการระบาด (ตามแนวทางสากลและกรมควบคุมโรค)
+   และ "สิ่งที่ต้องรู้ให้ได้"  สถานะคำนวณจากสิ่งที่ผู้เล่นทำ ไม่เฉลยคำตอบ
    ========================================================= */
 window.OD = window.OD || {};
 OD.checklist = (function(){
@@ -46,8 +46,8 @@ OD.checklist = (function(){
       <div class="meter" style="margin:6px 0 10px"><i style="width:${n*10}%"></i></div>
       <ol class="ck">${STEPS.map(s=>{ const d = s.done(W,S); return `<li class="${d?'done':''}"><span class="ck-box">${d?'✓':U.thaiNum(s.n)}</span><div><b>${s.t}</b><div class="muted">${s.d}</div>${d?'':`<div class="ck-how">วิธีทำในเกม: ${s.how}</div>`}</div></li>`; }).join('')}</ol>
       <div class="ck-head" style="margin-top:14px"><b>สิ่งที่ต้องรู้ให้ได้ก่อนเขียนรายงาน</b></div>
-      <ul class="ck-know">${KNOW.map(q=>{ const d = q.ok(W,S); return `<li class="${d?'done':''}"><span class="ck-box">${d?'✓':'?'}</span><span>${q.t}<br><small class="muted">${d?'มีข้อมูลแล้ว — ตีความเองให้ถูก':'ดูได้จาก: '+q.how}</small></span></li>`; }).join('')}</ul>
-      <div class="note" style="font-size:13.5px">ขั้นตอนไม่จำเป็นต้องเรียงตายตัว และ <b>มาตรการควบคุม (ขั้นที่ ๙) เริ่มได้ทันที</b> ที่มีหลักฐานพอ ไม่ต้องรอให้ทุกอย่างครบ — แต่การข้ามขั้นสำคัญจะทำให้ข้อสรุปอ่อนลง</div>`;
+      <ul class="ck-know">${KNOW.map(q=>{ const d = q.ok(W,S); return `<li class="${d?'done':''}"><span class="ck-box">${d?'✓':'?'}</span><span>${q.t}<br><small class="muted">${d?'มีข้อมูลแล้ว  ตีความเองให้ถูก':'ดูได้จาก: '+q.how}</small></span></li>`; }).join('')}</ul>
+      <div class="note" style="font-size:13.5px">ขั้นตอนไม่จำเป็นต้องเรียงตายตัว และ <b>มาตรการควบคุม (ขั้นที่ ๙) เริ่มได้ทันที</b> ที่มีหลักฐานพอ ไม่ต้องรอให้ทุกอย่างครบ  แต่การข้ามขั้นสำคัญจะทำให้ข้อสรุปอ่อนลง</div>`;
   }
   return {STEPS, KNOW, progress, next, html};
 })();

@@ -1,5 +1,5 @@
 /* =========================================================
-   field-core — บทที่ ๓: เวลา งบประมาณ ความเชื่อมั่น การกระทำ
+   field-core  บทที่ ๓: เวลา งบประมาณ ความเชื่อมั่น การกระทำ
    OD.field.run() -> Promise (resolve เมื่อส่งรายงาน)
    ========================================================= */
 OD.field = (function(){
@@ -9,11 +9,19 @@ OD.field = (function(){
   const nm = id => M.SITES[id].name;
   const log = (text, kind='', t) => S.log.unshift({t: t==null ? S.T : t, text, kind});
 
+  function reconcileControls(){
+    const moved = M.reconcileControls(W,S);
+    if(moved.length){
+      log('พบผู้ป่วยใหม่จากกลุ่มควบคุม '+moved.length+' ราย นำออกจากกลุ่มควบคุมและรอสัมภาษณ์ใหม่');
+      U.toast('พบผู้ป่วยจากกลุ่มควบคุม '+moved.length+' ราย สัมภาษณ์ใหม่ก่อนวิเคราะห์');
+    }
+  }
   F.spend = function(h, b, label){
     if(label) log(label);
     const key = r => r.p.id + (r.dup?'d':'');
     const before = new Set(M.records(W,S).map(key)), t0 = S.T;
     S.T = Math.min(S.T + h, M.DEADLINE); S.budget -= b;
+    reconcileControls();
     const fresh = M.records(W,S).filter(r=>!before.has(key(r)));
     S.newIds = new Set(fresh.map(r=>r.p.id)); S.lastNew = fresh.length;
     if(fresh.length){ log(`รับรายงานผู้ป่วยใหม่ ${fresh.length} ราย`, 'bad'); U.toast(`📋 รับรายงานผู้ป่วยใหม่ ${fresh.length} ราย`, 'red'); OD.sfx && OD.sfx('blip'); }
@@ -22,7 +30,7 @@ OD.field = (function(){
   };
   F.closeSite = function(id, reason){
     if(M.isClosed(S,id)) return;
-    if(S.closed[id]!=null){   // เคยเปิดคืนไปแล้ว — สั่งปิดซ้ำได้หนึ่งครั้ง
+    if(S.closed[id]!=null){   // เคยเปิดคืนไปแล้ว  สั่งปิดซ้ำได้หนึ่งครั้ง
       if(!M.wasReopened(S,id)) return;
       S.reclosed[id] = S.T; S.ver++; S.trust -= 2;
       log(`มาตรการเร่งด่วน: สั่งปิด${nm(id)}อีกครั้ง${reason?` (${reason})`:''}`, 'good'); return;
@@ -40,7 +48,7 @@ OD.field = (function(){
   const costTxt = c => `${c.h} ชม.${c.b?`<br>${U.baht(c.b)}`:''}`;
 
   /* ---------- หลังทุกการกระทำ: ผลแล็บ เหตุการณ์ เส้นตาย ---------- */
-  /* รายงานเช้า: ยอดผู้ป่วย ๒๔ ชม. ล่าสุด แนวโน้ม และเวลาที่เหลือ — สร้างจังหวะและแรงกดดันแต่ละวัน */
+  /* รายงานเช้า: ยอดผู้ป่วย ๒๔ ชม. ล่าสุด แนวโน้ม และเวลาที่เหลือ  สร้างจังหวะและแรงกดดันแต่ละวัน */
   async function briefing(){
     S.flags.brief = false;
     const recs = M.records(W,S).filter(r=>!r.dup && !r.phantom), rt = r => M.repTime(S,r.p);
@@ -50,11 +58,11 @@ OD.field = (function(){
     const mx = Math.max(1, ...series), left = M.DEADLINE - S.T, labs = S.labs.filter(l=>!l.seen).length;
     const spark = `<svg viewBox="0 0 ${series.length*26} 58" class="spark">${series.map((v,i)=>{ const h = Math.max(1, v/mx*38), y = 56-h;
       return `<rect x="${i*26+4}" y="${y}" width="18" height="${h}" rx="2"/><text x="${i*26+13}" y="${y-3}" text-anchor="middle">${v}</text>`; }).join('')}</svg>`;
-    const up = now>prev, msg = now===0 ? 'เมื่อวานไม่มีผู้ป่วยรายใหม่เลย — ถ้ายังเจอต่อเนื่องอีกสองช่วงระยะฟักตัว ก็ประกาศว่าการระบาดสงบได้'
-      : up && !nClosed() ? 'ผู้ป่วยยังเพิ่มขึ้นทุกวัน — ถ้าหลักฐานพอแล้วอย่ารอนาน การควบคุมแหล่งโรคเร็วคือการป้องกันผู้ป่วยรายต่อไป'
-      : up ? 'ผู้ป่วยยังเพิ่ม แต่บางรายติดเชื้อก่อนเราปิดแหล่งโรค (อยู่ในระยะฟักตัว) — ติดตามต่ออีกสองสามวัน'
-      : 'แนวโน้มเริ่มลดลง แต่ยังวางใจไม่ได้ — ผู้ป่วยบางรายอาจยังอยู่ในระยะฟักตัว';
-    // ตรวจคำพยากรณ์ของเมื่อวาน แล้วพยากรณ์วันนี้ (เกมพยากรณ์ — เลือกโมเดลที่เชื่อ)
+    const up = now>prev, msg = now===0 ? 'เมื่อวานไม่มีผู้ป่วยรายใหม่เลย  ถ้ายังเจอต่อเนื่องอีกสองช่วงระยะฟักตัว ก็ประกาศว่าการระบาดสงบได้'
+      : up && !nClosed() ? 'ผู้ป่วยยังเพิ่มขึ้นทุกวัน  ถ้าหลักฐานพอแล้วอย่ารอนาน การควบคุมแหล่งโรคเร็วคือการป้องกันผู้ป่วยรายต่อไป'
+      : up ? 'ผู้ป่วยยังเพิ่ม แต่บางรายติดเชื้อก่อนเราปิดแหล่งโรค (อยู่ในระยะฟักตัว)  ติดตามต่ออีกสองสามวัน'
+      : 'แนวโน้มเริ่มลดลง แต่ยังวางใจไม่ได้  ผู้ป่วยบางรายอาจยังอยู่ในระยะฟักตัว';
+    // ตรวจคำพยากรณ์ของเมื่อวาน แล้วพยากรณ์วันนี้ (เกมพยากรณ์  เลือกโมเดลที่เชื่อ)
     const lastFc = OD.ai.fcPrepare(S, series, now);
     OD.sfx && OD.sfx('page');
     await new Promise(res=>{
@@ -76,6 +84,7 @@ OD.field = (function(){
     });
   }
   async function after(){
+    reconcileControls();
     S.trust = U.clamp(S.trust, 0, 100);
     F.render();
     if(S.flags.brief) await briefing();
@@ -127,7 +136,7 @@ OD.field = (function(){
     F.spend(3, 0, 'ทบทวนเวชระเบียนและซักประวัติผู้ป่วยที่นอนโรงพยาบาล');
     const t = M.reviewRecords(W,S);
     await U.ask(`<h2 class="display gold-text">ยืนยันการวินิจฉัย</h2><div class="paper" style="margin-top:8px">${t}</div>
-      <div class="note">อาการเด่นช่วยอนุมานชนิดเชื้อได้ แต่ <b>ผลตรวจอุจจาระ</b> เท่านั้นที่ยืนยันเชื้อได้ — ผู้ป่วยที่ผลตรวจพบเชื้อจะกลายเป็น “ผู้ป่วยยืนยัน”</div>`, [['ok','บันทึกเป็นหลักฐาน','btn-gold']]);
+      <div class="note">อาการเด่นช่วยอนุมานชนิดเชื้อได้ แต่ <b>ผลตรวจทางห้องปฏิบัติการ</b> ช่วยยืนยันเชื้อตามเกณฑ์การวินิจฉัย  ผู้ป่วยที่ผลตรวจพบเชื้อจะกลายเป็น “ผู้ป่วยยืนยัน”</div>`, [['ok','บันทึกเป็นหลักฐาน','btn-gold']]);
     await after();
   };
   /* ขั้นตอนที่ ๔: ค้นหาผู้ป่วยเชิงรุก */
@@ -138,7 +147,7 @@ OD.field = (function(){
     S.acfAt = S.T; S.ver++;
     const found = M.records(W,S).length - before;
     log(`ค้นหาเชิงรุกพบผู้ป่วยที่ไม่ได้ไปสถานพยาบาลเพิ่ม ${found} ราย`, found ? 'bad' : 'good');
-    await U.ask(`<h2 class="display gold-text">ค้นหาผู้ป่วยเชิงรุก</h2><p>อสม. พบผู้ป่วยที่เข้านิยามแต่ <b>ไม่ได้ไปสถานพยาบาล</b> เพิ่ม <b>${found} ราย</b> — ข้อมูลเหล่านี้จะหายไปถ้ารอเฉพาะรายงานจากโรงพยาบาล</p>
+    await U.ask(`<h2 class="display gold-text">ค้นหาผู้ป่วยเชิงรุก</h2><p>อสม. พบผู้ป่วยที่เข้านิยามแต่ <b>ไม่ได้ไปสถานพยาบาล</b> เพิ่ม <b>${found} ราย</b>  ข้อมูลเหล่านี้จะหายไปถ้ารอเฉพาะรายงานจากโรงพยาบาล</p>
       <div class="note">จากนี้ อสม. จะรายงานผู้ป่วยรายใหม่ในชุมชนทุกวัน (ระบบเฝ้าระวังเชิงรุก) ผู้ป่วยอาการน้อยจะเข้าสู่ฐานข้อมูลเร็วขึ้น</div>`, [['ok','รับทราบ','btn-gold']]);
     await after();
   };
@@ -146,12 +155,12 @@ OD.field = (function(){
   A.hyp = ()=>{
     const sel = new Set(S.hyp);
     const draw = ()=>U.modal(`<h2 class="display gold-text">ตั้งสมมติฐาน</h2>
-      <p>จากข้อมูลเชิงพรรณนา (เวลา–สถานที่–บุคคล) และคำบอกเล่า เลือกสิ่งที่สงสัยว่าเป็นแหล่งหรือช่องทางการแพร่ <b>๑–๔ ข้อ</b> — แบบสอบถามของกลุ่มควบคุมจะเน้นทดสอบสมมติฐานเหล่านี้ (ปรับใหม่ได้ ไม่เสียเวลา)</p>
+      <p>จากข้อมูลเชิงพรรณนา (เวลา–สถานที่–บุคคล) และคำบอกเล่า เลือกสิ่งที่สงสัยว่าเป็นแหล่งหรือช่องทางการแพร่ <b>๑–๔ ข้อ</b>  แบบสอบถามของกลุ่มควบคุมจะเน้นทดสอบสมมติฐานเหล่านี้ (ปรับใหม่ได้ ไม่เสียเวลา)</p>
       <div class="pick-grid">${M.exposures(S).map(e=>`<button class="pick ${sel.has(e.k)?'sel':''}" data-m="h${e.k}"><small>${e.g}</small><b>${e.label}</b></button>`).join('')}</div>
       <div class="m-actions"><button class="btn" data-m="x">ยกเลิก</button><button class="btn btn-gold" data-m="ok" ${sel.size?'':'disabled'}>บันทึกสมมติฐาน (${sel.size}/๔)</button></div>`,
       async k=>{
         if(k==='x') U.closeModal();
-        else if(k[0]==='h'){ const x = k.slice(1); if(sel.has(x)) sel.delete(x); else if(sel.size<4) sel.add(x); else U.toast('เลือกได้ไม่เกิน ๔ ข้อ — สมมติฐานที่ดีต้องเจาะจง'); draw(); }
+        else if(k[0]==='h'){ const x = k.slice(1); if(sel.has(x)) sel.delete(x); else if(sel.size<4) sel.add(x); else U.toast('เลือกได้ไม่เกิน ๔ ข้อ  สมมติฐานที่ดีต้องเจาะจง'); draw(); }
         else if(k==='ok'){ U.closeModal(); S.hyp = [...sel]; log('ตั้งสมมติฐาน: ' + S.hyp.map(x=>M.EXPOSURES.find(e=>e.k===x).label).join(', '), 'good'); await after(); }
       }, {wide:true});
     draw();
@@ -172,12 +181,24 @@ OD.field = (function(){
   function packKit(){
     return new Promise(res=>{
       const items = U.shuffle(M.KIT), sel = new Set();
-      const draw = ()=>U.modal(`<h2 class="display gold-text">ขั้นตอนที่ ๑ · เตรียมการลงพื้นที่</h2>
-        <div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>ก่อนออกจากสำนักงาน เช็คอุปกรณ์ให้ครบนะ ของที่จำเป็นถ้าลืมจะทำให้ตัวอย่างเสียหรือวัดค่าไม่ได้ ส่วนของที่ไม่ควรเอาไปก็อย่าหยิบไป</div></div></div>
-        <div class="pick-grid">${items.map(it=>`<button class="pick ${sel.has(it.k)?'sel':''}" data-m="k${it.k}"><b>${sel.has(it.k)?'☑':'☐'} ${it.t}</b></button>`).join('')}</div>
-        <div class="m-actions"><button class="btn" data-m="hb">📘 ดูคู่มือบทห้องปฏิบัติการ</button><button class="btn btn-gold" data-m="go">ออกเดินทาง (${sel.size} รายการ)</button></div>`,
+      const kitArt = {
+        cary:['หลอดเก็บตัวอย่าง','<rect x="20" y="16" width="24" height="37" rx="8"/><path d="M19 16h26v-5H19z M26 34h12 M32 25v18"/>'],
+        bottle:['ขวดเก็บตัวอย่าง','<path d="M27 13h10v8l7 8v22a5 5 0 0 1-5 5H25a5 5 0 0 1-5-5V29l7-8z M25 12h14v5H25z"/><path d="M26 40c3-6 6-9 6-9s6 6 6 9a6 6 0 0 1-12 0z"/>'],
+        chlor:['ชุดตรวจน้ำ','<rect x="14" y="16" width="36" height="35" rx="5"/><path d="M22 23h20M22 30h8v12h-8z M36 30h6 M36 36h6 M36 42h6"/>'],
+        cold:['กล่องรักษาความเย็น','<rect x="12" y="25" width="40" height="26" rx="5"/><path d="M10 20h44v7H10z M25 20v-6h14v6 M32 30v15 M25 34l14 8 M39 34l-14 8"/>'],
+        form:['เอกสารสอบสวน','<rect x="17" y="12" width="30" height="42" rx="4"/><path d="M25 12v-3h14v3 M24 24h3 M32 24h9 M24 32h3 M32 32h9 M24 40h3 M32 40h9"/>'],
+        ppe:['อุปกรณ์ป้องกัน','<path d="M14 28q18-12 36 0v13q-18 13-36 0z M14 30l-5-4v15l5-2 M50 30l5-4v15l-5-2 M22 33q10 5 20 0 M22 39q10 5 20 0"/>'],
+        abx:['ยา','<path d="M17 39l17-18a10 10 0 0 1 14 14L31 53a10 10 0 0 1-14-14z M26 30l14 14"/>'],
+        lope:['ยา','<rect x="20" y="17" width="24" height="37" rx="5"/><path d="M23 11h18v7H23z M27 35h10 M32 30v10"/>'],
+        fog:['อุปกรณ์พ่นหมอก','<path d="M12 28h25v18H12z M37 32h13l7 5-7 5H37 M17 28l3-8h12l4 8 M19 46v6 M31 46v6 M52 21l3-4 M57 26l5-1"/>']
+      };
+      const draw = ()=>U.modal(`<div class="kit-head"><div><div class="kit-eyebrow">ภารกิจแรก · ก่อนออกเดินทาง</div><h2 class="display gold-text">จัดกระเป๋าลงพื้นที่</h2><p>เลือกอุปกรณ์ที่คิดว่าจำเป็นสำหรับสอบสวนโรคท้องร่วง</p></div><div class="kit-bag" aria-hidden="true">🎒<span>พร้อมลุย</span></div></div>
+        <div class="kit-guide">${OD.mentorFace()}<div><b>พี่วิแนะนำ</b><p>แตะการ์ดเพื่อหยิบของลงกระเป๋า เลือกเฉพาะสิ่งที่เหมาะกับงาน แล้วค่อยตรวจคำตอบก่อนออกเดินทางนะ</p></div></div>
+        <div class="kit-section"><b>เลือกอุปกรณ์</b><span>เลือกแล้ว ${sel.size} รายการ</span></div>
+        <div class="kit-grid">${items.map(it=>`<button type="button" class="kit-item ${sel.has(it.k)?'selected':''}" data-m="k${it.k}" aria-pressed="${sel.has(it.k)}"><span class="kit-icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${kitArt[it.k][1]}</svg></span><span class="kit-copy"><small>${kitArt[it.k][0]}</small><b>${it.t}</b></span><span class="kit-check" aria-hidden="true">${sel.has(it.k)?'✓':'+'}</span></button>`).join('')}</div>
+        <div class="kit-actions"><span>เลือกได้หลายรายการ กดซ้ำเพื่อนำออก</span><div><button class="btn" data-m="hb">📘 เปิดคู่มือ</button><button class="btn btn-gold" data-m="go">ตรวจของและออกเดินทาง →</button></div></div>`,
         async k=>{
-          if(k[0]==='k'){ const x = k.slice(1); sel.has(x) ? sel.delete(x) : sel.add(x); draw(); }
+          if(k[0]==='k'){ const x = k.slice(1), scroll = U.$('#modal .m-card').scrollTop; sel.has(x) ? sel.delete(x) : sel.add(x); draw(); const card = U.$('#modal .m-card'); card.scrollTop = scroll; const button = card.querySelector('[data-m="'+k+'"]'); if(button) button.focus({preventScroll:true}); }
           else if(k==='hb'){ U.closeModal(); OD.handbook.open('lab'); const iv = setInterval(()=>{ if(!U.$('#modal').classList.contains('open')){ clearInterval(iv); draw(); } }, 200); }
           else if(k==='go'){
             S.kit = sel;
@@ -186,12 +207,12 @@ OD.field = (function(){
             S.flags.kitMiss = miss.map(i=>i.k); S.flags.kitBad = bad.map(i=>i.k);
             await U.ask(`<h2 class="display gold-text">${!miss.length && !bad.length ? 'อุปกรณ์ครบถ้วน!' : 'ตรวจอุปกรณ์'}</h2>
               ${!miss.length && !bad.length ? '<p>เตรียมการได้ตามหลักครบทุกข้อ</p>' : ''}
-              ${miss.length ? `<div class="note red"><b>ลืมนำไป:</b><ul style="margin:4px 0 0;padding-left:20px">${miss.map(i=>`<li><b>${i.t}</b> — ${i.why}</li>`).join('')}</ul></div>` : ''}
-              ${bad.length ? `<div class="note red"><b>ไม่ควรนำไป:</b><ul style="margin:4px 0 0;padding-left:20px">${bad.map(i=>`<li><b>${i.t}</b> — ${i.why}</li>`).join('')}</ul></div>` : ''}
+              ${miss.length ? `<div class="note red"><b>ลืมนำไป:</b><ul style="margin:4px 0 0;padding-left:20px">${miss.map(i=>`<li><b>${i.t}</b>  ${i.why}</li>`).join('')}</ul></div>` : ''}
+              ${bad.length ? `<div class="note red"><b>ไม่ควรนำไป:</b><ul style="margin:4px 0 0;padding-left:20px">${bad.map(i=>`<li><b>${i.t}</b>  ${i.why}</li>`).join('')}</ul></div>` : ''}
               ${miss.length ? '<p class="muted">ผลกระทบในเกม: ตัวอย่างที่ต้องใช้อุปกรณ์ที่ขาดจะตรวจพบเชื้อได้น้อยลง หรือวัดค่าบางอย่างไม่ได้</p>' : ''}`, [['ok','ลงพื้นที่','btn-gold']]);
             res();
           }
-        }, {wide:true, locked:true});
+        }, {wide:true, locked:true, cls:'kit-modal'});
       draw();
     });
   }
@@ -214,7 +235,7 @@ OD.field = (function(){
   };
   /* ทีมขาดคน (อสม. ป่วย) ทำให้งานภาคสนามช้าลง */
   const slow = () => S.flags.teamSick==='rest' ? 2 : S.flags.teamSick==='work' ? 1 : 0;
-  /* นักศึกษาอาสาช่วยงานภาคสนาม — เร็วขึ้น ๓๐% */
+  /* นักศึกษาอาสาช่วยงานภาคสนาม  เร็วขึ้น ๓๐% */
   const helpers = h => (S.flags.students==='trained' || S.flags.students==='raw') ? Math.max(1, Math.round(h*.7)) : h;
   function interviewCost(){
     let c = S.flags.interviewed ? M.COST.interview : M.COST.interviewFirst;
@@ -232,13 +253,13 @@ OD.field = (function(){
   A.controls = ()=>{
     const nCase = M.records(W,S).filter(r=>S.ans[r.p.id]).length;
     if(nCase<5){ U.toast('ต้องสัมภาษณ์ผู้ป่วยอย่างน้อย ๕ รายก่อน'); return; }
-    if(!S.hyp.length){ U.toast('💡 ต้องตั้งสมมติฐานก่อน (ขั้นตอนที่ ๖) — การศึกษาเชิงวิเคราะห์มีไว้ทดสอบสมมติฐาน'); return; }
+    if(!S.hyp.length){ U.toast('💡 ต้องตั้งสมมติฐานก่อน (ขั้นตอนที่ ๖)  การศึกษาเชิงวิเคราะห์มีไว้ทดสอบสมมติฐาน'); return; }
     let sel = null;
     const draw = ()=>U.modal(`<h2 class="display gold-text">เก็บกลุ่มควบคุม (Case-control)</h2>
       <p>สุ่มคนในตำบลที่ <b>ไม่ป่วย</b> มาตอบแบบสอบถามชุดเดียวกับผู้ป่วย เพื่อเทียบสัดส่วนการสัมผัส ตอนนี้มีผู้ป่วยที่สัมภาษณ์แล้ว <b>${nCase}</b> ราย กลุ่มควบคุม <b>${S.controls.length}</b> คน</p>
       <div class="pick-grid">${[1,2,4].map(k=>{ const c=ccCost(k), dis = k<S.ccRatio || (k===S.ccRatio && c.need===0) || !can(c);
         return `<button class="pick ${sel===k?'sel':''}" data-m="k${k}" ${dis?'disabled':''}><span class="pi">👥</span><b>อัตราส่วน ๑ : ${U.thaiNum(k)}</b><small>${k===S.ccRatio?`เติมให้ครบ (+${c.need} คน)`:`ประมาณ ${k*nCase} คน`}</small><small>${c.h} ชม. · ${U.baht(c.b)}</small></button>`; }).join('')}</div>
-      <div class="note">กลุ่มควบคุมยิ่งมาก ช่วงความเชื่อมั่นยิ่งแคบ แต่ใช้เวลาและงบมากขึ้น — เมื่อมีผู้ป่วยรายใหม่ อาจต้องเติมกลุ่มควบคุมให้ครบอัตราส่วน</div>
+      <div class="note">กลุ่มควบคุมยิ่งมาก ช่วงความเชื่อมั่นยิ่งแคบ แต่ใช้เวลาและงบมากขึ้น  เมื่อมีผู้ป่วยรายใหม่ อาจต้องเติมกลุ่มควบคุมให้ครบอัตราส่วน</div>
       <div class="m-actions"><button class="btn" data-m="x">ยกเลิก</button><button class="btn btn-gold" data-m="ok" ${sel?'':'disabled'}>เริ่มเก็บข้อมูล</button></div>`,
       async k=>{
         if(k==='x') U.closeModal();
@@ -251,7 +272,7 @@ OD.field = (function(){
     let sel = pre && !S.inspected[pre] ? pre : null; const c = M.COST.inspect;
     const sites = Object.keys(M.SITES).filter(id=>S.known.has(id));
     const draw = ()=>U.modal(`<h2 class="display gold-text">ตรวจสอบสิ่งแวดล้อม</h2>
-      <p>ลงพื้นที่ตรวจสุขาภิบาล วัดคลอรีนคงเหลือ และสอบถามผู้ประกอบการ — ${c.h} ชม. · ${U.baht(c.b)} ต่อแห่ง</p>
+      <p>ลงพื้นที่ตรวจสุขาภิบาล วัดคลอรีนคงเหลือ และสอบถามผู้ประกอบการ  ${c.h} ชม. · ${U.baht(c.b)} ต่อแห่ง</p>
       <div class="pick-grid">${sites.map(id=>`<button class="pick ${sel===id?'sel':''}" data-m="s${id}" ${S.inspected[id]||!can(c)?'disabled':''}><span class="pi">${M.SITES[id].icon}</span><b>${nm(id)}</b>${S.inspected[id]?'<small>ตรวจแล้ว</small>':''}</button>`).join('')}</div>
       <div class="m-actions"><button class="btn" data-m="x">ยกเลิก</button><button class="btn btn-gold" data-m="ok" ${sel?'':'disabled'}>ลงพื้นที่ตรวจ</button></div>`,
       async k=>{
@@ -279,11 +300,11 @@ OD.field = (function(){
     const draw = ()=>{
       const types = site && site!=='STOOL' ? M.sampleTypes(W,S,site) : [];
       U.modal(`<h2 class="display gold-text">ส่งตรวจทางห้องปฏิบัติการ</h2>
-      <p>ผลออกภายใน <b>๒๔ ชั่วโมง</b> หลังส่ง · ระหว่างรอทำอย่างอื่นได้ หรือใช้ ⏭️ ข้ามเวลา · ความไวของการตรวจไม่ถึง ๑๐๐%</p>
-      <div class="note" style="font-size:13.5px">หลักการเก็บตัวอย่าง: อุจจาระเก็บ <b>ก่อนให้ยาปฏิชีวนะ</b> ใส่ Cary-Blair · น้ำใช้ขวดปลอดเชื้อที่มีโซเดียมไทโอซัลเฟต · อาหาร/น้ำแข็งแช่เย็น ๔ °C · ติดฉลากทุกตัวอย่าง
-      ${['cary','bottle','cold'].filter(k=>!M.hasKit(S,k)).map(k=>`<br>⚠️ ไม่ได้นำ <b>${M.KIT.find(i=>i.k===k).t}</b> มา — ตัวอย่างที่เกี่ยวข้องอาจเสื่อม ความไวลดลง`).join('')}</div>
+      <p>ในคดีนี้คาดว่าผลจะออกหลังส่งประมาณ <b>${OD.bonds.labWait(S)} ชั่วโมง</b> · ระหว่างรอทำอย่างอื่นได้ หรือใช้ ⏭️ ข้ามเวลา · ความไวของการตรวจไม่ถึง ๑๐๐%</p>
+      <div class="note" style="font-size:13.5px">หลักการเก็บตัวอย่าง: เก็บอุจจาระก่อนให้ยาปฏิชีวนะเมื่อทำได้ · ตัวอย่างเพื่อเพาะเชื้อแบคทีเรียอาจใช้ Cary-Blair · หากสงสัยโนโรไวรัสใช้ตัวอย่างอุจจาระสดตามคำแนะนำห้องแล็บ · น้ำใช้ขวดปลอดเชื้อที่มีโซเดียมไทโอซัลเฟต · อาหาร/น้ำแข็งแช่เย็น ๔ °C · ติดฉลากทุกตัวอย่าง
+      ${['cary','bottle','cold'].filter(k=>!M.hasKit(S,k)).map(k=>`<br>⚠️ ไม่ได้นำ <b>${M.KIT.find(i=>i.k===k).t}</b> มา  ตัวอย่างที่เกี่ยวข้องอาจเสื่อม ความไวลดลง`).join('')}</div>
       <div class="pick-grid"><button class="pick ${site==='STOOL'?'sel':''}" data-m="sSTOOL" ${!stoolOK||!can(M.COST.stool)?'disabled':''}><span class="pi">🧫</span><b>อุจจาระผู้ป่วย ๕ ราย</b><small>บอกว่าเป็น “เชื้ออะไร”</small><small>${M.COST.stool.h} ชม. · ${U.baht(M.COST.stool.b)}</small></button></div>
-      <h3 style="font-size:15px;margin:10px 0 0">หรือ ตัวอย่างจากสิ่งแวดล้อม <span class="muted" style="font-weight:400">— บอกว่า “มาจากไหน” · ${M.COST.env.h} ชม. · ${U.baht(M.COST.env.b)}</span></h3>
+      <h3 style="font-size:15px;margin:10px 0 0">หรือ ตัวอย่างจากสิ่งแวดล้อม <span class="muted" style="font-weight:400">— ช่วยตรวจสอบแหล่งที่สงสัย · ${M.COST.env.h} ชม. · ${U.baht(M.COST.env.b)}</span></h3>
       <div class="pick-grid">${sites.map(id=>`<button class="pick ${site===id?'sel':''}" data-m="s${id}" ${!M.sampleTypes(W,S,id).length||!can(M.COST.env)?'disabled':''}><span class="pi">${M.SITES[id].icon}</span><b>${nm(id)}</b>${!M.sampleTypes(W,S,id).length?'<small>ไม่มีตัวอย่างเหลือแล้ว</small>':''}</button>`).join('')}</div>
       ${types.length?`<div class="pick-grid">${types.map(([k,t])=>`<button class="pick ${type===k?'sel':''}" data-m="t${k}"><b>${t}</b></button>`).join('')}</div>`:''}
       <div class="m-actions"><button class="btn" data-m="x">ยกเลิก</button><button class="btn btn-gold" data-m="ok" ${(site==='STOOL'||(site&&type))?'':'disabled'}>ส่งตรวจ</button></div>`,
@@ -300,7 +321,7 @@ OD.field = (function(){
           const kitOK = M.kitFactor(S, site==='STOOL' ? 'swab' : type) >= 1;
           if(site==='STOOL'){ F.spend(M.COST.stool.h, M.COST.stool.b, 'ส่งตัวอย่างอุจจาระผู้ป่วยตรวจเพาะเชื้อ'); S.labs.push(Object.assign({id, due:S.T+wait}, M.labStool(W,S))); }
           else { const tn = M.sampleTypes(W,S,site).find(x=>x[0]===type)[1]; F.spend(M.COST.env.h, M.COST.env.b, `ส่ง${tn}จาก${nm(site)}ตรวจ`); S.labs.push(Object.assign({id, due:S.T+wait}, M.labEnv(W,S,site,type))); }
-          if(wait!==M.COST.LAB_WAIT) log(wait<M.COST.LAB_WAIT ? `พี่ฟ้าเร่งคิวแล็บให้ — ผลออกใน ${wait} ชม.` : `แล็บไม่เร่งคิวให้ — ผลออกใน ${wait} ชม.`, wait<M.COST.LAB_WAIT ? 'good' : 'bad');
+          if(wait!==M.COST.LAB_WAIT) log(wait<M.COST.LAB_WAIT ? `พี่ฟ้าเร่งคิวแล็บให้  ผลออกใน ${wait} ชม.` : `แล็บไม่เร่งคิวให้  ผลออกใน ${wait} ชม.`, wait<M.COST.LAB_WAIT ? 'good' : 'bad');
           OD.bonds.add(S, 'fah', kitOK ? 5 : -6, kitOK ? 'เก็บตัวอย่างถูกวิธี' : 'ตัวอย่างเก็บ/ขนส่งไม่ถูกวิธี');
           await after();
         }
@@ -316,7 +337,7 @@ OD.field = (function(){
     log(`วิเคราะห์โพสต์โซเชียลด้วย NLP: ติดป้ายข้อมูลฝึกถูก ${S.flags.nlpAcc}/9 · โมเดลทายชุดทดสอบถูก ${S.flags.nlpTest}/9`, S.flags.nlpAcc>=7 ? 'good' : 'bad');
     await after();
   };
-  /* ผู้ช่วย AI ของจังหวัด (หลังเหตุการณ์ระบบ AI) — ถามได้ฟรี แต่ต้องตรวจสอบเอง */
+  /* ผู้ช่วย AI ของจังหวัด (หลังเหตุการณ์ระบบ AI)  ถามได้ฟรี แต่ต้องตรวจสอบเอง */
   A.ai = ()=>{ if(S.flags.aiMet) OD.ai.assistant(W,S); };
   A.supply = async()=>{
     if(S.supply) return;
@@ -330,7 +351,7 @@ OD.field = (function(){
     let sel = pre || null;
     const sites = Object.keys(M.SITES).filter(id=>S.known.has(id) && id!=='E');
     const draw = ()=>U.modal(`<h2 class="display gold-text">มาตรการเร่งด่วน</h2>
-      <p>สั่งปิด/งดใช้แหล่งที่สงสัยได้ทันทีโดยไม่ต้องรอรายงาน (หลักการป้องกันไว้ก่อน) — แต่ถ้าปิดผิดที่ ผู้ประกอบการเสียรายได้ และความเชื่อมั่นของชุมชนจะลดลง</p>
+      <p>สั่งปิด/งดใช้แหล่งที่สงสัยได้ทันทีโดยไม่ต้องรอรายงาน (หลักการป้องกันไว้ก่อน)  แต่ถ้าปิดผิดที่ ผู้ประกอบการเสียรายได้ และความเชื่อมั่นของชุมชนจะลดลง</p>
       <div class="pick-grid">${sites.map(id=>{ const dis = M.isClosed(S,id) || (S.closed[id]!=null && !M.wasReopened(S,id));
         return `<button class="pick ${sel===id?'sel':''}" data-m="s${id}" ${dis?'disabled':''}><span class="pi">${M.SITES[id].icon}</span><b>${M.wasReopened(S,id)?'สั่งปิดอีกครั้ง':'ปิด/งดใช้'}${nm(id)}</b><small>${M.isClosed(S,id)?'ปิดแล้ว':dis?'ปิดไปแล้ว':M.wasReopened(S,id)?'ถูกเปิดคืน · ๑ ชม.':'๑ ชม.'}</small></button>`; }).join('')}
         <button class="pick ${sel==='HYG'?'sel':''}" data-m="sHYG" ${S.hygieneAt!=null||!can(M.COST.hygiene)?'disabled':''}><span class="pi">🧼</span><b>รณรงค์ล้างมือ แยกของใช้ผู้ป่วย</b><small>${S.hygieneAt!=null?'ดำเนินการแล้ว':`${M.COST.hygiene.h} ชม. · ${U.baht(M.COST.hygiene.b)}`}</small></button></div>
@@ -347,7 +368,7 @@ OD.field = (function(){
       }, {wide:true});
     draw();
   };
-  /* โหมดเดินสำรวจหมู่บ้าน (js/walk.js) — เรียกการกระทำเดิมผ่าน F.act */
+  /* โหมดเดินสำรวจหมู่บ้าน (js/walk.js)  เรียกการกระทำเดิมผ่าน F.act */
   A.walk = ()=>{ if(OD.deadline.snapshot(S).remainingHours<=0) return; S.flags.walked = true; OD.walk.open(F); };
   let actionBusy = false;
   F.act = async (k, arg) => {
@@ -370,15 +391,38 @@ OD.field = (function(){
   function hint(){
     const nCase = M.records(W,S).filter(r=>S.ans[r.p.id]).length, pend = M.pendingInterviews(W,S), labsWait = S.labs.filter(l=>!l.seen).length;
     if(!M.DIFF[S.diff].hints) return `สถานะ: ผู้ป่วยรอสัมภาษณ์ ${pend} ราย · สัมภาษณ์แล้ว ${nCase} ราย · กลุ่มควบคุม ${S.controls.length} คน · ผลแล็บรอ ${labsWait} รายการ`;
-    if(labsWait && pend===0 && S.controls.length) return `กำลังรอผลแล็บ ${labsWait} รายการ — ใช้ <b>⏭️ ข้ามเวลา</b> เพื่อข้ามไปจนผลออกได้ หรือจะใช้มาตรการเร่งด่วนก่อนถ้าหลักฐานชัดแล้ว`;
+    if(labsWait && pend===0 && S.controls.length) return `กำลังรอผลแล็บ ${labsWait} รายการ  ใช้ <b>⏭️ ข้ามเวลา</b> เพื่อข้ามไปจนผลออกได้ หรือจะใช้มาตรการเร่งด่วนก่อนถ้าหลักฐานชัดแล้ว`;
     const nx = OD.checklist.next(W,S);
-    if(nx && nx.n<=8) return `ขั้นตอนถัดไป: <b>${OD.u.thaiNum(nx.n)}. ${nx.t}</b> — ${nx.d}<br><span class="muted">วิธีทำ: ${nx.how}</span>`;
-    if(S.controls.length && !S.flags.vML) return 'มีกลุ่มควบคุมแล้ว ลองแท็บ <b>🤖 ML</b> — ใช้ <b>logistic regression</b> ดูว่าปัจจัยไหนยังเสี่ยงอยู่เมื่อปรับปัจจัยอื่นแล้ว หรือให้ <b>decision tree</b> ช่วยหาคำถามที่แยกผู้ป่วยได้ดีที่สุด';
-    if(pend>=5) return `มีผู้ป่วยรายใหม่รอสัมภาษณ์ ${pend} ราย ข้อมูลยิ่งครบ ผลวิเคราะห์ยิ่งแม่น — การเดินทางและภารกิจใช้เวลา`;
-    if(S.diff==='easy' && !S.supply && !S.known.has('F1') && !S.known.has('F3')) return 'ถ้าผู้ป่วยกระจายไปหลายร้านพร้อมกัน ลองนึกถึง “สิ่งที่ร้านเหล่านั้นใช้ร่วมกัน” — <b>ห่วงโซ่อุปทาน</b> (น้ำแข็ง ผักสด) อาจมีคำตอบ';
-    if(OD.interview.available(W,S) && !S.deep.length && S.flags.interviewed) return 'ลอง <b>🎙️ สัมภาษณ์เชิงลึก</b> ผู้ป่วยรายแรกดู — ถามคำถามปลายเปิดจะได้เบาะแสที่แบบสอบถามให้ไม่ได้ แต่ระวังคำถามชี้นำ';
-    return 'หลักฐานครบสามด้านหรือยัง: <b>สถิติ</b> · <b>สิ่งแวดล้อม</b> · <b>ห้องปฏิบัติการ</b> — ถ้าชัดแล้ว ใช้มาตรการควบคุมและ <b>เขียนรายงาน</b> ยิ่งเร็ว ยิ่งป้องกันผู้ป่วยได้มาก';
+    if(nx && nx.n<=8) return `ขั้นตอนถัดไป: <b>${OD.u.thaiNum(nx.n)}. ${nx.t}</b>  ${nx.d}<br><span class="muted">วิธีทำ: ${nx.how}</span>`;
+    if(S.controls.length && !S.flags.vOR) return 'เปิดตารางวิเคราะห์เพื่อเปรียบเทียบการสัมผัสของผู้ป่วยกับกลุ่มควบคุม แล้วตรวจสถานที่ที่มีหลักฐานสนับสนุน';
+    if(pend>=5) return `มีผู้ป่วยรายใหม่รอสัมภาษณ์ ${pend} ราย ข้อมูลยิ่งครบ ผลวิเคราะห์ยิ่งแม่น  การเดินทางและภารกิจใช้เวลา`;
+    if(S.diff==='easy' && !S.supply && !S.known.has('F1') && !S.known.has('F3')) return 'ถ้าผู้ป่วยกระจายไปหลายร้านพร้อมกัน ลองนึกถึง “สิ่งที่ร้านเหล่านั้นใช้ร่วมกัน”  <b>ห่วงโซ่อุปทาน</b> (น้ำแข็ง ผักสด) อาจมีคำตอบ';
+    if(OD.interview.available(W,S) && !S.deep.length && S.flags.interviewed) return 'ลอง <b>🎙️ สัมภาษณ์เชิงลึก</b> ผู้ป่วยรายแรกดู  ถามคำถามปลายเปิดจะได้เบาะแสที่แบบสอบถามให้ไม่ได้ แต่ระวังคำถามชี้นำ';
+    return 'หลักฐานครบสามด้านหรือยัง: <b>สถิติ</b> · <b>สิ่งแวดล้อม</b> · <b>ห้องปฏิบัติการ</b>  ถ้าชัดแล้ว ใช้มาตรการควบคุมและ <b>เขียนรายงาน</b> ยิ่งเร็ว ยิ่งป้องกันผู้ป่วยได้มาก';
   }
+  function nextStep(){
+    if(!S || !W) return null;
+    const left = OD.deadline.snapshot(S).remainingHours;
+    const step = (key, title, why, cost, kind='action') => ({key,title,why,cost,kind});
+    if(left<=0) return step('report','เขียนรายงาน','หมดเวลาสอบสวนแล้ว สรุปจากหลักฐานที่มี','ฟรี');
+    if(!S.reviewed && can({h:3,b:0})) return step('review','ทบทวนเวชระเบียน','ยืนยันว่าผู้ป่วยมีอาการเข้าได้กับโรคเดียวกัน','3 ชม.');
+    if(S.acfAt==null && can(OD.bonds.acfCost(S))) return step('acf','ค้นหาผู้ป่วยเชิงรุก','เพิ่มข้อมูลผู้ป่วยที่ยังไม่เข้าสู่ระบบ','ใช้เวลาและงบตามปุ่ม');
+    const pending = M.pendingInterviews(W,S);
+    const ic = interviewCost();
+    if(pending && can(ic)) return step('interview','สัมภาษณ์ผู้ป่วย','ยังมีผู้ป่วยรอสัมภาษณ์ '+pending+' ราย',costTxt(ic).replace('<br>',' · '));
+    if(!S.flags.vTime) return step('curve','ดูเส้นโค้งการระบาด','ดูว่าผู้ป่วยเริ่มเพิ่มเมื่อไร','ฟรี','tab');
+    if(!S.flags.vPlace) return step('map','ดูแผนที่ผู้ป่วย','ดูว่าผู้ป่วยกระจุกตัวที่ใด','ฟรี','map');
+    if(!S.hyp.length) return step('hyp','ตั้งสมมติฐาน','เลือกแหล่งที่สงสัยจากข้อมูลที่เห็น','ฟรี');
+    const interviewed = M.records(W,S).filter(r=>S.ans[r.p.id]).length;
+    if(!S.controls.length && interviewed>=5 && can(ccCost(1))) return step('controls','เก็บกลุ่มควบคุม','เทียบการสัมผัสของคนป่วยและคนไม่ป่วย','ใช้เวลาและงบตามปุ่ม');
+    if(S.controls.length && !S.flags.vOR) return step('ana','อ่านค่า OR','ตรวจว่าปัจจัยใดสัมพันธ์กับการป่วย','ฟรี','tab');
+    if(!Object.keys(S.inspected).length && can(M.COST.inspect||M.COST.env)) return step('inspect','ตรวจสิ่งแวดล้อม','ตรวจสถานที่จากหลักฐานที่คุณมี','ใช้เวลาและงบตามปุ่ม');
+    if(!S.labs.length && can(M.COST.env) && left > M.COST.env.h + 24) return step('lab','ส่งตัวอย่างตรวจแล็บ','เลือกตัวอย่างผู้ป่วยหรือสถานที่ที่สงสัย ผลตรวจช่วยประกอบหลักฐาน','ใช้เวลาและงบตามตัวอย่าง');
+    if(S.labs.some(l=>!l.seen) && left>12) return step('skip','รอผลแล็บ','ข้ามไปเวลาที่ผลออกได้ หากพร้อมแล้ว','เลือกเวลา');
+    if(can({h:1,b:0}) && !Object.keys(S.closed).length && S.hygieneAt==null) return step('measure','ใช้มาตรการเร่งด่วน','ลดการติดเชื้อเมื่อหลักฐานพอ','1–2 ชม.');
+    return step('report','เขียนรายงาน','ตรวจหลักฐานที่มี แล้วสรุปคดี','ฟรี');
+  }
+  F.nextStep = nextStep;
   function actBtn(key, icon, title, sub, c, dis){
     return `<button class="act" data-a="${key}" ${dis?'disabled':''}><span class="i">${icon}</span><span class="t"><b>${title}</b><small>${sub}</small></span><span class="c">${c}</span></button>`;
   }
@@ -393,11 +437,13 @@ OD.field = (function(){
       ${OD.deadline.html(S)}
       <button class="chip gold ck-chip" id="fCk" data-a="checklist" title="ดูเช็คลิสต์ ๑๐ ขั้นตอน">✅ ขั้นตอน ${U.thaiNum(OD.checklist.progress(W,S))}/๑๐</button>
       <button class="btn btn-ghost btn-sm" data-a="help" title="วิธีเล่น">📖</button><button class="btn btn-ghost btn-sm" data-a="handbook" title="คู่มือนักสืบมือใหม่">📘</button><button class="btn btn-ghost btn-sm" data-a="theme" title="สลับธีม">🌓</button>`;
-    U.$('#fAdv').innerHTML = `<div class="adv-row"><div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${hint()}</div></div></div>${OD.bonds.html(S)}</div>`;
+    const mission = nextStep();
+    U.$('#fAdv').innerHTML = `<div class="f-mission"><div><small>เป้าหมายถัดไป · ${mission.cost}</small><b>${mission.title}</b><span>${mission.why}</span></div><button class="btn btn-gold" data-a="next">ทำตอนนี้ →</button></div><div class="adv-row"><div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${hint()}</div></div></div>${OD.bonds.html(S)}</div>`;
     OD.deadline.notify(S);
     const ac = OD.bonds.acfCost(S);
     const icNext = interviewCost();
     const labsWait = S.labs.filter(l=>!l.seen).length, hypOK = S.hyp.length>0;
+    const advancedOpen = !!(U.$('#fActions details.advanced-actions') || {}).open;
     U.$('#fActions').innerHTML =
       actBtn('review','🩺','๒ ทบทวนเวชระเบียน', S.reviewed ? 'ยืนยันการวินิจฉัยแล้ว ✓' : 'ยืนยันการวินิจฉัย', '3 ชม.', S.reviewed || !can({h:3,b:0})) +
       actBtn('acf','🏘️','๔ ค้นหาผู้ป่วยเชิงรุก', S.acfAt!=null ? `พบเพิ่ม ${M.hiddenFound(W,S)} ราย ✓` : ac.b ? 'อสม. เคาะประตูทุกบ้าน' : 'ป้าบุญมาช่วยฟรี ❤️', costTxt(ac), S.acfAt!=null || !can(ac)) +
@@ -406,10 +452,12 @@ OD.field = (function(){
       actBtn('hyp','💡','๖ ตั้งสมมติฐาน', hypOK ? `${S.hyp.length} ข้อ (แก้ไขได้)` : 'สงสัยอะไรบ้าง?', 'ฟรี', false) +
       actBtn('controls','👥','๗ เก็บกลุ่มควบคุม', !hypOK ? '🔒 ตั้งสมมติฐานก่อน' : S.controls.length ? `มีแล้ว ${S.controls.length} คน (๑:${U.thaiNum(S.ccRatio)})` : 'case-control → OR', '6–14 ชม.', !can({h:3,b:0})) +
       actBtn('inspect','🔎','๘ ตรวจสิ่งแวดล้อม', `ตรวจแล้ว ${Object.keys(S.inspected).length} แห่ง`, costTxt(M.COST.inspect), !can(M.COST.inspect)) +
-      actBtn('lab','🧪','๘ ส่งตรวจแล็บ', labsWait ? `รอผล ${labsWait} รายการ` : 'อุจจาระ / น้ำ / อาหาร', 'ผลใน ๒๔ ชม.', !can(M.COST.env)) +
+      actBtn('lab','🧪','๘ ส่งตรวจแล็บ', labsWait ? `รอผล ${labsWait} รายการ` : 'อุจจาระ / น้ำ / อาหาร', `ผลประมาณ ${OD.bonds.labWait(S)} ชม.`, !can(M.COST.env)) +
       actBtn('supply','📦','๘ ห่วงโซ่อุปทาน', S.supply ? 'ได้ข้อมูลแล้ว ✓' : 'น้ำแข็ง วัตถุดิบ มาจากไหน', costTxt(M.COST.supply), S.supply || !can(M.COST.supply)) +
+      `<details class="advanced-actions" ${advancedOpen?'open':''}><summary>เครื่องมือเพิ่มเติม (ไม่จำเป็นต้องใช้)</summary><div class="advanced-grid">` +
       actBtn('nlp','📱','ฟังเสียงโซเชียล (NLP)', S.flags.nlpDone ? `ติดป้ายถูก ${S.flags.nlpAcc}/9 ✓` : 'สอนโมเดลแยกข่าวลือ', '2 ชม.', S.flags.nlpDone || !can({h:2,b:0})) +
       actBtn('ai','🤖','ผู้ช่วย AI', S.flags.aiMet ? 'ถามได้ แต่ต้องตรวจสอบ' : '🔒 ระบบยังมาไม่ถึง', 'ฟรี', !S.flags.aiMet) +
+      `</div></details>` +
       actBtn('measure','🛑','๙ มาตรการเร่งด่วน', `ปิดอยู่ ${nClosed()} แห่ง${S.hygieneAt!=null?' · รณรงค์ล้างมือ':''}${S.boilAt!=null?' · ต้มน้ำ':''}`, '๑–๒ ชม.', !can({h:1,b:0})) +
       actBtn('skip','⏭️','ข้ามเวลา', labsWait ? 'ข้ามไปจนผลแล็บออก' : 'รอ ๑๒ ชม. / เช้าวันใหม่', 'เลือกได้', left<=0) +
       `<button class="btn btn-gold report" data-a="report">📝 ๑๐ เขียนรายงาน<br>สอบสวนโรค</button>`;
@@ -424,11 +472,12 @@ OD.field = (function(){
       <div class="note"><b>ดูข้อมูลฟรี:</b> แผนที่ เส้นโค้งการระบาด ตารางวิเคราะห์ อาการ รายชื่อผู้ป่วย หลักฐาน</div>
       <div class="note red"><b>การกระทำใช้เวลาและงบ:</b> ระหว่างนั้นผู้ป่วยรายใหม่จะเพิ่มขึ้น ผลแล็บออกหลัง ๒๔ ชม.</div>
       <div class="note"><b>⏳ เวลาคดีที่เหลือ:</b> แสดงวัน–ชั่วโมง–นาทีบนหน้าภาคสนามและตอนเดิน เวลาในคดีลดเมื่อเดินทางหรือทำภารกิจ การอ่านหลักฐานและบทสนทนาไม่ลดเวลา</div>
+      <div class="note jade"><b>หาทางไปต่อ:</b> กล่องเป้าหมายถัดไปด้านบนมีปุ่ม “ทำตอนนี้” สำหรับงานที่เริ่มได้</div>
       <div class="note jade"><b>ความเชื่อมั่นชุมชน:</b> ถ้าต่ำกว่า ๔๐ ชาวบ้านจะตอบแบบสอบถามคลาดเคลื่อนมากขึ้น</div>
-      <div class="note"><b>ปุ่มมีเลขขั้นตอนกำกับ</b> ตาม ๑๐ ขั้นตอนการสอบสวนการระบาด — ดูความคืบหน้าที่ ✅ เช็คลิสต์</div>
-      <div class="note"><b>เหตุการณ์ระหว่างสอบสวน:</b> ทุกการตัดสินใจมีผลต่อเนื่อง — ชาวบ้านจะไว้ใจหรือไม่ ผู้ป่วยจะเพิ่มหรือลด และตอนจบจะเป็นอย่างไร ท้ายเกมมีสรุปว่าคุณพลาดอะไรบ้าง</div>
+      <div class="note"><b>ปุ่มมีเลขขั้นตอนกำกับ</b> ตาม ๑๐ ขั้นตอนการสอบสวนการระบาด  ดูความคืบหน้าที่ ✅ เช็คลิสต์</div>
+      <div class="note"><b>เหตุการณ์ระหว่างสอบสวน:</b> ทุกการตัดสินใจมีผลต่อเนื่อง  ชาวบ้านจะไว้ใจหรือไม่ ผู้ป่วยจะเพิ่มหรือลด และตอนจบจะเป็นอย่างไร ท้ายเกมมีสรุปว่าคุณพลาดอะไรบ้าง</div>
       <div class="note jade"><b>เครื่องมือ HDS:</b> แท็บ 🤖 ML (logistic regression · decision tree · SQL · ดาวน์โหลด notebook) · 🧭 วิเคราะห์เชิงพื้นที่บนแผนที่ · 📱 NLP ฟังเสียงโซเชียล · 🤖 ผู้ช่วย AI · 🔮 พยากรณ์ในรายงานเช้า</div>
-      <div class="note jade"><b>🚶 เดินสำรวจหมู่บ้าน (ใหม่):</b> กดปุ่มเหนือแผนที่ เดินไปตรวจบ่อ ร้านอาหาร คุยกับชาวบ้าน ดูธงแดงบ้านผู้ป่วย และเก็บการ์ดความรู้ — เดิน ๔ กม. = ๑ ชม. ในเกม</div>
+      <div class="note jade"><b>🚶 เดินสำรวจหมู่บ้าน (ใหม่):</b> กดปุ่มเหนือแผนที่ เดินไปตรวจบ่อ ร้านอาหาร คุยกับชาวบ้าน ดูธงแดงบ้านผู้ป่วย และเก็บการ์ดความรู้  เดิน ๔ กม. = ๑ ชม. ในเกม</div>
       <div class="note"><b>ไม่รู้จะทำอะไรต่อ?</b> ดูกล่องคำแนะนำของพี่วิด้านบน หรือทำตามลำดับนี้: ดูกราฟและแผนที่ (ฟรี) → 🩺 ทบทวนเวชระเบียน → 🏘️ ค้นหาเชิงรุก → 🗣️ สัมภาษณ์ → 💡 ตั้งสมมติฐาน → 👥 กลุ่มควบคุม → อ่าน OR → 🔎 ตรวจ + 🧪 แล็บที่แหล่งที่ OR ชี้ → 🛑 ควบคุม → 📝 รายงาน</div>
       <div class="m-actions"><button class="btn" data-m="tour">🧭 ดูทัวร์หน้าจออีกครั้ง</button><button class="btn" data-m="fieldui">🔘 ปุ่มแต่ละปุ่มทำอะไร</button><button class="btn" data-m="tips">💡 เคล็ดลับมือใหม่</button><button class="btn" data-m="hb">📘 เปิดคู่มือ</button><button class="btn btn-gold" data-m="x">เข้าใจแล้ว</button></div>`,
       k=>{ U.closeModal(); if(k==='tour') OD.handbook.tour(); if(k==='hb') OD.handbook.open(); if(k==='fieldui' || k==='tips') OD.handbook.open(k); });
@@ -455,9 +504,17 @@ OD.field = (function(){
       if(a==='handbook') return OD.handbook.open();
       if(a==='checklist'){ S.ui.tab = 'ck'; F.render(); U.$('#fAna').scrollIntoView({behavior:'smooth', block:'start'}); return; }
       if(a==='theme') return OD.toggleTheme();
+      if(a==='next'){
+        const m = nextStep(); if(!m) return;
+        if(m.kind==='tab'){ S.ui.tab=m.key; F.render(); U.$('#fAna').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+        if(m.kind==='map'){ U.$('#fMap').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+        const target = root.querySelector(`#fActions [data-a="${m.key}"]`);
+        if(target && !target.disabled) return F.act(m.key);
+        U.toast('งานนี้ยังทำไม่ได้ ลองอ่านหลักฐานหรือเลือกงานอื่น'); return;
+      }
       if(A[a]) F.act(a);
     };
-    log(`เริ่มลงพื้นที่ — ฐานข้อมูลผู้ป่วย ${M.records(W,S).length} ราย`);
+    log(`เริ่มลงพื้นที่  ฐานข้อมูลผู้ป่วย ${M.records(W,S).length} ราย`);
     U.show('scr-field'); F.render();
     (async()=>{
       await packKit(); log(`เตรียมอุปกรณ์ ${S.kit.size} รายการ`, 'good'); F.render();

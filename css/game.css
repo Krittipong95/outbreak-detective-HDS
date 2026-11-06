@@ -152,3 +152,9 @@ table.doc td.l{text-align:left}
 .linelist{max-height:330px;overflow:auto;border:1px solid #c4a979}
 .linelist table.doc{font-size:13px}
 .linelist tr.flag td{background:#fde3d8}
+/* Chapter one: a clear path through the investigation */
+.ch-progress,.ch-complete{padding:16px 18px;border:1px solid var(--gold-3);border-radius:10px;background:color-mix(in srgb,var(--gold) 9%,var(--panel));line-height:1.55}
+.ch-progress b,.ch-progress span{display:block}.ch-progress b{color:var(--gold-2);font-size:16px}.ch-progress span{color:var(--muted);font-size:14px;margin-top:3px}
+.ch-complete{margin-top:16px}.ch-complete b{color:var(--gold-2)}.ch-complete p{color:var(--muted);margin:5px 0 14px}
+.qcard{border-radius:10px}.qcard h3{line-height:1.6}.qopt{border-radius:8px;line-height:1.55;padding:12px 14px}.qopt:focus-visible{outline:3px solid var(--gold-2);outline-offset:2px}
+@media(max-width:640px){.ch-wrap{padding:16px 12px 32px}.ch-complete .btn{width:100%}table.doc{font-size:12px}table.doc th,table.doc td{padding:5px 3px}}

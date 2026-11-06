@@ -1,5 +1,5 @@
 /* =========================================================
-   report — รายงานสอบสวนโรค, การให้คะแนน, ตอนจบ, หน้าผลลัพธ์
+   report  รายงานสอบสวนโรค, การให้คะแนน, ตอนจบ, หน้าผลลัพธ์
    ========================================================= */
 OD.report = (function(){
   const U = OD.u, M = OD.sim;
@@ -15,13 +15,15 @@ OD.report = (function(){
     ['comm','สื่อสารความเสี่ยงต่อชุมชนอย่างโปร่งใสและสม่ำเสมอ'], ['surv','เฝ้าระวังผู้ป่วยต่อเนื่องอย่างน้อยสองเท่าของระยะฟักตัวสูงสุดหลังผู้ป่วยรายสุดท้าย'], ['spray','ฉีดพ่นยากำจัดยุงทั่วตำบล'],
     ['abx','แจกยาปฏิชีวนะป้องกันให้ประชาชนทุกคน'], ['ban','ปิดตลาดสดและห้ามจัดงานบุญทั้งตำบล ๑ เดือน'],
   ];
-  /* มาตรการหลักที่ต้องมี — ขึ้นกับต้นตอจริง และเพิ่ม "ล้างมือ" ถ้ามีการแพร่คนสู่คน */
+  /* มาตรการหลักที่ต้องมี  ขึ้นกับต้นตอจริง และเพิ่ม "ล้างมือ" ถ้ามีการแพร่คนสู่คน */
   function essential(W){
     const s = W.scn, b = {WELL:['close','chlor'], REST:['close','sanit'], ICE:['close','recall'], FARM:['close','vegrecall'], EVENT:['leftover','sanit'],
       SCHOOL:{handler:['handler','hygiene'], food:['close','sanit'], tank:['close','chlor']}[s.sub]}[s.type];
     return truth(W).p2p==='yes' && !b.includes('hygiene') ? b.concat('hygiene') : b;
   }
   const BAD = ['spray','abx','ban'];
+  const GRADES = [{rank:'F',min:0,max:299},{rank:'D',min:300,max:449},{rank:'C',min:450,max:599},{rank:'B',min:600,max:749},{rank:'A',min:750,max:879},{rank:'S',min:880,max:1000}];
+  const gradeFor = (total, badDec) => total>=880 && !badDec ? 'S' : total>=750 ? 'A' : total>=600 ? 'B' : total>=450 ? 'C' : total>=300 ? 'D' : 'F';
   const LIMITS = [
     ['recall','อคติจากการระลึกความจำของผู้ตอบแบบสอบถาม', true], ['under','ผู้ป่วยอาการน้อยอาจไม่ถูกรายงานหรือค้นพบครบ', true],
     ['labsens','ความไวของการตรวจทางห้องปฏิบัติการไม่ถึง ๑๐๐% ผลลบจึงไม่ได้ตัดแหล่งนั้นออก', true], ['small','ขนาดตัวอย่างน้อย ช่วงความเชื่อมั่นจึงกว้าง', true],
@@ -31,7 +33,7 @@ OD.report = (function(){
     ['aiproof','ระบบ AI ของจังหวัดยืนยันต้นตอแล้ว จึงไม่ต้องอาศัยหลักฐานด้านอื่น', false],
   ];
 
-  /* ความจริงของคดี — คำนวณจากการระบาดที่เกิดขึ้นจริง ไม่ผูกกับประเภทต้นตอ */
+  /* ความจริงของคดี  คำนวณจากการระบาดที่เกิดขึ้นจริง ไม่ผูกกับประเภทต้นตอ */
   function truth(W){
     const s = W.scn, cs = W.people.filter(p=>p.inf!==null && p.onset<=M.HORIZON);
     const secShare = cs.filter(p=>p.cause==='sec').length / Math.max(1, cs.length), p2p = secShare>=.15 ? 'yes' : 'no';
@@ -97,10 +99,10 @@ OD.report = (function(){
           <div class="paper rep">
             <div style="text-align:center"><b style="font-size:19px">รายงานการสอบสวนโรคอุจจาระร่วงเฉียบพลัน ตำบลบ้านสุขใจ</b><div class="muted">ผู้รายงาน: ${U.esc(S.name)} · ทีม HDS · ${M.fmtT(S.T)}</div></div>
             <div class="orn-divider"></div>
-            <div class="note"><b>สรุปผู้ป่วยตามนิยาม:</b> ${recsAll.length} ราย — ผู้ป่วยยืนยัน ${nConf} ราย · ผู้ป่วยสงสัย ${recsAll.length-nConf} ราย${S.acfAt!=null?` · พบจากการค้นหาเชิงรุก ${M.hiddenFound(W,S)} ราย`:' · <span style="color:#9a2816">ยังไม่ได้ค้นหาผู้ป่วยเชิงรุก</span>'} · ทำตามขั้นตอนแล้ว ${U.thaiNum(OD.checklist.progress(W,S))}/๑๐</div>
+            <div class="note"><b>สรุปผู้ป่วยตามนิยาม:</b> ${recsAll.length} ราย  ผู้ป่วยยืนยัน ${nConf} ราย · ผู้ป่วยสงสัย ${recsAll.length-nConf} ราย${S.acfAt!=null?` · พบจากการค้นหาเชิงรุก ${M.hiddenFound(W,S)} ราย`:' · <span style="color:#9a2816">ยังไม่ได้ค้นหาผู้ป่วยเชิงรุก</span>'} · ทำตามขั้นตอนแล้ว ${U.thaiNum(OD.checklist.progress(W,S))}/๑๐</div>
             <div class="rep-sec"><h3><span class="n">๑.</span> แหล่งโรค</h3><div class="ropts">${sites.map(id=>radio('site',id,`${M.SITES[id].icon} ${nm(id)}`)).join('')}</div></div>
             <div class="rep-sec"><h3><span class="n">๒.</span> ช่องทางการแพร่หลัก</h3><div class="ropts">${ROUTES.map(([k,t])=>radio('route',k,t)).join('')}</div></div>
-            <div class="rep-sec"><h3><span class="n">๓.</span> มีการแพร่ต่อแบบคนสู่คนในครัวเรือนอย่างชัดเจนหรือไม่</h3><div class="ropts">${radio('p2p','yes','มี — ผู้ป่วยระลอกหลังเป็นคนในบ้านเดียวกับผู้ป่วยรายแรก')}${radio('p2p','no','ไม่เด่นชัด')}</div></div>
+            <div class="rep-sec"><h3><span class="n">๓.</span> มีการแพร่ต่อแบบคนสู่คนในครัวเรือนอย่างชัดเจนหรือไม่</h3><div class="ropts">${radio('p2p','yes','มี  ผู้ป่วยระลอกหลังเป็นคนในบ้านเดียวกับผู้ป่วยรายแรก')}${radio('p2p','no','ไม่เด่นชัด')}</div></div>
             <div class="rep-sec"><h3><span class="n">๔.</span> เชื้อก่อโรคที่น่าจะเป็น</h3><div class="ropts">${Object.entries(M.PATHOGENS).map(([k,p])=>radio('path',k,p.name)).join('')}</div></div>
             <div class="rep-sec"><h3><span class="n">๕.</span> รูปแบบการระบาด</h3><div class="ropts">${PATTERNS.map(([k,t])=>radio('pattern',k,t)).join('')}</div></div>
             <div class="rep-sec"><h3><span class="n">๖.</span> หลักฐานสนับสนุน <span class="muted" style="font-size:13px;font-weight:400">— หลักฐานที่ปักไว้กับแหล่งโรคในข้อ ๑ บนกระดานสืบสวน</span></h3>
@@ -189,38 +191,38 @@ OD.report = (function(){
     const total = Object.values(C).reduce((a,b)=>a+b,0);
     const badDec = decs.some(d=>d.verdict==='bad');
     // ระดับ S ต้องไม่มีการตัดสินใจที่ผิดร้ายแรงในเหตุการณ์ใดเลย
-    const rank = total>=880 && !badDec ? 'S' : total>=750 ? 'A' : total>=600 ? 'B' : total>=450 ? 'C' : 'D';
-    const title = {S:'ปรมาจารย์นักสืบโรคระบาด', A:'นักวิทยาศาสตร์ข้อมูลสุขภาพมือฉมัง', B:'นักสอบสวนโรคฝีมือดี', C:'นักสืบฝึกหัด', D:'ต้องฝึกฝนอีกมาก'}[rank];
+    const rank = gradeFor(total, badDec);
+    const title = {S:'ปรมาจารย์นักสืบโรคระบาด', A:'นักวิทยาศาสตร์ข้อมูลสุขภาพมือฉมัง', B:'นักสอบสวนโรคฝีมือดี', C:'นักสืบฝึกหัด', D:'ค่อย ๆ ฝึกไปด้วยกัน', F:'เริ่มต้นเรียนรู้การสอบสวน'}[rank];
     // บทเรียน
     const L = [];
     if(sel.site!==T.site){
-      if(s.type==='ICE' && s.iceVenues.includes(sel.site)) L.push(`${nm(sel.site)}เป็นเพียง “ทางผ่าน” — ต้นตอจริงคือ${nm('F1')}ที่ส่งน้ำแข็งให้หลายร้านพร้อมกัน ข้อ “ดื่มเครื่องดื่มใส่น้ำแข็งนอกบ้าน” และห่วงโซ่อุปทานคือกุญแจ`);
-      else if(s.type==='FARM' && s.vegVenues.includes(sel.site)) L.push(`${nm(sel.site)}เป็นเพียง “ทางผ่าน” — ต้นตอจริงคือ${nm('F3')}ที่ส่งผักสดให้หลายแห่ง ข้อ “กินผักสด” และห่วงโซ่อุปทานคือกุญแจ`);
-      else if(s.confound && sel.site===s.confound) L.push(`${nm(sel.site)}มี OR สูงเพราะเป็น “ตัวแปรกวน” — คนหมู่บ้านเดียวกับผู้ใช้${nm(s.culprit)}นิยมกินร้านนี้ เมื่อแยกวิเคราะห์ตามหมู่บ้าน (Mantel–Haenszel) OR จะลดลงใกล้ 1`);
-      else L.push(`ต้นตอที่แท้จริงคือ ${nm(T.site)} — ลองดูว่าปัจจัยใดมี OR สูงสุดและ CI ไม่คร่อม 1 แล้วยืนยันด้วยการตรวจสิ่งแวดล้อมหรือแล็บ`);
+      if(s.type==='ICE' && s.iceVenues.includes(sel.site)) L.push(`${nm(sel.site)}เป็นเพียง “ทางผ่าน”  ต้นตอจริงคือ${nm('F1')}ที่ส่งน้ำแข็งให้หลายร้านพร้อมกัน ข้อ “ดื่มเครื่องดื่มใส่น้ำแข็งนอกบ้าน” และห่วงโซ่อุปทานคือกุญแจ`);
+      else if(s.type==='FARM' && s.vegVenues.includes(sel.site)) L.push(`${nm(sel.site)}เป็นเพียง “ทางผ่าน”  ต้นตอจริงคือ${nm('F3')}ที่ส่งผักสดให้หลายแห่ง ข้อ “กินผักสด” และห่วงโซ่อุปทานคือกุญแจ`);
+      else if(s.confound && sel.site===s.confound) L.push(`${nm(sel.site)}มี OR สูงเพราะเป็น “ตัวแปรกวน”  คนหมู่บ้านเดียวกับผู้ใช้${nm(s.culprit)}นิยมกินร้านนี้ เมื่อแยกวิเคราะห์ตามหมู่บ้าน (Mantel–Haenszel) OR จะลดลงใกล้ 1`);
+      else L.push(`ต้นตอที่แท้จริงคือ ${nm(T.site)}  เปรียบเทียบ OR และช่วงความเชื่อมั่นร่วมกับการตรวจสิ่งแวดล้อมและผลแล็บ โดยพิจารณาตัวแปรกวนด้วย`);
     }
-    if(!S.controls.length) L.push('ไม่ได้เก็บกลุ่มควบคุม จึงไม่มีตัวเปรียบเทียบ — สัดส่วนการสัมผัสในผู้ป่วยอย่างเดียวบอกความเสี่ยงไม่ได้');
+    if(!S.controls.length) L.push('ไม่ได้เก็บกลุ่มควบคุม จึงไม่มีตัวเปรียบเทียบ  สัดส่วนการสัมผัสในผู้ป่วยอย่างเดียวบอกความเสี่ยงไม่ได้');
     if(picked.some(e=>e.rel==='mis')) L.push('หลักฐานบางข้อที่เลือกชี้ผิดทาง เช่น ปัจจัยที่สูงเพราะบังเอิญหรือเป็นตัวแปรกวน หรือสัดส่วนในผู้ป่วยที่ไม่มีกลุ่มเปรียบเทียบ');
-    if(sel.path!==T.pathogen) L.push(`เชื้อที่ถูกต้องคือ ${M.PATHOGENS[T.pathogen].name} — ผลตรวจอุจจาระ อาการเด่น และระยะฟักตัวช่วยอนุมานได้`);
-    if(sel.pattern!==T.pattern) L.push(`รูปแบบการระบาดที่ถูกต้องคือ “${PATTERNS.find(p=>p[0]===T.pattern)[1]}” — อ่านได้จากรูปร่างเส้นโค้งการระบาด`);
-    if(sel.p2p!==T.p2p) L.push(T.p2p==='yes' ? 'มีการแพร่ต่อในครัวเรือนชัดเจน (ดูปัจจัย “มีคนในบ้านป่วยก่อนหน้า” และผู้ใหญ่ที่ป่วยตามหลังเด็ก) — จึงต้องรณรงค์ล้างมือร่วมด้วย' : 'การแพร่คนสู่คนไม่ได้เด่นในครั้งนี้ ผู้ป่วยส่วนใหญ่ติดจากแหล่งโรคโดยตรง');
+    if(sel.path!==T.pathogen) L.push(`เชื้อที่ถูกต้องคือ ${M.PATHOGENS[T.pathogen].name}  ผลตรวจอุจจาระ อาการเด่น และระยะฟักตัวช่วยอนุมานได้`);
+    if(sel.pattern!==T.pattern) L.push(`รูปแบบการระบาดที่ถูกต้องคือ “${PATTERNS.find(p=>p[0]===T.pattern)[1]}”  อ่านได้จากรูปร่างเส้นโค้งการระบาด`);
+    if(sel.p2p!==T.p2p) L.push(T.p2p==='yes' ? 'มีการแพร่ต่อในครัวเรือนชัดเจน (ดูปัจจัย “มีคนในบ้านป่วยก่อนหน้า” และผู้ใหญ่ที่ป่วยตามหลังเด็ก)  จึงต้องรณรงค์ล้างมือร่วมด้วย' : 'การแพร่คนสู่คนไม่ได้เด่นในครั้งนี้ ผู้ป่วยส่วนใหญ่ติดจากแหล่งโรคโดยตรง');
     const missE = ess.filter(k=>!sel.meas.has(k)); if(missE.length) L.push('มาตรการสำคัญที่ขาดไป: ' + missE.map(k=>MEAS.find(m=>m[0]===k)[1]).join(' · '));
     if(BAD.some(k=>sel.meas.has(k))) L.push('บางมาตรการไม่เหมาะสม เช่น ฉีดพ่นยุง (ไม่เกี่ยวกับโรคทางเดินอาหาร) หรือแจกยาปฏิชีวนะทุกคน (ทำให้เชื้อดื้อยา)');
-    if(wrongClosed.length) L.push(`ปิดแหล่งที่ไม่ใช่ต้นตอ ${wrongClosed.length} แห่ง (${wrongClosed.map(nm).join(', ')}) — ผู้ประกอบการเสียหายและความเชื่อมั่นของชุมชนลดลง`);
+    if(wrongClosed.length) L.push(`ปิดแหล่งที่ไม่ใช่ต้นตอ ${wrongClosed.length} แห่ง (${wrongClosed.map(nm).join(', ')})  ผู้ประกอบการเสียหายและความเชื่อมั่นของชุมชนลดลง`);
     if(S.clean.dupKept.size || S.clean.lost.size || S.clean.phantom.size) L.push('ข้อมูลจากบทที่ ๒ ยังมีปัญหา (นับซ้ำ/ลบผู้ป่วยจริง/รวมผู้ที่ไม่เข้านิยาม) ทำให้ผลวิเคราะห์คลาดเคลื่อน');
-    if(P.kit<15) L.push('เตรียมอุปกรณ์ไม่ครบหรือหยิบของที่ไม่ควรใช้ — อุปกรณ์เก็บตัวอย่างที่ถูกต้องคือเงื่อนไขให้ผลแล็บเชื่อถือได้ (ดูคู่มือบทห้องปฏิบัติการ)');
-    if(!P.verify) L.push('ข้ามขั้นตอนยืนยันการวินิจฉัย — ควรทบทวนเวชระเบียนหรือตรวจอุจจาระผู้ป่วยบางรายก่อนสรุปว่าเป็นโรคเดียวกัน');
-    if(!P.acf) L.push(`ไม่ได้ค้นหาผู้ป่วยเชิงรุก — มีผู้ป่วยอาการน้อยที่ไม่ไปสถานพยาบาลราว ๑ ใน ๓ ซึ่งไม่อยู่ในข้อมูลของคุณเลย`);
-    if(!S.hyp.some(x=>rk.includes(x))) L.push('สมมติฐานที่ตั้งไว้ไม่ครอบคลุมแหล่งโรคจริง — ใช้ข้อมูลเชิงพรรณนา (เวลา–สถานที่–บุคคล) ช่วยตั้งสมมติฐานให้ตรงจุด');
-    if(S.flags.dehyd && S.flags.dehyd!=='good') L.push('ผู้ป่วยซึม ตาลึก ดื่มไม่ได้ คือภาวะขาดน้ำรุนแรง ต้องส่งต่อให้สารน้ำทางหลอดเลือด — ไม่ใช้ยาหยุดถ่ายและไม่ให้ยาปฏิชีวนะเป็นประจำ');
-    if(lim.some(l=>l[0]==='aiproof')) L.push('ผลของ AI เป็นเพียงเครื่องมือช่วยตั้งสมมติฐาน — ข้อสรุปต้องมาจากหลักฐานที่ตรวจสอบได้ (สถิติ สิ่งแวดล้อม แล็บ)');
+    if(P.kit<15) L.push('เตรียมอุปกรณ์ไม่ครบหรือหยิบของที่ไม่ควรใช้  อุปกรณ์เก็บตัวอย่างที่ถูกต้องคือเงื่อนไขให้ผลแล็บเชื่อถือได้ (ดูคู่มือบทห้องปฏิบัติการ)');
+    if(!P.verify) L.push('ข้ามขั้นตอนยืนยันการวินิจฉัย  ควรทบทวนเวชระเบียนหรือตรวจอุจจาระผู้ป่วยบางรายก่อนสรุปว่าเป็นโรคเดียวกัน');
+    if(!P.acf) L.push(`ไม่ได้ค้นหาผู้ป่วยเชิงรุก  มีผู้ป่วยอาการน้อยที่ไม่ไปสถานพยาบาลราว ๑ ใน ๓ ซึ่งไม่อยู่ในข้อมูลของคุณเลย`);
+    if(!S.hyp.some(x=>rk.includes(x))) L.push('สมมติฐานที่ตั้งไว้ไม่ครอบคลุมแหล่งโรคจริง  ใช้ข้อมูลเชิงพรรณนา (เวลา–สถานที่–บุคคล) ช่วยตั้งสมมติฐานให้ตรงจุด');
+    if(S.flags.dehyd && S.flags.dehyd!=='good') L.push('ผู้ป่วยซึม ตาลึก ดื่มไม่ได้ คือภาวะขาดน้ำรุนแรง ต้องส่งต่อให้สารน้ำทางหลอดเลือด  ไม่ใช้ยาหยุดถ่ายและไม่ให้ยาปฏิชีวนะเป็นประจำ');
+    if(lim.some(l=>l[0]==='aiproof')) L.push('ผลของ AI เป็นเพียงเครื่องมือช่วยตั้งสมมติฐาน  ข้อสรุปต้องมาจากหลักฐานที่ตรวจสอบได้ (สถิติ สิ่งแวดล้อม แล็บ)');
     else if(lim.some(l=>!l[2])) L.push('ไม่มีการศึกษาใดไร้ข้อจำกัด และการศึกษาแบบ case-control ไม่ได้พิสูจน์ความเป็นเหตุเป็นผลได้ ๑๐๐%');
     else if(lim.length<2) L.push('ควรระบุข้อจำกัดของการสอบสวน เช่น อคติจากการระลึก การรายงานไม่ครบ และความไวของการตรวจทางห้องปฏิบัติการ');
-    if(!L.length) L.push('ยอดเยี่ยม — ตัดสินใจได้ถูกต้องครบถ้วนด้วยหลักฐานหลายด้าน');
+    if(!L.length) L.push('ยอดเยี่ยม  ตัดสินใจได้ถูกต้องครบถ้วนด้วยหลักฐานหลายด้าน');
     return {C, total, rank, title, oc, T, L, correctSource: sel.site===T.site, wrongClosed, Tr, tri, badDec, picked};
   }
 
-  /* ---------- สรุปสิ่งที่พลาด (debrief) — ๖ ด้าน ---------- */
+  /* ---------- สรุปสิ่งที่พลาด (debrief)  ๖ ด้าน ---------- */
   function debrief(W,S,R,sel,evs,links){
     const s = W.scn, T = R.T, G = [], th = U.thaiNum, src = s.culprit;
     const lab = (arr,k) => (arr.find(x=>x[0]===k)||[0,'—'])[1];
@@ -230,19 +232,19 @@ OD.report = (function(){
 
     // ๑ รายงาน
     const rep = [];
-    if(sel.site!==T.site) rep.push(`<b>แหล่งโรค</b> — คุณตอบ “${nm(sel.site)}” ที่ถูกคือ “${nm(T.site)}”${s.type==='ICE'&&s.iceVenues.includes(sel.site)?' (ร้านที่คุณเลือกเป็นแค่ทางผ่านของน้ำแข็ง)':''}`);
-    if(sel.route!==T.route) rep.push(`<b>ช่องทางการแพร่</b> — คุณตอบ “${lab(ROUTES,sel.route)}” ที่ถูกคือ “${lab(ROUTES,T.route)}”`);
-    if(sel.path!==T.pathogen) rep.push(`<b>เชื้อก่อโรค</b> — คุณตอบ ${M.PATHOGENS[sel.path].name} ที่ถูกคือ ${M.PATHOGENS[T.pathogen].name}${S.labs.some(l=>l.kind==='stool')?'':' (ไม่ได้ส่งตรวจอุจจาระผู้ป่วยเลย)'}`);
-    if(sel.p2p!==T.p2p) rep.push(`<b>การแพร่คนสู่คน</b> — ที่ถูกคือ “${T.p2p==='yes'?'มีชัดเจน':'ไม่เด่นชัด'}” (ผู้ป่วยติดจากคนในบ้าน ${U.pct(T.secShare)})`);
-    if(sel.pattern!==T.pattern) rep.push(`<b>รูปแบบการระบาด</b> — คุณตอบ “${lab(PATTERNS,sel.pattern)}” ที่ถูกคือ “${lab(PATTERNS,T.pattern)}”`);
+    if(sel.site!==T.site) rep.push(`<b>แหล่งโรค</b>  คุณตอบ “${nm(sel.site)}” ที่ถูกคือ “${nm(T.site)}”${s.type==='ICE'&&s.iceVenues.includes(sel.site)?' (ร้านที่คุณเลือกเป็นแค่ทางผ่านของน้ำแข็ง)':''}`);
+    if(sel.route!==T.route) rep.push(`<b>ช่องทางการแพร่</b>  คุณตอบ “${lab(ROUTES,sel.route)}” ที่ถูกคือ “${lab(ROUTES,T.route)}”`);
+    if(sel.path!==T.pathogen) rep.push(`<b>เชื้อก่อโรค</b>  คุณตอบ ${M.PATHOGENS[sel.path].name} ที่ถูกคือ ${M.PATHOGENS[T.pathogen].name}${S.labs.some(l=>l.kind==='stool')?'':' (ไม่ได้ส่งตรวจอุจจาระผู้ป่วยเลย)'}`);
+    if(sel.p2p!==T.p2p) rep.push(`<b>การแพร่คนสู่คน</b>  ที่ถูกคือ “${T.p2p==='yes'?'มีชัดเจน':'ไม่เด่นชัด'}” (ผู้ป่วยติดจากคนในบ้าน ${U.pct(T.secShare)})`);
+    if(sel.pattern!==T.pattern) rep.push(`<b>รูปแบบการระบาด</b>  คุณตอบ “${lab(PATTERNS,sel.pattern)}” ที่ถูกคือ “${lab(PATTERNS,T.pattern)}”`);
     const picked = R.picked;
     const misE = picked.filter(e=>e.rel==='mis'), noneE = picked.filter(e=>e.rel==='none');
-    if(misE.length) rep.push(`<b>ปักหลักฐานที่ชี้ผิดทาง ${th(misE.length)} ข้อ</b>: ${misE.map(e=>`“${short(e.text)}”`).join(' · ')} — ปัจจัยที่สูงเพราะบังเอิญ ตัวแปรกวน ข่าวลือ หรือหลักฐานที่พูดถึงสถานที่อื่น ไม่ควรใช้สนับสนุนข้อสรุป`);
+    if(misE.length) rep.push(`<b>ปักหลักฐานที่ชี้ผิดทาง ${th(misE.length)} ข้อ</b>: ${misE.map(e=>`“${short(e.text)}”`).join(' · ')}  ปัจจัยที่สูงเพราะบังเอิญ ตัวแปรกวน ข่าวลือ หรือหลักฐานที่พูดถึงสถานที่อื่น ไม่ควรใช้สนับสนุนข้อสรุป`);
     if(noneE.length) rep.push(`<b>ปักหลักฐานที่ไม่เกี่ยวกับข้อสรุป ${th(noneE.length)} ข้อ</b>: ${noneE.map(e=>`“${short(e.text)}”`).join(' · ')}`);
     const missStrong = evs.filter(e=>e.rel==='strong' && links.get(e.id)!==T.site);
     if(missStrong.length) rep.push(`<b>มีหลักฐานสำคัญแต่ไม่ได้ปักกับต้นตอจริง ${th(missStrong.length)} ข้อ</b>: ${missStrong.map(e=>`“${short(e.text)}”`).join(' · ')}`);
-    if(sel.site===T.site && !R.tri) rep.push('<b>หลักฐานยังไม่ครบ ๓ ด้าน</b> — แหล่งโรคที่หนักแน่นควรมีทั้ง 📊 สถิติ (OR) · 🔎 สิ่งแวดล้อม · 🧪 ห้องปฏิบัติการ');
-    if(s.confound && links.get('or-'+s.confound)) rep.push(`<b>OR ของ${nm(s.confound)}เป็นตัวแปรกวน</b> — คนหมู่บ้านเดียวกับผู้ใช้${nm(s.culprit)}นิยมกินร้านนี้ ลองแตะแถวในตาราง OR เพื่อแยกวิเคราะห์ตามหมู่บ้าน`);
+    if(sel.site===T.site && !R.tri) rep.push('<b>หลักฐานยังไม่ครบ ๓ ด้าน</b>  แหล่งโรคที่หนักแน่นควรมีทั้ง 📊 สถิติ (OR) · 🔎 สิ่งแวดล้อม · 🧪 ห้องปฏิบัติการ');
+    if(s.confound && links.get('or-'+s.confound)) rep.push(`<b>OR ของ${nm(s.confound)}เป็นตัวแปรกวน</b>  คนหมู่บ้านเดียวกับผู้ใช้${nm(s.culprit)}นิยมกินร้านนี้ ลองแตะแถวในตาราง OR เพื่อแยกวิเคราะห์ตามหมู่บ้าน`);
     const missEss = essential(W).filter(k=>!sel.meas.has(k));
     if(missEss.length) rep.push(`<b>มาตรการสำคัญที่ขาด</b>: ${missEss.map(k=>lab(MEAS,k)).join(' · ')}`);
     const missGood = ['active','comm','surv'].filter(k=>!sel.meas.has(k));
@@ -251,66 +253,66 @@ OD.report = (function(){
     if(badM.length) rep.push(`<b>มาตรการที่ไม่ควรใช้</b>: ${badM.map(k=>lab(MEAS,k)).join(' · ')}`);
     const limBad = LIMITS.filter(l=>sel.lim.has(l[0]) && !l[2]), limOk = LIMITS.filter(l=>sel.lim.has(l[0]) && l[2]);
     if(limBad.length) rep.push(`<b>ข้อจำกัดที่ไม่ถูกต้อง</b>: ${limBad.map(l=>`“${l[1]}”`).join(' · ')}`);
-    else if(limOk.length<3) rep.push(`<b>ระบุข้อจำกัดน้อยไป</b> (${th(limOk.length)} ข้อ) — เช่น อคติจากการระลึก การรายงานไม่ครบ ความไวของแล็บ`);
+    else if(limOk.length<3) rep.push(`<b>ระบุข้อจำกัดน้อยไป</b> (${th(limOk.length)} ข้อ)  เช่น อคติจากการระลึก การรายงานไม่ครบ ความไวของแล็บ`);
     add('📝', 'รายงานสอบสวนโรค', rep, 'ตอบรายงานถูกครบทุกข้อ');
 
     // ๒ หลักฐาน
     const ev = [];
     if(S.flags.kitMiss && S.flags.kitMiss.length) ev.push(`<b>ลืมนำอุปกรณ์</b>: ${S.flags.kitMiss.map(kitName).join(' · ')}`);
     if(S.flags.kitBad && S.flags.kitBad.length) ev.push(`<b>หยิบของที่ไม่ควรนำไป</b>: ${S.flags.kitBad.map(kitName).join(' · ')}`);
-    if(!S.controls.length) ev.push('<b>ไม่ได้เก็บกลุ่มควบคุม</b> — ไม่มี Odds Ratio ยืนยันทางสถิติว่าสัมผัสอะไรแล้วเสี่ยง');
-    if(!S.hyp.some(x=>related(W).includes(x))) ev.push('<b>สมมติฐานไม่ครอบคลุมแหล่งโรคจริง</b> — ใช้ข้อมูลเวลา–สถานที่–บุคคลช่วยตั้งสมมติฐาน');
-    if((s.type==='ICE' || s.type==='FARM') && !S.supply && !S.known.has(src)) ev.push(`<b>ไม่ได้ขอข้อมูลห่วงโซ่อุปทาน</b> — ทางเดียวที่จะเห็นว่าหลายแห่งใช้${s.type==='ICE'?'น้ำแข็ง':'ผักสด'}จากแหล่งเดียวกัน`);
+    if(!S.controls.length) ev.push('<b>ไม่ได้เก็บกลุ่มควบคุม</b>  ไม่มี Odds Ratio ยืนยันทางสถิติว่าสัมผัสอะไรแล้วเสี่ยง');
+    if(!S.hyp.some(x=>related(W).includes(x))) ev.push('<b>สมมติฐานไม่ครอบคลุมแหล่งโรคจริง</b>  ใช้ข้อมูลเวลา–สถานที่–บุคคลช่วยตั้งสมมติฐาน');
+    if((s.type==='ICE' || s.type==='FARM') && !S.supply && !S.known.has(src)) ev.push(`<b>ไม่ได้ขอข้อมูลห่วงโซ่อุปทาน</b>  ทางเดียวที่จะเห็นว่าหลายแห่งใช้${s.type==='ICE'?'น้ำแข็ง':'ผักสด'}จากแหล่งเดียวกัน`);
     if(!S.inspected[src]) ev.push(`<b>ไม่ได้ตรวจสิ่งแวดล้อมที่${nm(src)}</b> ซึ่งเป็นต้นตอจริง`);
     const envSrc = S.labs.filter(l=>l.kind==='env' && l.site===src);
     const okTypes = M.rightSamples(s), rightType = okTypes && okTypes[0], typeName = {food:'ตัวอย่างอาหาร', swab:'swab มือแม่ครัว', water:'ตัวอย่างน้ำดื่ม', E_kj:'น้ำยาขนมจีน', E_lb:'ลาบหมู', E_ds:'ลอดช่อง'};
-    if(!envSrc.length) ev.push(`<b>ไม่ได้ส่งตัวอย่างจาก${nm(src)}ตรวจแล็บ</b>${s.type==='EVENT'?' — อาหารที่เหลือจากงานเก็บได้ถึง พฤ. ๒๖ พ.ย. ๑๔:๐๐ น. เท่านั้น ต้องรีบเก็บตั้งแต่วันแรก':''}`);
+    if(!envSrc.length) ev.push(`<b>ไม่ได้ส่งตัวอย่างจาก${nm(src)}ตรวจแล็บ</b>${s.type==='EVENT'?'  อาหารที่เหลือจากงานเก็บได้ถึง พฤ. ๒๖ พ.ย. ๑๔:๐๐ น. เท่านั้น ต้องรีบเก็บตั้งแต่วันแรก':''}`);
     else if(envSrc.every(l=>!l.pos)) ev.push(okTypes && envSrc.every(l=>!okTypes.includes(l.type))
-      ? `<b>ส่งตัวอย่างผิดชนิด</b> — จาก${nm(src)}ควรส่ง${typeName[rightType]}`
-      : `<b>ตัวอย่างจาก${nm(src)}ให้ผลลบเทียม</b> — ความไวของการตรวจไม่ถึง ๑๐๐%${S.flags.kitMiss&&S.flags.kitMiss.some(k=>['cold','bottle'].includes(k))?' (และไม่ได้นำอุปกรณ์เก็บตัวอย่างที่ถูกต้องมา)':''} ควรส่งซ้ำหรือใช้หลักฐานด้านอื่นประกอบ`);
-    if(!S.labs.some(l=>l.kind==='stool')) ev.push('<b>ไม่ได้ส่งตรวจอุจจาระผู้ป่วย</b> — จึงไม่มีผู้ป่วยยืนยัน และไม่รู้เชื้อแน่ชัด');
-    if(S.acfAt==null) ev.push('<b>ไม่ได้ค้นหาผู้ป่วยเชิงรุก</b> — พลาดผู้ป่วยอาการน้อยที่ไม่ไปโรงพยาบาลราว ๑ ใน ๓');
+      ? `<b>ส่งตัวอย่างผิดชนิด</b>  จาก${nm(src)}ควรส่ง${typeName[rightType]}`
+      : `<b>ตัวอย่างจาก${nm(src)}ให้ผลลบเทียม</b>  ความไวของการตรวจไม่ถึง ๑๐๐%${S.flags.kitMiss&&S.flags.kitMiss.some(k=>['cold','bottle'].includes(k))?' (และไม่ได้นำอุปกรณ์เก็บตัวอย่างที่ถูกต้องมา)':''} ควรส่งซ้ำหรือใช้หลักฐานด้านอื่นประกอบ`);
+    if(!S.labs.some(l=>l.kind==='stool')) ev.push('<b>ไม่ได้ส่งตรวจอุจจาระผู้ป่วย</b>  จึงไม่มีผู้ป่วยยืนยัน และไม่รู้เชื้อแน่ชัด');
+    if(S.acfAt==null) ev.push('<b>ไม่ได้ค้นหาผู้ป่วยเชิงรุก</b>  พลาดผู้ป่วยอาการน้อยที่ไม่ไปโรงพยาบาลราว ๑ ใน ๓');
     add('🔎', 'การเก็บหลักฐาน', ev, 'เก็บหลักฐานครบทั้งสถิติ สิ่งแวดล้อม และห้องปฏิบัติการ');
 
     // ๓ ขั้นตอน
-    add('✅', 'ขั้นตอนการสอบสวน ๑๐ ขั้น', OD.checklist.STEPS.filter(x=>!x.done(W,S)).map(x=>`<b>ขั้นที่ ${th(x.n)} ${x.t}</b> — ${x.how}`), 'ทำครบทั้ง ๑๐ ขั้นตอน');
+    add('✅', 'ขั้นตอนการสอบสวน ๑๐ ขั้น', OD.checklist.STEPS.filter(x=>!x.done(W,S)).map(x=>`<b>ขั้นที่ ${th(x.n)} ${x.t}</b>  ${x.how}`), 'ทำครบทั้ง ๑๐ ขั้นตอน');
 
     // ๔ การตัดสินใจระหว่างเหตุการณ์
     const decs = S.decisions.map(d=>OD.story.resolve(W,S,d));
     add('🎭', 'การตัดสินใจระหว่างเหตุการณ์', decs.filter(d=>d.verdict==='bad'||d.verdict==='mixed')
-      .map(d=>`${d.verdict==='bad'?'❌':'⚠️'} <b>${d.title}</b> — คุณเลือก “${d.choice}”: ${d.why}`), 'ตัดสินใจได้เหมาะสมทุกเหตุการณ์');
+      .map(d=>`${d.verdict==='bad'?'❌':'⚠️'} <b>${d.title}</b>  คุณเลือก “${d.choice}”: ${d.why}`), 'ตัดสินใจได้เหมาะสมทุกเหตุการณ์');
 
     // ๕ ข้อมูล
-    const dm = S.mistakes.map(m=>`<b>${m.area==='ch1'?'บทที่ ๑':'บทที่ ๒'} · ${short(m.title)}</b> — คุณเลือก “${short(m.chosen)}” ที่เหมาะสมคือ “${short(m.correct)}”`);
-    if(S.flags.quick) dm.unshift({tip:true, t:'<b>ข้ามบทที่ ๑–๒</b> (ลงพื้นที่ทันที) — ลองเล่นแบบ “เริ่มเรื่อง” เพื่อฝึกยืนยันการระบาดด้วยค่ามัธยฐาน และการทำความสะอาดข้อมูล'});
+    const dm = S.mistakes.map(m=>`<b>${m.area==='ch1'?'บทที่ ๑':'บทที่ ๒'} · ${short(m.title)}</b>  คุณเลือก “${short(m.chosen)}” ที่เหมาะสมคือ “${short(m.correct)}”`);
+    if(S.flags.quick) dm.unshift({tip:true, t:'<b>ข้ามบทที่ ๑–๒</b> (ลงพื้นที่ทันที)  ลองเล่นแบบ “เริ่มเรื่อง” เพื่อฝึกยืนยันการระบาดด้วยค่ามัธยฐาน และการทำความสะอาดข้อมูล'});
     add('🧹', 'ข้อมูล (บทที่ ๑–๒)', dm, 'ยืนยันการระบาดและทำความสะอาดข้อมูลได้ถูกต้อง');
 
     // ๖ เวลาและผลกระทบ
     const im = [], fest = OD.story.festCases(W,S), extra = R.oc.actual - R.oc.best;
     // ควบคุมได้เร็วพอแล้ว (คะแนนความรวดเร็ว ≥ ๗๕%) → เป็นข้อสังเกต ไม่นับว่าพลาด
-    if(s.type!=='EVENT' && extra>0){ const t = `<b>ผู้ป่วยทั้งหมด ${R.oc.actual} ราย</b> — ถ้าปิดแหล่งโรคตั้งแต่เช้าวันแรกที่ลงพื้นที่ จะเหลือประมาณ ${R.oc.best} ราย (ป้องกันเพิ่มได้อีก ${extra} ราย)`;
+    if(s.type!=='EVENT' && extra>0){ const t = `<b>ผู้ป่วยทั้งหมด ${R.oc.actual} ราย</b>  ถ้าปิดแหล่งโรคตั้งแต่เช้าวันแรกที่ลงพื้นที่ จะเหลือประมาณ ${R.oc.best} ราย (ป้องกันเพิ่มได้อีก ${extra} ราย)`;
       im.push(R.C.time >= 130*.75 ? {tip:true, t} : t); }
-    if(fest && S.flags.festival!=='safe') im.push(`<b>${M.FEST.short}ทำให้เกิดผู้ป่วยระลอกใหม่ ${fest} ราย</b> — แหล่งโรคเดิมยังไม่ถูกควบคุมในวันงาน และไม่มีมาตรการสุขาภิบาลอาหารในงาน`);
+    if(fest && S.flags.festival!=='safe') im.push(`<b>${M.FEST.short}ทำให้เกิดผู้ป่วยระลอกใหม่ ${fest} ราย</b>  แหล่งโรคเดิมยังไม่ถูกควบคุมในวันงาน และไม่มีมาตรการสุขาภิบาลอาหารในงาน`);
     if(R.wrongClosed.length) im.push(`<b>ปิดแหล่งที่ไม่ใช่ต้นตอ ${R.wrongClosed.length} แห่ง</b>: ${R.wrongClosed.map(id=>nm(id)+(M.wasReopened(S,id)?' (เปิดคืนภายหลัง)':'')).join(', ')}`);
-    if(S.reopened[src]!=null) im.push(`<b>ยอมเปิด${nm(src)}คืนก่อนแก้ไข</b> — เชื้อกลับมาแพร่ต่อ`);
+    if(S.reopened[src]!=null) im.push(`<b>ยอมเปิด${nm(src)}คืนก่อนแก้ไข</b>  เชื้อกลับมาแพร่ต่อ`);
     if(T.p2p==='yes' && S.hygieneAt==null) im.push('<b>ไม่ได้รณรงค์ล้างมือ</b> ทั้งที่มีการแพร่คนสู่คนในครัวเรือนชัดเจน');
-    if(S.flags.timeout) im.push('<b>ส่งรายงานไม่ทันเส้นตาย</b> — ทีมส่วนกลางต้องเข้ามารับช่วง');
-    if(S.trust<40) im.push(`<b>ความเชื่อมั่นชุมชนเหลือ ${Math.round(S.trust)}</b> — ชาวบ้านตอบแบบสอบถามคลาดเคลื่อนมากขึ้น`);
+    if(S.flags.timeout) im.push('<b>ส่งรายงานไม่ทันเส้นตาย</b>  ทีมส่วนกลางต้องเข้ามารับช่วง');
+    if(S.trust<40) im.push(`<b>ความเชื่อมั่นชุมชนเหลือ ${Math.round(S.trust)}</b>  ชาวบ้านตอบแบบสอบถามคลาดเคลื่อนมากขึ้น`);
     add('⏱️', 'เวลาและผลกระทบต่อชุมชน', im, 'ควบคุมการระบาดได้ทันเวลา ชุมชนยังเชื่อมั่นในทีม');
 
-    // ๗ เครื่องมือ HDS — เป็นข้อแนะนำ (💡) ไม่นับเป็นจุดพลาด
+    // ๗ เครื่องมือ HDS  เป็นข้อแนะนำ (💡) ไม่นับเป็นจุดพลาด
     const f = S.flags, hds = [], tip = t => hds.push({tip:true, t});
-    if(!f.vML) tip('<b>ยังไม่ได้ใช้แท็บ 🤖 ML</b> — logistic regression ให้ OR ที่ปรับตัวแปรอื่นแล้ว (แยกตัวแปรกวนได้หลายตัวพร้อมกัน) และ decision tree ช่วยหาคำถามที่แยกผู้ป่วยได้ดีที่สุด');
-    else if(!f.treeBest) tip('<b>ลองเลื่อนความลึกของ decision tree</b> หาจุดที่ความแม่นยำแบบ cross-validation สูงสุด — ลึกเกินไปจะ overfit');
-    if(s.confound && f.vML && !(S.ui && S.ui.mlVil)) tip(`<b>คดีนี้มีตัวแปรกวน</b> — ลองติ๊ก “ปรับตามหมู่บ้าน” ใน logistic regression แล้วดู OR ของ${nm(s.confound)}ลดลง`);
-    if(!f.vSpatial) tip('<b>ยังไม่ได้ใช้ 🧭 วิเคราะห์เชิงพื้นที่</b> — DBSCAN หากลุ่มผู้ป่วย และแผนที่อัตราป่วยต่อประชากรแยก “คนเยอะ” ออกจาก “เสี่ยงสูง”');
-    if(!f.nlpDone) tip('<b>ยังไม่ได้ใช้ 📱 ฟังเสียงโซเชียล</b> — ข่าวลือถูกแชร์มากกว่าประสบการณ์จริง ต้องจำแนกข้อความก่อนนับ');
-    else if(f.nlpAcc<7) tip(`<b>ติดป้ายข้อมูลฝึก NLP ถูก ${th(f.nlpAcc)}/๙</b> — ป้ายที่ผิดสอนให้โมเดลเรียนรู้ผิด (garbage in, garbage out)`);
-    if(f.aiMet && !f.aiHallu) tip('<b>ลองถาม 🤖 ผู้ช่วย AI ว่า “มีงานวิจัยยืนยันไหม”</b> แล้วกดตรวจสอบแหล่งอ้างอิง — AI ภาษาอาจแต่งข้อมูลที่ไม่มีจริง (hallucination)');
+    if(!f.vML) tip('<b>ยังไม่ได้ใช้แท็บ 🤖 ML</b>  logistic regression ให้ OR ที่ปรับตัวแปรอื่นแล้ว (แยกตัวแปรกวนได้หลายตัวพร้อมกัน) และ decision tree ช่วยหาคำถามที่แยกผู้ป่วยได้ดีที่สุด');
+    else if(!f.treeBest) tip('<b>ลองเลื่อนความลึกของ decision tree</b> หาจุดที่ความแม่นยำแบบ cross-validation สูงสุด  ลึกเกินไปจะ overfit');
+    if(s.confound && f.vML && !(S.ui && S.ui.mlVil)) tip(`<b>คดีนี้มีตัวแปรกวน</b>  ลองติ๊ก “ปรับตามหมู่บ้าน” ใน logistic regression แล้วดู OR ของ${nm(s.confound)}ลดลง`);
+    if(!f.vSpatial) tip('<b>ยังไม่ได้ใช้ 🧭 วิเคราะห์เชิงพื้นที่</b>  DBSCAN หากลุ่มผู้ป่วย และแผนที่อัตราป่วยต่อประชากรแยก “คนเยอะ” ออกจาก “เสี่ยงสูง”');
+    if(!f.nlpDone) tip('<b>ยังไม่ได้ใช้ 📱 ฟังเสียงโซเชียล</b>  ข่าวลือถูกแชร์มากกว่าประสบการณ์จริง ต้องจำแนกข้อความก่อนนับ');
+    else if(f.nlpAcc<7) tip(`<b>ติดป้ายข้อมูลฝึก NLP ถูก ${th(f.nlpAcc)}/๙</b>  ป้ายที่ผิดสอนให้โมเดลเรียนรู้ผิด (garbage in, garbage out)`);
+    if(f.aiMet && !f.aiHallu) tip('<b>ลองถาม 🤖 ผู้ช่วย AI ว่า “มีงานวิจัยยืนยันไหม”</b> แล้วกดตรวจสอบแหล่งอ้างอิง  AI ภาษาอาจแต่งข้อมูลที่ไม่มีจริง (hallucination)');
     const fc = OD.ai.fcScore(S);
-    if(fc.n<2) tip('<b>ลองเกม 🔮 พยากรณ์ในรายงานเช้า</b> — เลือกโมเดลแล้ววันรุ่งขึ้นดูว่าแม่นแค่ไหน (backtesting)');
+    if(fc.n<2) tip('<b>ลองเกม 🔮 พยากรณ์ในรายงานเช้า</b>  เลือกโมเดลแล้ววันรุ่งขึ้นดูว่าแม่นแค่ไหน (backtesting)');
     if(!f.coder) tip('<b>ดาวน์โหลดข้อมูลคดีนี้</b> (CSV · Jupyter Notebook · R) ไปฝึกวิเคราะห์ต่อ หรือลอง SQL console ในแท็บ 🤖 ML');
-    add('🤖', 'เครื่องมือ HDS (ML · AI · ข้อมูล)', hds, hds.length ? 'ไม่มีจุดพลาดในส่วนนี้ — ลองเครื่องมือที่ยังไม่ได้ใช้ในคดีหน้า' : 'ใช้เครื่องมือ HDS ครบทุกชิ้น');
+    add('🤖', 'เครื่องมือ HDS (ML · AI · ข้อมูล)', hds, hds.length ? 'ไม่มีจุดพลาดในส่วนนี้  ลองเครื่องมือที่ยังไม่ได้ใช้ในคดีหน้า' : 'ใช้เครื่องมือ HDS ครบทุกชิ้น');
 
     // สิ่งที่ทำได้ดี
     const good = [];
@@ -336,8 +338,9 @@ OD.report = (function(){
       ['evidence','คุณภาพหลักฐาน',110],['measures','มาตรการควบคุม',130],['time','ความรวดเร็ว/ป้องกันผู้ป่วย',130],['process','ทำตามขั้นตอนการสอบสวน',80],['data','คุณภาพข้อมูล (บทที่ ๑–๒)',70],
       ['decisions','การตัดสินใจในเหตุการณ์',40],['trust','ความเชื่อมั่นชุมชน',30],['budget','การใช้งบประมาณ',10]];
     const SUB = {handler:'แม่ครัวที่ป่วย', food:'อาหารกลางวันเก็บผิดอุณหภูมิ', tank:'แท็งก์น้ำดื่มปนเปื้อน'};
-    const story = s.type==='EVENT' ? `${M.SITES.E.name} — ${M.DISH[s.dish]}` : s.type==='SCHOOL' ? `${nm(s.culprit)} — ${SUB[s.sub]}` : nm(s.culprit);
+    const story = s.type==='EVENT' ? `${M.SITES.E.name}  ${M.DISH[s.dish]}` : s.type==='SCHOOL' ? `${nm(s.culprit)}  ${SUB[s.sub]}` : nm(s.culprit);
     const MT = R.meta || {fresh:[]};
+    const priorities = CAT.filter(([k,,mx])=>R.C[k]<mx).sort((a,b)=>(R.C[a[0]]/a[2])-(R.C[b[0]]/b[2])).slice(0,3);
     U.$('#scr-result').innerHTML = `<div class="res">
       <div class="res-hero"><div class="title-eyebrow">ผลการสอบสวนโรค · คดีที่ ${U.thaiNum(W.seed%10000)}${S.flags.daily?' · 📅 คดีประจำวัน':''}</div>
         <h1 class="display gold-text">${R.correctSource?'ไขคดีสำเร็จ':'คดียังไม่คลี่คลาย'}</h1>
@@ -345,18 +348,19 @@ OD.report = (function(){
       ${MT.fresh.length ? `<div class="frame ach-new"><h3 class="display gold-text" style="font-size:22px;margin:0 0 8px">ได้รับเหรียญใหม่!</h3>
         <div class="ach-grid">${MT.fresh.map((a,i)=>`<div class="ach on pop" style="animation-delay:${.5+i*.1}s"><span class="ai">${a.icon}</span><b>${a.t}</b><small>${a.d}</small></div>`).join('')}</div></div>` : ''}
       <div class="res-top">
-        <div class="frame" style="text-align:center">${OD.meFace(R.correctSource?'smile':'worried','lg')}<div class="seal stamp"><div class="r">${R.rank}</div><div class="s">ระดับ</div></div>
-          <div class="score" data-to="${R.total}">0</div><div class="muted">คะแนนจาก ๑,๐๐๐</div><div style="margin-top:6px;font-weight:700;color:var(--gold-2)">${R.title}</div>
-          <div class="faint" style="font-size:13px;margin-top:4px">${M.DIFF[S.diff].label}${R.badDec && R.total>=880 ? ' · ไม่ได้ระดับ S เพราะมีการตัดสินใจที่ผิดในเหตุการณ์' : ''}</div></div>
+        <div class="frame grade-card"><div class="grade-heading">ผลการสอบสวนของคุณ</div><div class="grade-circle grade-${R.rank.toLowerCase()}"><small>เกรด</small><b>${R.rank}</b></div>
+          <div class="score" data-to="${R.total}">0</div><div class="muted">จาก 1,000 คะแนน</div><div class="grade-title">${R.title}</div>
+          <div class="grade-scale"><div class="grade-scale-title">เกณฑ์คะแนน</div><div class="grade-list">${GRADES.map(g=>`<div class="grade-band ${R.rank===g.rank?'current':''}"><b>${g.rank}</b><span>${g.min}–${g.max}</span></div>`).join('')}</div></div>
+          <p class="grade-rule">เกรด S ต้องได้อย่างน้อย 880 คะแนน และไม่มีการตัดสินใจผิดในเหตุการณ์${R.badDec && R.total>=880 ? '<br><b>คะแนนถึงเกณฑ์แล้ว แต่มีการตัดสินใจผิด จึงได้เกรด A</b>' : ''}</p><div class="faint" style="font-size:13px">${M.DIFF[S.diff].label}</div></div>
         <div class="frame"><h3 class="display gold-text" style="font-size:22px">เฉลยคดี</h3>
           <p style="margin:4px 0"><b>แหล่งโรค:</b> ${story} <span class="chip">${M.SCN_NAME[s.type]}</span> ${sel.site===T.site?'<span class="chip jade">คุณตอบถูก</span>':`<span class="chip red">คุณตอบ: ${nm(sel.site)}</span>`}</p>
           <p style="margin:4px 0"><b>เชื้อ:</b> ${M.PATHOGENS[s.pathogen].name} ${sel.path===s.pathogen?'<span class="chip jade">ถูก</span>':'<span class="chip red">ผิด</span>'}</p>
           <p style="margin:4px 0"><b>รูปแบบ:</b> ${PATTERNS.find(p=>p[0]===T.pattern)[1]} · การแพร่คนสู่คน ${U.pct(T.secShare)} ของผู้ป่วย</p>
           ${s.type==='ICE'?`<p style="margin:4px 0"><b>ที่ใช้น้ำแข็งจากโรงน้ำแข็งเจริญผล:</b> ${s.iceVenues.map(nm).join(', ')}</p>`:''}
           ${s.type==='FARM'?`<p style="margin:4px 0"><b>ที่รับผักจากสวนผักลุงทอง:</b> ${s.vegVenues.map(nm).join(', ')}</p>`:''}
-          ${s.confound?`<p style="margin:4px 0"><b>ตัวแปรกวน:</b> ${nm(s.confound)} — คนหมู่บ้านเดียวกับผู้ใช้${nm(s.culprit)}นิยมกินร้านนี้</p>`:''}
+          ${s.confound?`<p style="margin:4px 0"><b>ตัวแปรกวน:</b> ${nm(s.confound)}  คนหมู่บ้านเดียวกับผู้ใช้${nm(s.culprit)}นิยมกินร้านนี้</p>`:''}
           <div class="orn-divider"></div>
-          <div class="cats">${CAT.map(([k,l,mx])=>`<div class="cat"><span>${l}</span><div class="meter ${R.C[k]/mx<.4?'red':''}"><i style="width:${R.C[k]/mx*100}%"></i></div><span class="v">${R.C[k]}/${mx}</span></div>`).join('')}</div></div>
+          <div class="grade-improve"><b>ลองพัฒนาต่อ</b><span>${priorities.length ? priorities.map(([,label])=>label).join(' · ') : 'ทำคะแนนได้ครบทุกด้าน'}</span></div><details class="grade-details"><summary>ดูคะแนนแยกทั้ง 13 ด้าน</summary><div class="cats">${CAT.map(([k,l,mx])=>`<div class="cat"><span>${l}</span><div class="meter ${R.C[k]/mx<.4?'red':''}"><i style="width:${R.C[k]/mx*100}%"></i></div><span class="v">${R.C[k]}/${mx}</span></div>`).join('')}</div></details></div>
       </div>
       <div class="frame" style="margin-top:14px"><h3 class="display gold-text" style="font-size:22px">เส้นโค้งการระบาดถึงวันที่ ๑๖</h3>
         <div class="legend"><span><i style="background:var(--red-2);border-radius:2px"></i>ผู้ป่วยจริง ${R.oc.actual} ราย</span><span><i style="border:1.5px dashed var(--faint);border-radius:2px;background:none"></i>ถ้าไม่ทำอะไรเลย ${R.oc.none} ราย</span><span>ป้องกันได้ <b style="color:var(--ok)">${R.oc.prevented}</b> ราย</span></div>
@@ -372,7 +376,7 @@ OD.report = (function(){
           ${g.items.length ? `<ul>${g.items.map(i=>`<li>${i}</li>`).join('')}</ul>` : `<p class="db-ok">✅ ${g.ok}</p>`}
           ${g.tips.length ? `<ul class="db-tips">${g.tips.map(i=>`<li>💡 ${i}</li>`).join('')}</ul>` : ''}</section>`).join('')}</div>
         ${D.good.length ? `<div class="db-good"><b>สิ่งที่ทำได้ดี:</b> ${D.good.map(g=>`<span class="chip jade">${g}</span>`).join(' ')}</div>` : ''}
-        ${D.decisions.length ? `<details class="howto" style="margin-top:12px"><summary>ไทม์ไลน์การตัดสินใจทั้งหมด (${D.decisions.length})</summary><ul class="db-tl">${D.decisions.map(d=>`<li><span class="lt">${M.fmtT(d.t)}</span><span>${{good:'✅',ok:'➖',mixed:'⚠️',bad:'❌'}[d.verdict]||'➖'} <b>${d.title}</b> — ${d.choice}${d.why?`<br><span class="muted">${d.why}</span>`:''}</span></li>`).join('')}</ul></details>` : ''}
+        ${D.decisions.length ? `<details class="howto" style="margin-top:12px"><summary>ไทม์ไลน์การตัดสินใจทั้งหมด (${D.decisions.length})</summary><ul class="db-tl">${D.decisions.map(d=>`<li><span class="lt">${M.fmtT(d.t)}</span><span>${{good:'✅',ok:'➖',mixed:'⚠️',bad:'❌'}[d.verdict]||'➖'} <b>${d.title}</b>  ${d.choice}${d.why?`<br><span class="muted">${d.why}</span>`:''}</span></li>`).join('')}</ul></details>` : ''}
       </div>
       <h2 class="display gold-text" style="margin-top:22px;font-size:26px">ทักษะของนักวิทยาศาสตร์ข้อมูลสุขภาพที่คุณได้ใช้</h2>
       <div class="skills">${(()=>{ const f = S.flags, fc = OD.ai.fcScore(S); return [

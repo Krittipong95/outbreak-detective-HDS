@@ -1,6 +1,6 @@
 /* =========================================================
-   walk — โหมดเดินสำรวจหมู่บ้าน (พิกเซลอาร์ตมุมบน วาดด้วยโค้ดทั้งหมด ไม่ใช้ไฟล์ภาพ)
-   OD.walk.open(F) — F = OD.field (ใช้ F.act / F.after / F.hint / F.can / F.spend)
+   walk  โหมดเดินสำรวจหมู่บ้าน (พิกเซลอาร์ตมุมบน วาดด้วยโค้ดทั้งหมด ไม่ใช้ไฟล์ภาพ)
+   OD.walk.open(F)  F = OD.field (ใช้ F.act / F.after / F.hint / F.can / F.spend)
    พิกัดโลกเดียวกับแผนที่ข้อมูล 1000×680 (๑ หน่วย = ๔ เมตร = ๑ พิกเซลก่อนขยาย)
    ========================================================= */
 OD.walk = (function(){
@@ -94,7 +94,9 @@ OD.walk = (function(){
       } else {
         p(sk, 3, top+1, 6, 5); p(hr, 3, top, 6, 2); p(hr, 3, top+2, 1, L.long?6:2); p(hr, 8, top+2, 1, L.long?6:2);
         p('#2b1d14', 4, top+3, 1, 1); p('#2b1d14', 7, top+3, 1, 1); p(shade(sk,-.22), 5, top+5, 2, 1);
-        if(L.blush) { p('#e8908a', 4, top+4, 1, 1); p('#e8908a', 7, top+4, 1, 1); }
+        // แก้มสีอ่อนผสมกับสีผิว ให้สไปรต์ทุกตัวดูเป็นชุดเดียวกับภาพบทสนทนา
+        const blush = (()=>{ const n=parseInt(sk.slice(1),16), c=[n>>16,n>>8&255,n&255], rose=[239,142,137]; return '#'+c.map((v,i)=>Math.round(v*.7+rose[i]*.3).toString(16).padStart(2,'0')).join(''); })();
+        p(blush, 4, top+4, 1, 1); p(blush, 7, top+4, 1, 1);
       }
       if(!L.hair) { /* ศีรษะโล้น (พระ) */ }
       if(L.bun) p(hr, 5, top-2, 2, 2);
@@ -442,7 +444,7 @@ OD.walk = (function(){
 
     // ตารางเดิน (A*)
     const grid = new Uint8Array(GW*GH);
-    // เซลล์เดินได้ถ้าจุดกลางเซลล์ยืนได้ (เกณฑ์เดียวกับ walkable) — สะพานแคบจึงยังข้ามได้
+    // เซลล์เดินได้ถ้าจุดกลางเซลล์ยืนได้ (เกณฑ์เดียวกับ walkable)  สะพานแคบจึงยังข้ามได้
     const ok = (x,y) => { if(x<4||y<4||x>=WW-4||y>=WH-2) return false; const i = y*WW+x; return !solid[i] && !solid[i-3] && !solid[i+3]; };
     for(let gy=0;gy<GH;gy++) for(let gx=0;gx<GW;gx++){ const cx = gx*CELL+2, cy = gy*CELL+2; let b = 0;
       for(let dy=-2;dy<=2 && !b;dy+=2) for(let dx=-2;dx<=2;dx+=2) if(!ok(cx+dx, cy+dy)){ b = 1; break; }
@@ -480,14 +482,14 @@ OD.walk = (function(){
   const CARDS = [
     ['🧼 ล้างมือ', 'ล้างมือด้วยสบู่อย่างน้อย ๒๐ วินาที ก่อนกินและหลังเข้าห้องน้ำ ลดโรคท้องร่วงได้เกือบครึ่ง'],
     ['🔥 ต้มน้ำ', 'ต้มน้ำให้เดือดพล่านอย่างน้อย ๑ นาที ฆ่าเชื้อแบคทีเรียและไวรัสที่ทำให้ท้องร่วงได้เกือบทั้งหมด'],
-    ['🗺️ จอห์น สโนว์', 'ปี ค.ศ. ๑๘๕๔ หมอจอห์น สโนว์ ปักจุดบ้านผู้ป่วยอหิวาต์บนแผนที่ลอนดอน จนพบว่าต้นเหตุคือปั๊มน้ำบนถนนบรอดสตรีท — ธงแดงในหมู่บ้านนี้ก็คือแผนที่จุดแบบเดียวกัน'],
+    ['🗺️ จอห์น สโนว์', 'ปี ค.ศ. ๑๘๕๔ หมอจอห์น สโนว์ ปักจุดบ้านผู้ป่วยอหิวาต์บนแผนที่ลอนดอน จนพบว่าต้นเหตุคือปั๊มน้ำบนถนนบรอดสตรีท  ธงแดงในหมู่บ้านนี้ก็คือแผนที่จุดแบบเดียวกัน'],
     ['⏳ ระยะฟักตัว', 'ระยะฟักตัว คือเวลาตั้งแต่ได้รับเชื้อจนเริ่มป่วย ถ้ารู้ระยะฟักตัว เราย้อนเวลากลับไปหา “มื้อต้องสงสัย” ได้'],
-    ['📊 Odds Ratio', 'OR มากกว่า ๑ แปลว่าคนป่วยเคยสัมผัสสิ่งนั้นบ่อยกว่าคนไม่ป่วย — แต่ต้องดูช่วงความเชื่อมั่นด้วยว่าไม่คร่อม ๑'],
-    ['🎭 ตัวแปรกวน', 'สองอย่างเกิดคู่กัน ไม่ได้แปลว่าอย่างหนึ่งเป็นสาเหตุของอีกอย่าง — อาจมีปัจจัยที่สามซ่อนอยู่ เช่น คนหมู่เดียวกันใช้บ่อเดียวกันและกินร้านเดียวกัน'],
+    ['📊 Odds Ratio', 'OR มากกว่า ๑ แปลว่าคนป่วยเคยสัมผัสสิ่งนั้นบ่อยกว่าคนไม่ป่วย  แต่ต้องดูช่วงความเชื่อมั่นด้วยว่าไม่คร่อม ๑'],
+    ['🎭 ตัวแปรกวน', 'สองอย่างเกิดคู่กัน ไม่ได้แปลว่าอย่างหนึ่งเป็นสาเหตุของอีกอย่าง  อาจมีปัจจัยที่สามซ่อนอยู่ เช่น คนหมู่เดียวกันใช้บ่อเดียวกันและกินร้านเดียวกัน'],
     ['🧊 น้ำแข็ง', 'น้ำแข็งก็พาเชื้อโรคได้ ถ้าผลิตจากน้ำไม่สะอาดหรือขนส่งไม่ถูกสุขลักษณะ'],
     ['🔐 ข้อมูลส่วนบุคคล', 'นักวิทยาศาสตร์ข้อมูลสุขภาพต้องปกป้องข้อมูลผู้ป่วย ใช้รหัสแทนชื่อ และเปิดเผยเท่าที่จำเป็นตาม PDPA'],
-    ['🤖 Machine Learning', 'โมเดล ML เรียนรู้รูปแบบจากข้อมูล แต่ข้อมูลผิด โมเดลก็ผิด — มนุษย์ต้องตรวจสอบผลเสมอ'],
-    ['🥄 กินร้อน ช้อนกลาง', 'กินอาหารที่ปรุงสุกใหม่ ใช้ช้อนกลาง และล้างมือ — สามข้อง่าย ๆ ที่ช่วยตัดวงจรเชื้อโรคทางอาหาร'],
+    ['🤖 Machine Learning', 'โมเดล ML เรียนรู้รูปแบบจากข้อมูล แต่ข้อมูลผิด โมเดลก็ผิด  มนุษย์ต้องตรวจสอบผลเสมอ'],
+    ['🥄 กินร้อน ช้อนกลาง', 'กินอาหารที่ปรุงสุกใหม่ ใช้ช้อนกลาง และล้างมือ  สามข้อง่าย ๆ ที่ช่วยตัดวงจรเชื้อโรคทางอาหาร'],
   ];
 
   /* ---------- ตัวละครในหมู่บ้าน ---------- */
@@ -760,7 +762,7 @@ OD.walk = (function(){
   function toggleBike(){
     if(!Q().bike){ U.toast('🚲 ยืมจักรยานได้ที่ 🏥 รพ.สต. (ฟรี)'); return; }
     Q().riding = !Q().riding; hudKey = ''; OD.sfx && OD.sfx('pin');
-    U.toast(Q().riding ? '🚲 ขึ้นจักรยาน — ปั่น ๑๒ กม. = ๑ ชม. ในเกม' : '🚶 ลงเดิน');
+    U.toast(Q().riding ? '🚲 ขึ้นจักรยาน  ปั่น ๑๒ กม. = ๑ ชม. ในเกม' : '🚶 ลงเดิน');
   }
 
   let scale = 3, cam = {x:0, y:0}, camF = {x:0, y:0}, vw = 320, vh = 180, dpr = 1;
@@ -779,7 +781,7 @@ OD.walk = (function(){
   function goTo(x, y, tgt){
     path = findPath(P.x, P.y, x, y);
     pendingTarget = tgt; dest = {x, y}; P.retry = 0; P.stuck = 0;
-    if(!path){ cancelNavigation(); U.toast('🚧 ไปตรงนั้นไม่ได้ — ลองเดินอ้อมหรือหาสะพาน'); return; }
+    if(!path){ cancelNavigation(); U.toast('🚧 ไปตรงนั้นไม่ได้  ลองเดินอ้อมหรือหาสะพาน'); return; }
     hudKey = ''; OD.sfx && OD.sfx('navigate');
     if(!path.length){ path = null; arrive(); }
   }
@@ -832,7 +834,7 @@ OD.walk = (function(){
             if(P.stuck > .3){ P.stuck = 0;
               // ติดสิ่งกีดขวาง → หาเส้นทางใหม่จากจุดปัจจุบัน (สูงสุด ๓ ครั้ง)
               if(dest && (P.retry = (P.retry||0) + 1) <= 3) path = findPath(P.x, P.y, dest.x, dest.y); else path = null;
-              if(!path){ cancelNavigation(); U.toast('🚧 ทางติดขัด — เลือกจุดหมายอีกครั้ง'); } else if(!path.length){ path = null; arrive(); } } }
+              if(!path){ cancelNavigation(); U.toast('🚧 ทางติดขัด  เลือกจุดหมายอีกครั้ง'); } else if(!path.length){ path = null; arrive(); } } }
           else P.stuck = 0; }
       }
     }
@@ -943,7 +945,7 @@ OD.walk = (function(){
   }
   function reward(text, n=2){
     S.trust = Math.min(100, S.trust + n);
-    S.log.unshift({t:S.T, text:`${text} — ชาวบ้านประทับใจ (ความเชื่อมั่นชุมชน +${n})`, kind:'good'});
+    S.log.unshift({t:S.T, text:`${text}  ชาวบ้านประทับใจ (ความเชื่อมั่นชุมชน +${n})`, kind:'good'});
     U.toast(`💚 ${text} · ความเชื่อมั่นชุมชน +${U.thaiNum(n)}`, '', 4500); burst(P.x, P.y-12, 40); OD.sfx && OD.sfx('heart');
     checkBadges();
   }
@@ -1051,7 +1053,7 @@ OD.walk = (function(){
     ctx.drawImage(view, 0, 0, W1, H1, ox, oy, W1*scale, H1*scale);
     drawPlayer(t);
     ctx.drawImage(view2, 0, 0, W1, H1, ox, oy, W1*scale, H1*scale);
-    // เงาโปร่งของผู้เล่นทับชั้นหน้า — มองเห็นตัวเองเสมอ แม้อยู่หลังต้นไม้หรือตอนกลางคืน
+    // เงาโปร่งของผู้เล่นทับชั้นหน้า  มองเห็นตัวเองเสมอ แม้อยู่หลังต้นไม้หรือตอนกลางคืน
     ctx.globalAlpha = night ? .6 : .28; drawPlayer(t, true); ctx.globalAlpha = 1;
     labels(t);
     guide(t);
@@ -1139,8 +1141,8 @@ OD.walk = (function(){
     const q = Q();
     if(navTarget) return `🧭 ไป <b>${U.esc(navTarget.n)}</b> · เหลือ ${(routeDistance()*4/1000).toFixed(1)} กม. · กด ⏹ เพื่อหยุด`;
     if(q.hen===2) return '🐔 พาไก่นางดำไปส่ง<b>ยายผิน</b> (ตามลูกศรสีทอง)';
-    if(q.trash===1) return q.trashGot.length===quest.trash.length ? '🗑️ เก็บครบแล้ว — กลับไปหา<b>ลุงเผือก</b>' : `🗑️ เก็บขยะริมคลอง ${U.thaiNum(q.trashGot.length)}/${U.thaiNum(quest.trash.length)} (จุดเขียวบนแผนที่ย่อ)`;
-    if(q.hen===1) return `🐔 ตามหาไก่นางดำ — ยายว่ามันชอบไปแถว<b>${quest.henMark}</b>`;
+    if(q.trash===1) return q.trashGot.length===quest.trash.length ? '🗑️ เก็บครบแล้ว  กลับไปหา<b>ลุงเผือก</b>' : `🗑️ เก็บขยะริมคลอง ${U.thaiNum(q.trashGot.length)}/${U.thaiNum(quest.trash.length)} (จุดเขียวบนแผนที่ย่อ)`;
+    if(q.hen===1) return `🐔 ตามหาไก่นางดำ  ยายว่ามันชอบไปแถว<b>${quest.henMark}</b>`;
     return path ? '🚶 กำลังเดินตามเส้นทาง · กด ⏹ เพื่อหยุด' : 'เริ่มที่ 🧭 ไปที่… เลือกร้าน → สำรวจ/สัมภาษณ์ → เทียบหลักฐาน · 🏥 กลับฐานได้เสมอ';
   }
   function hud(){
@@ -1150,7 +1152,7 @@ OD.walk = (function(){
     const key = [S.T, S.budget, nRec, Math.floor(acc/50), S.flags.walkCards.length, focus && focusLabel(focus), !!sheetFor, q.riding, q.bike, q.badges.length, ql].join('|');
     if(key===hudKey) return; hudKey = key;
     el.querySelector('.wk-stats').innerHTML = `<span>🕘 <b>${M.fmtT(S.T)}</b></span><span>💰 ${U.baht(S.budget)}</span><span>🚩 ผู้ป่วย ${nRec} ราย</span>
-      <span title="เดินทาง ๑,๐๐๐ หน่วย = ๑ ชม. ในเกม — คิดเวลาเมื่อทำภารกิจหรือกลับหน้าข้อมูล">⏱️ เดินทาง ${(acc/UNITS_PER_HOUR).toFixed(1)} ชม.</span><span>✨ ${S.flags.walkCards.length}/${CARDS.length}</span><span>🏅 ${q.badges.length}/${BADGES.length}</span>`;
+      <span title="เดินทาง ๑,๐๐๐ หน่วย = ๑ ชม. ในเกม  คิดเวลาเมื่อทำภารกิจหรือกลับหน้าข้อมูล">⏱️ เดินทาง ${(acc/UNITS_PER_HOUR).toFixed(1)} ชม.</span><span>✨ ${S.flags.walkCards.length}/${CARDS.length}</span><span>🏅 ${q.badges.length}/${BADGES.length}</span>`;
     const qe = el.querySelector('.wk-quest'); qe.innerHTML = ql; qe.classList.toggle('hidden', !ql);
     el.querySelector('[data-w="stop"]').classList.toggle('hidden', !path);
     const bb = el.querySelector('[data-w="bike"]'); bb.classList.toggle('hidden', !q.bike); bb.classList.toggle('gold', !!q.riding); bb.textContent = q.riding ? '🚲 ปั่นอยู่' : '🚲';
@@ -1161,7 +1163,7 @@ OD.walk = (function(){
   /* ---------- แผ่นข้อมูลด้านล่าง (โต้ตอบ) ---------- */
   const nm = id => M.SITES[id].name;
   const EXP_SITES = ['W1','W2','W3','R1','R2','R3','R4','S','E'];
-  const FLAVOR = {water:'ชาวบ้านตักน้ำบ่อนี้ไปดื่มและหุงข้าว — น้ำบ่อตื้นปนเปื้อนได้ง่ายหลังฝนตกหนัก', food:'ร้านประจำของคนในตำบล มีคนแวะกินทุกวัน',
+  const FLAVOR = {water:'ชาวบ้านตักน้ำบ่อนี้ไปดื่มและหุงข้าว  น้ำบ่อตื้นปนเปื้อนได้ง่ายหลังฝนตกหนัก', food:'ร้านประจำของคนในตำบล มีคนแวะกินทุกวัน',
     school:'เด็ก ๆ กินอาหารกลางวันที่โรงอาหารนี้ทุกวันเรียน', event:'วัดประจำตำบล งานบุญแต่ละครั้งคนมาร่วมหลายร้อยคน', ice:'โรงน้ำแข็งที่ส่งน้ำแข็งให้ร้านค้าในตำบล', farm:'สวนผักริมคลอง ใช้น้ำคลองรดผัก'};
   function sheet(html, forT){
     cancelNavigation(); clearStartle(); sheetFor = forT; keys.clear(); hold = null;
@@ -1186,7 +1188,7 @@ OD.walk = (function(){
   function interact(f){
     if(f.kind==='site') return siteSheet(f);
     if(f.kind==='hc'){ const q = Q();
-      return sheet(head('🏥', 'รพ.สต. บ้านสุขใจ', 'ฐานปฏิบัติการทีม HDS — งานเอกสาร สัมภาษณ์ วิเคราะห์ข้อมูล')
+      return sheet(head('🏥', 'รพ.สต. บ้านสุขใจ', 'ฐานปฏิบัติการทีม HDS  งานเอกสาร สัมภาษณ์ วิเคราะห์ข้อมูล')
         + `<div class="wk-sh-b"><div class="wk-say">${OD.mentorFace()}<div><b>พี่วิ</b><div>${F.hint()}</div></div></div></div>`
         + (q.bike ? '' : `<div class="wk-acts">${wbtn('data-w="borrow"', '🚲 ยืมจักรยาน รพ.สต.', 'ฟรี · เร็วขึ้นเกือบ ๒ เท่า')}</div>`)
         + `<div class="wk-acts">${cloneActs(['review','acf','interview','deep','hyp','controls','supply','nlp','ai','skip'])}</div>`
@@ -1197,13 +1199,13 @@ OD.walk = (function(){
     if(f.kind==='villager') return villagerSheet(f);
     if(f.kind==='quest') return questSheet(f);
     if(f.kind==='qhen'){ Q().hen = 2; OD.sfx && OD.sfx('pin'); burst(qhen.x, qhen.y-6, 14, ['#2b2420','#f2f2ee','#d23a2a']);
-      U.toast('🐔 จับนางดำได้แล้ว! พาไปส่ง<b>ยายผิน</b>ที่หมู่ ๑ — ตามลูกศรสีทอง', '', 5000); hudKey = ''; }
+      U.toast('🐔 จับนางดำได้แล้ว! พาไปส่ง<b>ยายผิน</b>ที่หมู่ ๑  ตามลูกศรสีทอง', '', 5000); hudKey = ''; }
   }
   function siteSheet(f){
     const id = f.id, st = M.SITES[id];
     if(st.hidden && !S.known.has(id)){
       return sheet(head(st.icon, `${st.type==='farm'?'สวนผัก':'โรงน้ำแข็ง'}ที่ยังไม่รู้จัก`, 'ยังไม่รู้ว่าที่นี่เกี่ยวข้องกับใคร')
-        + `<div class="wk-sh-b"><p>ประตูปิดอยู่ ไม่มีใครออกมาต้อนรับ… ยังไม่รู้ว่าที่นี่ส่งวัตถุดิบให้ใคร — ค้นพบได้จาก <b>🔎 ตรวจสิ่งแวดล้อม</b>ร้านอาหาร/โรงอาหาร (ดูว่าซื้อน้ำแข็ง/ผักจากไหน) หรือ <b>📦 ห่วงโซ่อุปทาน</b> ที่ รพ.สต.</p></div>`, f);
+        + `<div class="wk-sh-b"><p>ประตูปิดอยู่ ไม่มีใครออกมาต้อนรับ… ยังไม่รู้ว่าที่นี่ส่งวัตถุดิบให้ใคร  ค้นพบได้จาก <b>🔎 ตรวจสิ่งแวดล้อม</b>ร้านอาหาร/โรงอาหาร (ดูว่าซื้อน้ำแข็ง/ผักจากไหน) หรือ <b>📦 ห่วงโซ่อุปทาน</b> ที่ รพ.สต.</p></div>`, f);
     }
     const lines = [];
     lines.push(`<p class="faint">${FLAVOR[st.type]}</p>`);
@@ -1213,8 +1215,8 @@ OD.walk = (function(){
     for(const l of S.labs.filter(l=>l.site===id)) lines.push(`<div class="note">${l.seen ? (l.pos ? `🧪 ผลแล็บ: <b>พบ${M.PATHOGENS[l.pathogen].short}</b>${l.mixed?' (ฉลากเลอะ)':''}` : '🧪 ผลแล็บ: ไม่พบเชื้อก่อโรค') : `🧪 รอผลแล็บ · ออก ${M.fmtT(l.due)}`}</div>`);
     if(EXP_SITES.includes(id)){
       const iv = recs().filter(r=>!r.dup && S.ans[r.p.id]), k = iv.filter(r=>S.ans[r.p.id][id]===true).length;
-      lines.push(iv.length ? `<div class="note">🗣️ ผู้ป่วยที่สัมภาษณ์แล้ว <b>${k} จาก ${iv.length} ราย</b> (${Math.round(k/iv.length*100)}%) เคยสัมผัสที่นี่ — ต้องเทียบกับ<b>กลุ่มควบคุม</b> (OR) ก่อนสรุปว่าเป็นต้นตอ</div>`
-        : `<div class="note faint">🗣️ ยังไม่รู้ว่าผู้ป่วยเคยมาที่นี่หรือไม่ — ต้องสัมภาษณ์ผู้ป่วยที่ รพ.สต. ก่อน</div>`);
+      lines.push(iv.length ? `<div class="note">🗣️ ผู้ป่วยที่สัมภาษณ์แล้ว <b>${k} จาก ${iv.length} ราย</b> (${Math.round(k/iv.length*100)}%) เคยสัมผัสที่นี่  ต้องเทียบกับ<b>กลุ่มควบคุม</b> (OR) ก่อนสรุปว่าเป็นต้นตอ</div>`
+        : `<div class="note faint">🗣️ ยังไม่รู้ว่าผู้ป่วยเคยมาที่นี่หรือไม่  ต้องสัมภาษณ์ผู้ป่วยที่ รพ.สต. ก่อน</div>`);
     }
     const ci = M.COST.inspect, ce = M.COST.env, canClose = id!=='E' && !M.isClosed(S,id) && !(S.closed[id]!=null && !M.wasReopened(S,id));
     const acts = btn('inspect', '🔎 ตรวจสิ่งแวดล้อม', S.inspected[id] ? 'ตรวจแล้ว ✓' : costTxt(ci), !!S.inspected[id] || !F.can(ci), id)
@@ -1230,23 +1232,23 @@ OD.walk = (function(){
     sheet(head('🏘️', v.name, `${hh} ครัวเรือน · ประชากร ${me.pp} คน`)
       + `<div class="wk-sh-b"><p>ผู้ป่วยในฐานข้อมูลจากหมู่นี้ <b>${me.nn} ราย</b> · อัตราป่วย <b>${me.ar.toFixed(1)} ต่อประชากร ๑,๐๐๐ คน</b></p>
         <div class="wk-bars">${all.map(a=>`<div class="${a.x.id===v.id?'on':''}"><span>${a.x.short}</span><i style="width:${a.ar/mx*100}%"></i><b>${a.ar.toFixed(1)}</b></div>`).join('')}</div>
-        <p class="faint" style="font-size:13px">💡 เปรียบเทียบ <b>อัตรา</b> (ป่วยต่อประชากร) ไม่ใช่แค่ <b>จำนวน</b> — หมู่ที่คนเยอะ ผู้ป่วยก็มักเยอะตามไปด้วย</p></div>
+        <p class="faint" style="font-size:13px">💡 เปรียบเทียบ <b>อัตรา</b> (ป่วยต่อประชากร) ไม่ใช่แค่ <b>จำนวน</b>  หมู่ที่คนเยอะ ผู้ป่วยก็มักเยอะตามไปด้วย</p></div>
         <div class="wk-acts">${cloneActs(['acf'])}${wbtn('data-w="map"', '🗺️ ดูแผนที่ข้อมูล', 'ฟรี')}</div>`, f);
   }
   function flagSheet(f){
     const ps = f.f.ps;
     const rows = ps.map(p=>{ const a = S.ans[p.id];
       return `<li><b>${p.ini || ('P'+String(p.id).padStart(3,'0'))}</b> · ${p.sex} ${p.age} ปี · เริ่มป่วย ${p.onsetDay ? M.fmtDay(p.onsetDay) : '—'}${p.admit?' · 🏥 นอน รพ.':''}${S.newIds.has(p.id)?' · <span style="color:#e8742a">รายงานใหม่</span>':''}
-        <br><small>${a ? 'สัมภาษณ์แล้ว — สัมผัส: ' + (M.EXPOSURES.filter(x=>a[x.k]===true && x.k!=='HH').map(x=>x.label.replace('งานบวช: ','')).slice(0,5).join(', ') || '—') : 'ยังไม่ได้สัมภาษณ์'}</small></li>`; }).join('');
+        <br><small>${a ? 'สัมภาษณ์แล้ว  สัมผัส: ' + (M.EXPOSURES.filter(x=>a[x.k]===true && x.k!=='HH').map(x=>x.label.replace('งานบวช: ','')).slice(0,5).join(', ') || '—') : 'ยังไม่ได้สัมภาษณ์'}</small></li>`; }).join('');
     sheet(head('🚩', `บ้านผู้ป่วย · ${M.VILLAGES[f.f.hh.v-1].name}`, `${ps.length} รายในบ้านนี้`)
-      + `<div class="wk-sh-b"><ul class="wk-list">${rows}</ul><p class="faint" style="font-size:13px">🗺️ ธงแดงทุกผืนคือ “แผนที่จุด” (spot map) แบบเดียวกับที่หมอจอห์น สโนว์ใช้ค้นหาบ่อน้ำต้นเหตุอหิวาต์ — ลองสังเกตว่าธงกระจุกอยู่ใกล้อะไร</p></div>
+      + `<div class="wk-sh-b"><ul class="wk-list">${rows}</ul><p class="faint" style="font-size:13px">🗺️ ธงแดงทุกผืนคือ “แผนที่จุด” (spot map) แบบเดียวกับที่หมอจอห์น สโนว์ใช้ค้นหาบ่อน้ำต้นเหตุอหิวาต์  ลองสังเกตว่าธงกระจุกอยู่ใกล้อะไร</p></div>
         <div class="wk-acts">${cloneActs(['interview'])}</div>`, f);
   }
   const SAY = {
     doctor: ()=>F.hint(),
     boonma: ()=>U.pick([`ป้าเป็น อสม. หมู่ ๒ จ้ะ รู้จักทุกบ้านในหมู่นี้ ถ้าจะ<b>ค้นหาผู้ป่วยเชิงรุก</b> ป้าพาเคาะประตูได้นะ`, 'ชาวบ้านบางคนท้องเสียแต่ไม่ไปหาหมอหรอก กินยาเองอยู่บ้าน… ข้อมูลพวกนี้ไม่มีในโรงพยาบาลนะหนู', 'ล้างมือก่อนกินข้าวนะลูก ป้าพูดจนปากเปียกปากแฉะแล้ว']),
-    kamnan: ()=>U.pick(['จะปิดร้านไหน ปิดบ่อไหน ต้องมีหลักฐานนะ ชาวบ้านเขาทำมาหากิน', 'นักข่าวโทรมาถามผมทั้งวันเลย อยากรู้เร็ว ๆ ว่าต้นเหตุคืออะไร', `ผมเป็นห่วงลูกบ้านทุกคน ความเชื่อมั่นของชาวบ้านตอนนี้อยู่ที่ <b>${Math.round(S.trust)}</b> — อย่าให้ต่ำกว่านี้เลย`]),
-    monk: ()=>U.pick(['เจริญพร… ญาติโยมทำงานเหนื่อยไหม พักดื่มน้ำก่อนก็ได้นะ', 'งานบุญที่วัดคนมาร่วมเยอะ ถ้ามีอะไรให้วัดช่วยประกาศ อาตมายินดี', 'ความไม่ประมาทเป็นทางแห่งความไม่ตาย — สุขภาพก็เช่นกัน']),
+    kamnan: ()=>U.pick(['จะปิดร้านไหน ปิดบ่อไหน ต้องมีหลักฐานนะ ชาวบ้านเขาทำมาหากิน', 'นักข่าวโทรมาถามผมทั้งวันเลย อยากรู้เร็ว ๆ ว่าต้นเหตุคืออะไร', `ผมเป็นห่วงลูกบ้านทุกคน ความเชื่อมั่นของชาวบ้านตอนนี้อยู่ที่ <b>${Math.round(S.trust)}</b>  อย่าให้ต่ำกว่านี้เลย`]),
+    monk: ()=>U.pick(['เจริญพร… ญาติโยมทำงานเหนื่อยไหม พักดื่มน้ำก่อนก็ได้นะ', 'งานบุญที่วัดคนมาร่วมเยอะ ถ้ามีอะไรให้วัดช่วยประกาศ อาตมายินดี', 'ความไม่ประมาทเป็นทางแห่งความไม่ตาย  สุขภาพก็เช่นกัน']),
     vendorF: ()=>M.isClosed(S,'R1') ? 'ร้านป้าโดนสั่งปิด… ขายไม่ได้เลย หวังว่าจะหาต้นเหตุเจอเร็ว ๆ นะ' : U.pick(['ส้มตำปูปลาร้าของป้าขายดีที่สุดในตำบล! ลองไหมจ๊ะ', 'ช่วงนี้ลูกค้าหายไปเยอะ เขาลือกันว่ากินแล้วท้องเสีย… ป้าไม่สบายใจเลย']),
     vendorM: ()=>M.isClosed(S,'R2') ? 'ร้านลุงปิดอยู่… ลุงยอมให้ตรวจทุกอย่างเลย ขอให้ชัดเจนก็พอ' : U.pick(['ก๋วยเตี๋ยวเรือลุงสูตรโบราณ น้ำซุปเคี่ยวทั้งคืน!', 'ลุงล้างผักด้วยน้ำประปานะ แต่ร้านอื่นไม่รู้เหมือนกัน']),
     director: ()=>U.pick(['นักเรียนลาป่วยเพิ่มขึ้นช่วงนี้ ครูก็กังวลค่ะ', 'โรงเรียนยินดีให้ความร่วมมือเต็มที่ ขอให้แจ้งผู้ปกครองอย่างระมัดระวังนะคะ', 'เราสอนเด็ก ๆ ให้ล้างมือก่อนกินข้าวทุกวันค่ะ']),
@@ -1278,7 +1280,7 @@ OD.walk = (function(){
     const who = f.a.q, q = Q();
     if(who==='yai'){
       const t = q.hen===0 ? `หลานจ๋า… ไก่นางดำของยายหายไปตั้งแต่เช้า มันชอบไปคุ้ยดินแถว<b>${quest.henMark}</b> ช่วยตามหาให้ยายหน่อยได้ไหม`
-        : q.hen===1 ? `ยังหาไม่เจอเหรอหลาน… ลองไปดูแถว<b>${quest.henMark}</b> มันตัวดำ ๆ ร้องกุ๊ก ๆ` : q.hen===2 ? 'นั่นไง นางดำ! มาใกล้ ๆ ยายหน่อย' : 'นางดำออกไข่ให้ยายแล้วนะ ขอบใจหลานอีกทีจ้ะ — อย่าลืมล้างมือหลังจับไก่ด้วยนะ!';
+        : q.hen===1 ? `ยังหาไม่เจอเหรอหลาน… ลองไปดูแถว<b>${quest.henMark}</b> มันตัวดำ ๆ ร้องกุ๊ก ๆ` : q.hen===2 ? 'นั่นไง นางดำ! มาใกล้ ๆ ยายหน่อย' : 'นางดำออกไข่ให้ยายแล้วนะ ขอบใจหลานอีกทีจ้ะ  อย่าลืมล้างมือหลังจับไก่ด้วยนะ!';
       return sheet(qHead('yai') + `<div class="wk-sh-b">${say('yai', t)}</div>` + (q.hen===0 ? `<div class="wk-acts">${wbtn('data-w="q" data-q="hen" data-v="1"', '🐔 รับภารกิจ: ตามหาไก่นางดำ', 'ความเชื่อมั่นชุมชน +๒')}</div>` : ''), f);
     }
     if(who==='kids'){
@@ -1290,7 +1292,7 @@ OD.walk = (function(){
       if(q.trash===1 && all){ q.trash = 2; reward('ช่วยลุงเผือกเก็บขยะริมคลอง');
         return sheet(qHead('lung') + `<div class="wk-sh-b">${say('lung', 'ครบแล้ว! คลองสะอาดขึ้นเยอะเลย… ขยะกับสิ่งปฏิกูลในน้ำคือบ้านของเชื้อโรค ถ้าคลองสะอาด คนใช้น้ำก็ปลอดภัยขึ้น')}</div>`, f); }
       const t = q.trash===0 ? 'ขยะลอยมาติดริมคลองเต็มเลยหลังพายุ… น้ำสกปรก เชื้อโรคก็มากับน้ำ ช่วยลุงเก็บสัก ๘ ชิ้นได้ไหม'
-        : q.trash===1 ? `เก็บได้ ${U.thaiNum(q.trashGot.length)} จาก ${U.thaiNum(quest.trash.length)} ชิ้นแล้ว — ดูจุดสีเขียวบนแผนที่ย่อนะ` : 'ขอบใจมากหลาน ปลาก็กลับมาแล้ว ลุงจะช่วยบอกชาวบ้านไม่ให้ทิ้งขยะลงคลองอีก';
+        : q.trash===1 ? `เก็บได้ ${U.thaiNum(q.trashGot.length)} จาก ${U.thaiNum(quest.trash.length)} ชิ้นแล้ว  ดูจุดสีเขียวบนแผนที่ย่อนะ` : 'ขอบใจมากหลาน ปลาก็กลับมาแล้ว ลุงจะช่วยบอกชาวบ้านไม่ให้ทิ้งขยะลงคลองอีก';
       return sheet(qHead('lung') + `<div class="wk-sh-b">${say('lung', t)}</div>` + (q.trash===0 ? `<div class="wk-acts">${wbtn('data-w="q" data-q="trash" data-v="1"', '🗑️ รับภารกิจ: เก็บขยะริมคลอง ๘ ชิ้น', 'ความเชื่อมั่นชุมชน +๒')}</div>` : ''), f);
     }
   }
@@ -1314,7 +1316,7 @@ OD.walk = (function(){
       if(w.next===WASH.length){ Q().wash = 2; washState = null; reward('สอนน้อง ๆ ล้างมือ ๗ ขั้นตอน');
         sheet(qHead('kids') + `<div class="wk-sh-b">${say('kids', w.miss ? 'เย้! จำได้หมดแล้วค่ะ ขอบคุณพี่นะคะ 💖' : 'สุดยอด ถูกหมดทุกขั้นเลย! พี่เป็นครูได้แน่ ๆ 💖')}</div>`, {kind:'quest', a:actors.find(a=>a.q==='kids')}); return; }
       washDraw(); }
-    else { w.miss++; OD.sfx && OD.sfx('down'); U.toast(`🤔 ยังไม่ใช่ขั้นที่ ${U.thaiNum(w.next+1)} — ลองนึกดูว่าทำอะไรต่อจาก “${w.next ? WASH[w.next-1][1] : 'เปิดน้ำ ฟอกสบู่'}”`, '', 2600); }
+    else { w.miss++; OD.sfx && OD.sfx('down'); U.toast(`🤔 ยังไม่ใช่ขั้นที่ ${U.thaiNum(w.next+1)}  ลองนึกดูว่าทำอะไรต่อจาก “${w.next ? WASH[w.next-1][1] : 'เปิดน้ำ ฟอกสบู่'}”`, '', 2600); }
   }
 
   /* ---------- นำทาง / สมุดนักสำรวจ ---------- */
@@ -1342,7 +1344,7 @@ OD.walk = (function(){
         <li><b>🧼 สอนน้องล้างมือ ๗ ขั้นตอน</b> ${st(q.wash,1,2)}<small>น้อง ๆ ยืนรออยู่หน้าโรงอาหารโรงเรียน</small></li>
         <li><b>🗑️ เก็บขยะริมคลอง</b> ${st(q.trash,1,2)}<small>ลุงเผือกนั่งอยู่ริมคลองใกล้สะพาน${q.trash===1?` · เก็บแล้ว ${U.thaiNum(q.trashGot.length)}/${U.thaiNum(quest.trash.length)}`:''}</small></li></ul>
         <p class="faint" style="font-size:13px">ทำภารกิจสำเร็จ ชาวบ้านจะไว้ใจทีมมากขึ้น (ความเชื่อมั่นชุมชน +๒ ต่อภารกิจ)</p>`; }
-    if(tab==='card') body = `<div class="wk-cards">${CARDS.map(([t,d],i)=>S.flags.walkCards.includes(i) ? `<div class="wk-card sm"><b>${t}</b><p>${d}</p></div>` : `<div class="wk-card sm locked"><b>❓ การ์ดใบที่ ${U.thaiNum(i+1)}</b><p>ยังไม่พบ — ซ่อนอยู่ที่ไหนสักแห่งในตำบล</p></div>`).join('')}</div>`;
+    if(tab==='card') body = `<div class="wk-cards">${CARDS.map(([t,d],i)=>S.flags.walkCards.includes(i) ? `<div class="wk-card sm"><b>${t}</b><p>${d}</p></div>` : `<div class="wk-card sm locked"><b>❓ การ์ดใบที่ ${U.thaiNum(i+1)}</b><p>ยังไม่พบ  ซ่อนอยู่ที่ไหนสักแห่งในตำบล</p></div>`).join('')}</div>`;
     sheet(head('📒', 'สมุดนักสำรวจ', `เหรียญ ${U.thaiNum(q.badges.length)}/${U.thaiNum(BADGES.length)} · การ์ด ${U.thaiNum(S.flags.walkCards.length)}/${U.thaiNum(CARDS.length)}`)
       + `<div class="wk-tabs">${tabs.map(([k,l])=>`<button class="wk-tab ${k===tab?'on':''}" data-w="book" data-tab="${k}">${l}</button>`).join('')}</div><div class="wk-sh-b">${body}</div>`, {kind:'book', x:null});
   }
@@ -1358,7 +1360,7 @@ OD.walk = (function(){
         <li><b>เดิน:</b> ปุ่มลูกศร / WASD (กด <b>Shift</b> ค้างเพื่อวิ่ง) · <b>แตะ/คลิก</b>ที่พื้นเพื่อเดินไปเอง · <b>แตะค้างแล้วลาก</b>เพื่อบังคับทิศแบบจอยสติ๊ก</li>
         <li><b>🧭 ไปที่…</b> เลือกสถานที่แล้วตัวละครเดินไปเอง · แตะ<b>ชื่อร้าน / ขยายแผนที่</b> ดูชื่อและเลือกหมุด · <b>🏥 กลับ รพ.สต.</b> เดินกลับฐาน · <b>⏹ หยุดเดิน</b> ยกเลิกจุดหมาย · <b>🚲</b> ยืมจักรยานที่ รพ.สต.</li>
         <li><b>คุย/สำรวจ:</b> เมื่อมีเครื่องหมาย <b style="color:#e8b830">!</b> กด <b>E</b> / Space หรือแตะปุ่ม 💬</li>
-        <li>📌 <b>ภารกิจชาวบ้าน</b> ๓ อย่าง (คนที่มีฟอง <b style="color:#e8b830">!</b> เหนือหัว) · 🏅 เหรียญ ${U.thaiNum(BADGES.length)} เหรียญ · ✨ การ์ดความรู้ ${U.thaiNum(CARDS.length)} ใบ — ดูใน <b>📒 สมุด</b></li>
+        <li>📌 <b>ภารกิจชาวบ้าน</b> ๓ อย่าง (คนที่มีฟอง <b style="color:#e8b830">!</b> เหนือหัว) · 🏅 เหรียญ ${U.thaiNum(BADGES.length)} เหรียญ · ✨ การ์ดความรู้ ${U.thaiNum(CARDS.length)} ใบ  ดูใน <b>📒 สมุด</b></li>
         <li>🚩 <b>ธงแดง</b> = บ้านที่มีผู้ป่วยในฐานข้อมูล (ธงส้มกะพริบ = รายงานใหม่) · 🏥 <b>รพ.สต.</b> = ฐานทีม สัมภาษณ์ ส่งรายงานได้ที่นั่น</li>
         <li><b>สะดุ้ง: เปิด/ปิด</b> เลือกเหตุการณ์แมวหรือนกเล็กน้อย ไม่มีผลต่อคะแนน และจำค่าที่เลือก</li>
         <li>⏱️ <b>เวลาเดินทางมีค่า:</b> เดิน ๔ กม. หรือปั่น ๑๒ กม. = ๑ ชม. ในเกม (คิดเมื่อทำภารกิจหรือกลับหน้าข้อมูล)</li></ul></div>

@@ -1,5 +1,5 @@
 /* =========================================================
-   vn — ระบบเล่าเรื่องแบบวิชวลโนเวล
+   vn  ระบบเล่าเรื่องแบบวิชวลโนเวล
    OD.vn.play(steps, {mode:'full'|'overlay'}) -> Promise
    steps: {bg} {card:{no,title,sub}} {show,expr,pos} {hide} {hideAll}
           {say,expr,text} {me} {narr} {choice:[{text,hint,do,goto}]}

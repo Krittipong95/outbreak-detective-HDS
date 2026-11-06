@@ -24,6 +24,14 @@
     box.querySelector('[data-audio=ambient]').click();check(!OD.sound.status().ambientOn,'ambient mute');const mutedSources=stats.noiseSources;OD.sound.setScene('well_canal',{rain:true});check(stats.noiseSources===mutedSources,'sound sources created while muted');box.querySelector('[data-audio=ambient]').click();check(OD.sound.status().ambientOn,'ambient enable');
     OD.sound.setScene('office');const play=OD.vn.play([{bg:'village',fx:'rain'},{say:'doctor',text:'สวัสดีครับ'},{fx:null}]);await new Promise(r=>setTimeout(r,100));check(OD.sound.scene().rain,'VN rain');
     const vn=document.querySelector('#vn .vn-box');vn.click();vn.click();await play;check(OD.sound.scene().place==='office'&&!OD.sound.scene().rain,'VN scene restoration');check(spoken.length>=2,'VN dialogue not voiced');
+    mockVoices=[{lang:'th-TH',localService:true,name:'Thai Male A',voiceURI:'m1'},{lang:'th-TH',localService:true,name:'Thai Male B',voiceURI:'m2'},{lang:'th-TH',localService:true,name:'Thai Female',voiceURI:'f1'}];if(voiceChange)voiceChange();
+    OD.sound.speak('สวัสดี','doctor','neutral');const doctor=spoken[spoken.length-1];
+    OD.sound.speak('สวัสดี','kamnan','neutral');const kamnan=spoken[spoken.length-1];
+    OD.sound.speak('สวัสดี','fah','neutral');const fah=spoken[spoken.length-1];
+    check(doctor.voice.voiceURI!==kamnan.voice.voiceURI,'male characters not assigned different available voices');check(fah.voice.voiceURI==='f1','female voice not selected');
+    OD.sound.speak('สวัสดี','doctor','worried');const worried=spoken[spoken.length-1];check(worried.rate<doctor.rate&&worried.pitch<doctor.pitch,'emotion not applied');
+    const select=box.querySelector('[data-voice-character=doctor]');check(!!select,'character voice picker missing');select.value='m2';select.dispatchEvent(new Event('change',{bubbles:true}));
+    OD.sound.speak('สวัสดี','doctor','neutral');check(spoken[spoken.length-1].voice.voiceURI==='m2','manual voice selection');check(JSON.parse(localStorage.getItem('od2-voiceMap')).doctor==='m2','voice selection not saved');const preview=box.querySelector('[data-voice-preview=doctor]');check(!!preview,'voice preview missing');preview.click();check(spoken[spoken.length-1].voice.voiceURI==='m2'&&spoken[spoken.length-1].text.includes('สวัสดีครับ'),'voice preview');
     const last=spoken.length;mockVoices=[];if(voiceChange)voiceChange();OD.sound.speak('ทดสอบ','doctor');check(spoken.length===last&&!OD.sound.status().voiceAvailable,'missing Thai voice fallback');check(box.querySelector('[data-audio=voice-note]').textContent.includes('ไม่พบ'),'missing voice message');
     document.body.dataset.soundAudit=errors.length?'fail':'pass';
   }catch(e){errors.push(e.stack||e.message);document.body.dataset.soundAudit='fail';}

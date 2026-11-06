@@ -105,11 +105,11 @@ OD.vn = (function(){
     if(s.say!=null){
       const c = OD.CHARS[s.say];
       if(!charEl(s.say) || !charEl(s.say).classList.contains('on') || (s.expr && charEl(s.say).dataset.expr!==s.expr)) show(s.say, s.expr || (charEl(s.say)||{}).dataset?.expr || 'neutral', s.pos);
-      E.name.innerHTML = `${c.name}<small>${c.title}</small>`; focus(s.say); typeText(s.text); if(OD.sound && !fast)OD.sound.speak(s.text,s.say);
+      E.name.innerHTML = `${c.name}<small>${c.title}</small>`; focus(s.say); typeText(s.text); if(OD.sound && !fast)OD.sound.speak(s.text,s.say,s.expr || charEl(s.say)?.dataset.expr || 'neutral');
     } else if(s.me!=null){
       if(charEl('me')){ if(s.expr && charEl('me').dataset.expr!==s.expr) show('me', s.expr); focus('me'); }
       else { meFace(s.expr || 'neutral'); focus('__none__'); }
-      E.name.innerHTML = `${U.esc(OD.S.name)}<small>คุณ · ${OD.CHARS['me_'+(OD.S.gender||'m')].title}</small>`; typeText(s.me); if(OD.sound && !fast)OD.sound.speak(s.me,'me');
+      E.name.innerHTML = `${U.esc(OD.S.name)}<small>คุณ · ${OD.CHARS['me_'+(OD.S.gender||'m')].title}</small>`; typeText(s.me); if(OD.sound && !fast)OD.sound.speak(s.me,'me',s.expr || 'neutral');
     } else { if(OD.sound)OD.sound.stopVoice(); E.name.innerHTML = ''; focus(null); typeText(s.narr); }
     await waitClick();
   }

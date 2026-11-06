@@ -429,6 +429,7 @@ OD.field = (function(){
   F.render = function(){
     const left = M.DEADLINE - S.T, nRec = M.records(W,S).length, pend = M.pendingInterviews(W,S);
     OD.music.setMood(left<=36 ? 'tense' : 'field');
+    if(OD.sound){const hr=S.T%24;OD.sound.setScene('village',{night:hr>=19||hr<5});}
     U.$('#fTop').innerHTML = `<div class="f-brand">${OD.meFace(left<=36?'worried':'neutral','sm')}<span class="f-me"><span class="gold-text">นักสืบโรคระบาด ๒</span><small>${U.esc(S.name)} · ทีม HDS</small></span></div>
       <div class="f-stat"><span class="l">เวลา</span><b>${M.fmtT(S.T)}</b></div>
       <div class="f-stat cases"><span class="l">ผู้ป่วยในฐานข้อมูล</span><b>${nRec} ราย${S.lastNew?`<span class="d">+${S.lastNew}</span>`:''}</b></div>

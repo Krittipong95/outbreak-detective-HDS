@@ -127,7 +127,7 @@ OD.ch2 = (function(){
         const ii = e.target.closest('.issue-item'); if(ii){ cur = +ii.dataset.i; render(); return; }
         const ob = e.target.closest('.qopt'); const it = issues[cur];
         if(ob && !ob.disabled && it.choice==null){
-          it.choice = +ob.dataset.o; const o = it.opts[it.choice];
+          it.choice = +ob.dataset.o; const o = it.opts[it.choice]; OD.sfx && OD.sfx(o.ok?'correct':'wrong');
           if(o.ok) S.acc.ch2 += 2;
           else {
             S.mistakes.push({area:'ch2', title:it.title, chosen:o.t, correct:it.opts.find(x=>x.ok).t, why:o.fb});
@@ -139,7 +139,7 @@ OD.ch2 = (function(){
         if(a.dataset.act==='next'){ const n = issues.findIndex(x=>x.choice==null); cur = n<0 ? cur : n; render(); }
         if(a.dataset.act==='finish'){ root.onclick = null; await OD.vn.play(OD.story.ch2_done(W,S), {mode:'overlay'}); resolve(); }
       };
-      U.show('scr-ch2'); render();
+      U.show('scr-ch2'); if(OD.sound)OD.sound.setScene('office'); render();
     });
   }
   return {run};

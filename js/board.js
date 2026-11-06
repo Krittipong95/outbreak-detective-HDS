@@ -74,7 +74,7 @@ OD.board = (function(){
         const q = e.target.closest('[data-qlink]');
         if(q && sel){ link(sel, q.dataset.qlink); return; }
         const ev = e.target.closest('[data-ev]');
-        if(ev){ sel = sel===ev.dataset.ev ? null : ev.dataset.ev; render(); if(sel) U.$('#bdSuspects').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+        if(ev){ OD.sfx && OD.sfx('page'); sel = sel===ev.dataset.ev ? null : ev.dataset.ev; render(); if(sel) U.$('#bdSuspects').scrollIntoView({behavior:'smooth',block:'start'}); return; }
         const su = e.target.closest('[data-sus]');
         if(su){ if(sel) link(sel, su.dataset.sus); else U.toast('แตะการ์ดหลักฐานก่อน แล้วค่อยแตะผู้ต้องสงสัย'); return; }
         if(e.target.id==='bdGo'){
@@ -98,7 +98,7 @@ OD.board = (function(){
       const ro = window.ResizeObserver ? new ResizeObserver(()=>strings()) : null;
       const watch = () => { const bd = U.$('#bd'); if(ro && bd){ ro.disconnect(); ro.observe(bd); } };
       const cleanup = () => { window.removeEventListener('resize', onResize); if(ro) ro.disconnect(); root.onkeydown = root.onclick = root.ondragstart = root.ondragover = root.ondrop = root.ondragend = null; };
-      U.show('scr-board'); OD.music.setMood('calm'); render();
+      U.show('scr-board'); OD.music.setMood('calm'); if(OD.sound)OD.sound.setScene('office'); OD.sfx && OD.sfx('page'); render();
     });
   }
   return {run};

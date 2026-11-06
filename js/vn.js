@@ -11,6 +11,7 @@ OD.config = OD.config || {customPortraits:false};
 OD.vn = (function(){
   const U = OD.u;
   let root, E = {}, waiter = null, typing = null, fast = false;
+  let previousSoundScene = null;
   let auto = false; try{ auto = localStorage.getItem('od2-auto')==='1'; }catch(e){}   // โหมดอ่านอัตโนมัติ (จำค่าไว้)
   const seg = (typeof Intl!=='undefined' && Intl.Segmenter) ? new Intl.Segmenter('th', {granularity:'grapheme'}) : null;
   const graphemes = s => seg ? Array.from(seg.segment(s), x=>x.segment) : Array.from(s);
@@ -36,7 +37,7 @@ OD.vn = (function(){
   }
   function advance(){
     if(typing && !typing.done){ finishTyping(); if(!fast) return; }
-    if(waiter){ const w = waiter; waiter = null; w(); }
+    if(waiter){ if(OD.sound)OD.sound.stopVoice(); const w = waiter; waiter = null; w(); }
   }
 
   /* ---------- ข้อความ ---------- */
@@ -62,10 +63,10 @@ OD.vn = (function(){
   }
   /* โหมดอัตโนมัติ: พิมพ์จบแล้วรอเวลาอ่านตามความยาวข้อความ แล้วไปบรรทัดถัดไปเอง */
   function armAuto(){
-    const w = waiter; if(!w) return;
+    const w = waiter; if(!w) return; const started=Date.now();
     const chk = setInterval(()=>{
       if(waiter!==w || !auto){ clearInterval(chk); return; }
-      if(typing && typing.done){ clearInterval(chk); setTimeout(()=>{ if(waiter===w && auto){ waiter = null; w(); } }, Math.min(4200, 900 + typing.total*30)); }
+      if(typing && typing.done && !(OD.sound && OD.sound.speaking() && Date.now()-started<30000)){ clearInterval(chk); setTimeout(()=>{ if(waiter===w && auto){ if(OD.sound)OD.sound.stopVoice(); waiter = null; w(); } }, Math.min(4200, 900 + typing.total*30)); }
     }, 100);
   }
   const waitClick = () => new Promise(res=>{ waiter = res;
@@ -104,12 +105,12 @@ OD.vn = (function(){
     if(s.say!=null){
       const c = OD.CHARS[s.say];
       if(!charEl(s.say) || !charEl(s.say).classList.contains('on') || (s.expr && charEl(s.say).dataset.expr!==s.expr)) show(s.say, s.expr || (charEl(s.say)||{}).dataset?.expr || 'neutral', s.pos);
-      E.name.innerHTML = `${c.name}<small>${c.title}</small>`; focus(s.say); typeText(s.text);
+      E.name.innerHTML = `${c.name}<small>${c.title}</small>`; focus(s.say); typeText(s.text); if(OD.sound && !fast)OD.sound.speak(s.text,s.say);
     } else if(s.me!=null){
       if(charEl('me')){ if(s.expr && charEl('me').dataset.expr!==s.expr) show('me', s.expr); focus('me'); }
       else { meFace(s.expr || 'neutral'); focus('__none__'); }
-      E.name.innerHTML = `${U.esc(OD.S.name)}<small>คุณ · ${OD.CHARS['me_'+(OD.S.gender||'m')].title}</small>`; typeText(s.me);
-    } else { E.name.innerHTML = ''; focus(null); typeText(s.narr); }
+      E.name.innerHTML = `${U.esc(OD.S.name)}<small>คุณ · ${OD.CHARS['me_'+(OD.S.gender||'m')].title}</small>`; typeText(s.me); if(OD.sound && !fast)OD.sound.speak(s.me,'me');
+    } else { if(OD.sound)OD.sound.stopVoice(); E.name.innerHTML = ''; focus(null); typeText(s.narr); }
     await waitClick();
   }
 
@@ -121,7 +122,7 @@ OD.vn = (function(){
       E.choices.classList.remove('hidden');
       E.choices.onclick = async e=>{
         const b = e.target.closest('.vn-choice'); if(!b) return;
-        const c = s.choice[+b.dataset.i];
+        OD.sfx && OD.sfx('choose'); const c = s.choice[+b.dataset.i];
         E.choices.classList.add('hidden'); E.choices.onclick = null;
         let r = c.do ? await c.do() : null;
         res(c.goto ? {goto:c.goto} : (typeof r==='string' ? {goto:r} : null));
@@ -145,8 +146,8 @@ OD.vn = (function(){
       const s = steps[i]; let r = null;
       if(s.label) continue;
       if(s.goto) r = {goto:s.goto};
-      if(s.bg){ E.bg.innerHTML = OD.art.scene(s.bg); OD.music && OD.music.sceneMood(s.bg); }
-      if(s.fx!==undefined) E.fx.className = 'vn-fx' + (s.fx ? ' '+s.fx : '');
+      if(s.bg){ E.bg.innerHTML = OD.art.scene(s.bg); OD.music && OD.music.sceneMood(s.bg); if(OD.sound){const hr=OD.S?OD.S.T%24:12;OD.sound.setScene(s.bg,{night:String(s.bg).includes('night')||hr>=19||hr<5});} }
+      if(s.fx!==undefined){ E.fx.className = 'vn-fx' + (s.fx ? ' '+s.fx : ''); if(OD.sound)OD.sound.setRain(s.fx==='rain'); }
       if(s.card) await card(s.card);
       if(s.hideAll) hideAll();
       if(s.hide) hide(s.hide);
@@ -165,6 +166,7 @@ OD.vn = (function(){
 
   async function play(steps, opts={}){
     ensure();
+    if(root.classList.contains('hidden') && OD.sound) previousSoundScene=OD.sound.scene();
     root.classList.toggle('overlay', opts.mode==='overlay');
     root.classList.remove('hidden');
     E.text.innerHTML = ''; E.name.innerHTML = ''; E.choices.classList.add('hidden'); E.box.classList.remove('me'); E.fx.className = 'vn-fx';
@@ -175,7 +177,8 @@ OD.vn = (function(){
     try { await run(steps, steps); }
     finally {
       fast = false; E.ff.classList.remove('btn-gold');
-      if(!opts.keep){ root.classList.add('hidden'); E.chars.innerHTML = ''; }
+      if(OD.sound)OD.sound.stopVoice();
+      if(!opts.keep){ root.classList.add('hidden'); E.chars.innerHTML = ''; if(OD.sound && previousSoundScene)OD.sound.setScene(previousSoundScene.place,previousSoundScene); previousSoundScene=null; }
     }
   }
   return {play, show, hide, hideAll};

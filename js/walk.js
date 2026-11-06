@@ -846,6 +846,9 @@ OD.walk = (function(){
       S.flags.walkAcc = (S.flags.walkAcc||0) + moved * (q.riding ? 1/3 : 1);
       OD.deadline.update(el,S);
       OD.deadline.notify(S);
+      const remaining=OD.deadline.snapshot(S).remainingHours, walkHour=(S.T+(S.flags.walkAcc||0)/1000)%24;
+      if(OD.music)OD.music.setMood(remaining<=36?'tense':'field');
+      if(OD.sound)OD.sound.setScene('village',{night:walkHour>=19||walkHour<5});
       if(!deadlineClosing && OD.deadline.snapshot(S).remainingHours<=0){
         deadlineClosing = true; cancelNavigation(); close(); return;
       }

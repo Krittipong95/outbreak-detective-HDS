@@ -93,6 +93,7 @@
   const U = OD.u;
   OD.handbook = {
     open(id){
+      OD.sfx && OD.sfx('page');
       let cur = Math.max(0, H.findIndex(c=>c.id===id));
       const draw = ()=>{
         const c = H[cur];

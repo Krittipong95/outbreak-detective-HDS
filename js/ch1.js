@@ -100,7 +100,7 @@ OD.ch1 = (function(){
           </div>
           <div id="ch1q"></div>
         </div></div>`;
-      U.show('scr-ch1');
+      U.show('scr-ch1'); if(OD.sound)OD.sound.setScene('office');
       const box = U.$('#ch1q'), root2 = U.$('#scr-ch1');
       const md = t => t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
       function render(){
@@ -116,7 +116,7 @@ OD.ch1 = (function(){
         if(e.target.closest('#ch1next')){ root2.onclick = null; await OD.vn.play(OD.story.ch1_done(W,S), {mode:'overlay'}); resolve(); return; }
         const b = e.target.closest('.qopt'); if(!b || b.disabled) return;
         const q = Q[+b.closest('[data-q]').dataset.q], o = q.opts[+b.dataset.o];
-        q.tries++; o.state = o.ok ? 'right' : 'wrong'; q.fb = (o.ok?'✅ ':'❌ ') + o.fb;
+        OD.sfx && OD.sfx(o.ok?'correct':'wrong'); q.tries++; o.state = o.ok ? 'right' : 'wrong'; q.fb = (o.ok?'✅ ':'❌ ') + o.fb;
         if(o.ok){ q.done = true; S.acc.ch1 += q.tries===1 ? 2 : q.tries===2 ? 1 : 0; }
         else S.mistakes.push({area:'ch1', title:q.q.replace(/\*\*/g,''), chosen:o.t, correct:q.opts.find(x=>x.ok).t, why:o.fb});
         render();

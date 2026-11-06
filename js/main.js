@@ -67,7 +67,7 @@ OD.main = (function(){
     };
     const inp = U.$('#tName'); inp.oninput = ()=>{ pref.name = inp.value; };
     U.show('scr-title');
-    OD.music.setMood('calm');
+    OD.music.setMood('calm'); if(OD.sound)OD.sound.setScene('village');
   }
 
   async function play(skip, opts={}){

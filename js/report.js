@@ -394,7 +394,7 @@ OD.report = (function(){
         <div class="title-actions"><button class="btn btn-gold btn-lg" id="resAgain">🔄 คดีใหม่</button><button class="btn btn-lg" id="resData">💻 ดาวน์โหลดข้อมูลไปวิเคราะห์ต่อ</button><button class="btn btn-lg" id="resStats">🏆 สถิติและเหรียญ</button><button class="btn btn-lg" id="resHome">กลับหน้าแรก</button></div></div>
     </div>`;
     U.show('scr-result');
-    OD.music.setMood(R.correctSource ? 'ending' : 'night');
+    OD.music.setMood(R.correctSource ? 'ending' : 'night'); if(OD.sound)OD.sound.setScene('office',{night:!R.correctSource});
     U.$('#resData').onclick = ()=>OD.mlViews.downloadModal(W,S);
     U.$('#resAgain').onclick = ()=>OD.main.newCase();
     U.$('#resHome').onclick = ()=>OD.main.title();

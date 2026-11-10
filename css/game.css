@@ -28,12 +28,12 @@
 .diff.who{display:flex;align-items:center;gap:12px}
 .diff.who .avatar{width:64px;height:64px}
 /* ภาพวาดเป็นสัดส่วนเต็มตัว: ยึดการซูมจากขอบบนเพื่อไม่ให้ศีรษะถูกวงกลมครอป */
-.diff.who .avatar img.char-paint{object-position:50% 0;transform:scale(2.45);transform-origin:50% 0}
+.diff.who .avatar img.char-paint{object-position:50% 0;transform:scale(2.35);transform-origin:50% 0}
 @media (max-width:640px){.diff.who .avatar{width:52px;height:52px}.diff.who small{display:none}}
 /* ภาพหน้าตัวละครแบบวงกลม (ใช้ซ้ำทั้งเกม) */
 .avatar{flex:none;display:inline-block;width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);background:var(--panel-3);vertical-align:middle}
 .avatar svg,.avatar img{width:100%;height:auto;display:block;transform:translateY(-5%) scale(1.6);transform-origin:50% 45%}
-.avatar img.char-paint,.face img.char-paint{width:100%;height:100%;object-fit:contain;object-position:50% 10%;transform:scale(2.55);transform-origin:50% 17%;filter:none}
+.avatar img.char-paint,.face img.char-paint{width:100%;height:100%;object-fit:contain;object-position:50% 0;transform:scale(2.35);transform-origin:50% 0;filter:none}
 .avatar.sm{width:38px;height:38px;border-width:1.5px}
 .avatar.lg{width:96px;height:96px;margin:0 auto -10px;position:relative;z-index:1}
 .title-foot{font-size:13px;color:var(--faint);margin-top:16px}

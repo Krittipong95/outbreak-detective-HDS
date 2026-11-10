@@ -77,7 +77,9 @@
 .vn-choice{width:min(720px,100%);text-align:left;padding:14px 20px;font-size:17px;font-weight:500;cursor:pointer;color:var(--text);
   background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--gold-3);border-radius:4px;box-shadow:var(--shadow);transition:border-color .15s,background .15s,transform .1s}
 .vn-choice:hover{border-color:var(--gold-2);background:color-mix(in srgb,var(--gold) 16%,var(--panel));transform:translateX(4px)}
-.vn-choice b{color:#ffe28e;font-size:1.04em}.vn-choice .hint{display:table;width:auto;font-size:13px;color:#f3cf78;margin-top:7px;padding:3px 9px;border:1px solid rgba(245,197,86,.35);border-radius:999px;background:rgba(245,197,86,.13);font-weight:600}
+.vn-choice b{color:#ffe28e;font-size:1.04em;text-decoration:underline;text-decoration-color:rgba(255,226,142,.5);text-underline-offset:3px}.vn-choice .hint{display:table;width:auto;font-size:13px;color:#ffe8a6;margin-top:7px;padding:3px 9px;border:1px solid #9c762c;border-radius:999px;background:#4b3517;font-weight:700}
+:root[data-theme="light"] .vn-choice b{color:#563500;text-decoration-color:#b57a13}
+:root[data-theme="light"] .vn-choice .hint{color:#4b2d00;border-color:#9b6a12;background:#ffedb8;box-shadow:0 1px 0 rgba(255,255,255,.65) inset}
 .vn-tools{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2}
 /* หน้าตัวละครของผู้เล่นข้างกล่องข้อความ */
 .vn-face{display:none;position:absolute;left:24px;top:-52px;width:136px;height:136px;border-width:3px;box-shadow:0 6px 18px rgba(0,0,0,.5)}

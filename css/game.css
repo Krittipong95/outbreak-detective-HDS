@@ -27,6 +27,8 @@
 .who-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px}
 .diff.who{display:flex;align-items:center;gap:12px}
 .diff.who .avatar{width:64px;height:64px}
+/* ภาพวาดเป็นสัดส่วนเต็มตัว: ยึดการซูมจากขอบบนเพื่อไม่ให้ศีรษะถูกวงกลมครอป */
+.diff.who .avatar img.char-paint{object-position:50% 0;transform:scale(2.45);transform-origin:50% 0}
 @media (max-width:640px){.diff.who .avatar{width:52px;height:52px}.diff.who small{display:none}}
 /* ภาพหน้าตัวละครแบบวงกลม (ใช้ซ้ำทั้งเกม) */
 .avatar{flex:none;display:inline-block;width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);background:var(--panel-3);vertical-align:middle}

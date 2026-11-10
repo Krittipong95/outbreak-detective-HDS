@@ -51,6 +51,20 @@
 @media (max-width:640px){.diff-grid{grid-template-columns:1fr}}
 
 /* ---------- visual novel ---------- */
+.vn-atmosphere{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.vn-atmosphere i{position:absolute;left:calc(7% + var(--i)*12%);animation-delay:calc(var(--i)*-2.3s);will-change:transform,opacity}
+.vn[data-atmosphere="water"] .vn-atmosphere{background:radial-gradient(ellipse at 50% 85%,rgba(225,239,225,.11),transparent 55%);animation:sceneMist 14s ease-in-out infinite alternate}
+.vn[data-atmosphere="water"] .vn-atmosphere i{top:calc(70% + var(--i)*2%);width:17%;height:2px;background:linear-gradient(90deg,transparent,#ffe8b0,transparent);opacity:0;animation:waterGleam 7s ease-in-out infinite;animation-delay:calc(var(--i)*-.9s)}
+.vn[data-atmosphere="steam"] .vn-atmosphere i{bottom:14%;width:8%;height:28%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,245,223,.14),transparent 65%);opacity:0;animation:sceneSteam 12s linear infinite;animation-delay:calc(var(--i)*-1.7s)}
+.vn[data-atmosphere="light"] .vn-atmosphere i{top:calc(12% + var(--i)*8%);width:3px;height:3px;border-radius:50%;background:#ffe8b0;opacity:0;animation:sceneDust 16s ease-in-out infinite;animation-delay:calc(var(--i)*-2s)}
+.vn[data-atmosphere="leaves"] .vn-atmosphere i{top:-5%;width:8px;height:4px;border-radius:80% 0;background:#afb46e;opacity:0;animation:sceneLeaf 18s linear infinite;animation-delay:calc(var(--i)*-2.5s)}
+.vn.overlay .vn-atmosphere{display:none}
+@keyframes sceneMist{to{transform:translateX(2%);opacity:.55}}
+@keyframes waterGleam{0%,100%{opacity:0;transform:translateX(-12px) scaleX(.6)}50%{opacity:.25;transform:translateX(18px) scaleX(1.2)}}
+@keyframes sceneSteam{0%{opacity:0;transform:translateY(0) scale(.7)}35%{opacity:.65}100%{opacity:0;transform:translate(30px,-200px) scale(1.4)}}
+@keyframes sceneDust{0%,100%{opacity:0}45%{opacity:.45;transform:translate(20px,-40px)}}
+@keyframes sceneLeaf{10%{opacity:.4}90%{opacity:.3}100%{opacity:0;transform:translate(100px,75vh) rotate(240deg)}}
+@media(prefers-reduced-motion:reduce){.vn-atmosphere{display:none}}
 .vn{position:fixed;inset:0;z-index:60;overflow:hidden;user-select:none}
 .vn-bg{position:absolute;inset:-1.5%;overflow:hidden;transition:filter .8s;background:#17100b}
 .vn-bg svg{width:103%;height:103%;display:block;transform:scale(1.015);transform-origin:center;filter:saturate(1.08) contrast(1.04)}

@@ -232,7 +232,7 @@ OD.art = OD.art || {};
   let sceneUid = 0;
   const PAINTED = {
     village:['img/village-dusk-v2.jpg','หมู่บ้านสุขใจ'],
-    temple:['img/scene-temple-school-v1.jpg','วัดและศาลาชุมชน'], school:['img/scene-temple-school-v1.jpg','โรงเรียนชุมชน'], hall:['img/scene-temple-school-v1.jpg','ศาลาประชาคม'],
+    temple:['img/scene-temple-school-v1.jpg','วัดและศาลาชุมชน'], school:['img/scene-school-v2.png','โรงเรียนชุมชน'], hall:['img/scene-hall-v2.png','ศาลาประชาคม'],
     office:['img/scene-clinic-lab-v1.jpg','สำนักงานสอบสวนโรค'], office_night:['img/scene-clinic-lab-v1.jpg','สำนักงานสอบสวนโรคยามค่ำ'], clinic:['img/scene-clinic-lab-v1.jpg','สถานีอนามัย'], lab:['img/scene-clinic-lab-v1.jpg','ห้องปฏิบัติการ'],
     market:['img/scene-market-food-v1.jpg','ตลาดชุมชน'], somtam:['img/scene-market-food-v1.jpg','ร้านส้มตำ'], noodle_boat:['img/scene-market-food-v1.jpg','ร้านก๋วยเตี๋ยว'], chicken_rice:['img/scene-market-food-v1.jpg','ร้านข้าวมันไก่'], mookata:['img/scene-market-food-v1.jpg','ร้านหมูกระทะ'],
     well_temple:['img/scene-waterways-v1.jpg','บ่อน้ำข้างวัด'], well_market:['img/scene-waterways-v1.jpg','จุดน้ำข้างตลาด'], well_canal:['img/scene-waterways-v1.jpg','คลองชุมชน'],

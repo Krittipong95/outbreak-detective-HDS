@@ -19,7 +19,7 @@ OD.vn = (function(){
   function ensure(){
     root = U.$('#vn');
     if(root.dataset.ready) return;
-    root.innerHTML = `<div class="vn-bg"></div><div class="vn-fx"></div><div class="vn-chars"></div>
+    root.innerHTML = `<div class="vn-bg"></div><div class="vn-atmosphere" aria-hidden="true">${Array.from({length:8},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><div class="vn-fx"></div><div class="vn-chars"></div>
       <div class="vn-tools"><button class="btn btn-sm" data-vn="auto" title="เลื่อนข้อความเองตามความยาว (หยุดที่ตัวเลือก)">▶ อัตโนมัติ</button><button class="btn btn-sm" data-vn="ff" title="เร่งข้อความจนถึงตัวเลือกถัดไป">⏩ เร่ง</button></div>
       <div class="vn-choices hidden" data-no-translate></div>
       <div class="vn-box frame"><div class="vn-face avatar"></div><div class="vn-name" data-no-translate></div><div class="vn-text" data-no-translate></div><div class="vn-next">▼</div></div>`;
@@ -159,6 +159,8 @@ OD.vn = (function(){
       if(s.label) continue;
       if(s.goto) r = {goto:s.goto};
       if(s.bg){
+        const scene=String(s.bg).split(':')[0];
+        root.dataset.atmosphere=/village|well_|farm/.test(scene)?'water':/market|somtam|noodle|chicken|mookata/.test(scene)?'steam':/office|clinic|lab|hall/.test(scene)?'light':'leaves';
         const hr=OD.S?OD.S.T%24:12, time=hr<5?'night':hr<8?'dawn':hr<17?'day':hr<19?'dusk':'night';
         E.bg.classList.remove('scene-enter');void E.bg.offsetWidth;E.bg.innerHTML=OD.art.scene(s.bg);E.bg.dataset.scene=String(s.bg).split(':')[0];E.bg.dataset.time=String(s.bg).includes('night')?'night':time;E.bg.classList.add('scene-enter');
         OD.music && OD.music.sceneMood(s.bg);if(OD.sound)OD.sound.setScene(s.bg,{night:E.bg.dataset.time==='night'});

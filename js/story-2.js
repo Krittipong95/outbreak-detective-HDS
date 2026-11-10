@@ -674,8 +674,19 @@
     {say:'doctor', expr:'neutral', text:'ทุกข้อต้องตอบได้ว่า “รู้ได้อย่างไร” ส่งรายงานเมื่อไหร่ มาตรการจะเริ่มเมื่อนั้น'},
     {me:'รับทราบ{p} จะเขียนจากหลักฐานที่มีทั้งหมด', expr:'serious'},
   ];
+  ST.endingProfile = (W,S,R) => {
+    if(R.correctSource && R.rank==='S' && !R.misses) return {id:'legend',title:'ดาวเหนือแห่งบ้านสุขใจ',sub:'คดีสมบูรณ์แบบ · ชุมชนจดจำชื่อของคุณ'};
+    if(R.correctSource && R.total>=800 && S.trust>=60) return {id:'model',title:'ตำบลต้นแบบ',sub:'หนึ่งเดือนต่อมา · บทเรียนจากบ้านสุขใจถูกส่งต่อ'};
+    if(R.correctSource && (S.trust<35 || R.badDec)) return {id:'bittersweet',title:'ชนะคดี แพ้ใจคน',sub:'พบต้นตอแล้ว · แต่ความเชื่อใจต้องสร้างใหม่'};
+    if(R.correctSource && R.total>=700) return {id:'sun',title:'ฟ้าหลังฝน',sub:'สองสัปดาห์ต่อมา'};
+    if(R.correctSource) return {id:'lesson',title:'บทเรียนจากสนาม',sub:'หนึ่งสัปดาห์ต่อมา'};
+    if(R.timeout) return {id:'timeout',title:'เข็มนาฬิกาหยุดลง',sub:'ทีมส่วนกลางมาถึงในเช้าวันถัดมา'};
+    if(R.total>=550) return {id:'near',title:'คำตอบที่เฉียดไป',sub:'หลักฐานชิ้นสุดท้ายที่มองข้าม'};
+    return {id:'night',title:'คืนที่ยาวนาน',sub:'สามวันหลังส่งรายงาน'};
+  };
   ST.ending = (W,S,R) => {
     const c = site(W.scn.culprit);
+    const ep = ST.endingProfile(W,S,R);R.ending=ep;
     const cons = ST.consequences(W,S,R), pick = cons.filter(x=>!x.ok).slice(0,3).concat(cons.filter(x=>x.ok).slice(0,2)).slice(0,4);
     const after = pick.map(x=>({narr:(x.ok?'✦ ':'✧ ') + x.text}));
     const miss = R.misses ? `ทั้งหมดนี้ {name} พลาดไป **${R.misses} จุด**  ดูสรุปท้ายเกมนะ ว่าตรงไหนทำได้ดีกว่านี้` : 'คดีนี้ {name} แทบไม่พลาดเลยสักจุด  ดูสรุปท้ายเกมได้เลย';
@@ -687,8 +698,31 @@
       {me, expr},
       {say:'doctor', expr: R.misses<=3?'smile':'neutral', text:miss},
     ];
-    if(R.correctSource && R.score>=700) return [
-      {card:{no:'บทส่งท้าย', title:'ฟ้าหลังฝน', sub:'สองสัปดาห์ต่อมา'}},
+    if(ep.id==='legend') return [
+      {card:{no:'ฉากจบพิเศษ',title:ep.title,sub:ep.sub}},{bg:'village'},
+      {narr:'ไม่มีผู้ป่วยรายใหม่ ไม่มีผู้บริสุทธิ์ถูกกล่าวหา และทุกการตัดสินใจอธิบายได้ด้วยหลักฐาน'},
+      {say:'kamnan',expr:'smile',pos:'right',text:'ตั้งแต่วันนี้ บ้านสุขใจจะไม่ตัดสินใครด้วยข่าวลืออีก เราจะเริ่มจากข้อมูลเหมือนที่คุณ{name}สอนเรา'},
+      {say:'boonma',expr:'smile',pos:'left',text:'เด็ก ๆ ที่โรงเรียนเรียกน้อง{name}ว่า “นักสืบตัวจริง” กันหมดแล้วนะจ๊ะ'},
+      {say:'doctor',expr:'smile',pos:'center',text:`ต้นตอคือ **${c}** และคดีนี้จะถูกใช้เป็นกรณีศึกษาของจังหวัด ยินดีด้วยนะ`},
+      ...tail('smile','คดีนี้สำเร็จได้เพราะทุกคนช่วยกัน{p} ข้อมูลที่ดีต้องเริ่มจากความไว้ใจ'),
+    ];
+    if(ep.id==='model') return [
+      {card:{no:'ฉากจบ',title:ep.title,sub:ep.sub}},{bg:'hall'},
+      {narr:'ทีมจากตำบลข้างเคียงเดินทางมาดูระบบเฝ้าระวังใหม่ของบ้านสุขใจ'},
+      {say:'boonma',expr:'smile',pos:'left',text:'ตอนนี้ อสม. ทุกหมู่ใช้แบบสอบถามชุดเดียวกันแล้วจ้ะ ข้อมูลไม่ตกหล่นเหมือนก่อน'},
+      {say:'kamnan',expr:'smile',pos:'right',text:'ชาวบ้านช่วยกันแจ้งอาการเร็วขึ้น เพราะรู้ว่าทีมจะรักษาความลับและอธิบายทุกมาตรการ'},
+      {say:'doctor',expr:'smile',pos:'center',text:`จากคดี **${c}** เราไม่ได้แค่หยุดโรค แต่สร้างระบบที่ป้องกันคดีต่อไปได้`},
+      ...tail('smile','ถ้าความรู้ถูกส่งต่อ{p} ผลของคดีนี้ก็จะอยู่ได้นานกว่าพวกเรา'),
+    ];
+    if(ep.id==='bittersweet') return [
+      {card:{no:'ฉากจบ',title:ep.title,sub:ep.sub}},{bg:'office_night'},
+      {narr:'จำนวนผู้ป่วยลดลงหลังควบคุมต้นตอ แต่เก้าอี้ในเวทีชี้แจงชุมชนยังว่างอยู่หลายตัว'},
+      {say:'doctor',expr:'serious',pos:'center',text:`เราหา **${c}** เจอถูกต้อง แต่บางการตัดสินใจทำให้คนที่ไม่เกี่ยวข้องเจ็บปวด`},
+      {say:'kamnan',expr:'worried',pos:'right',text:'ข้อมูลอาจถูกครับ แต่ถ้าชาวบ้านไม่เชื่อใจ ครั้งหน้าพวกเขาอาจไม่ยอมเล่าอะไรให้เราฟัง'},
+      ...tail('worried','ผมจะกลับไปขอโทษและอธิบายทุกอย่างใหม่{p} คดีจบแล้ว แต่งานของเรายังไม่จบ'),
+    ];
+    if(ep.id==='sun') return [
+      {card:{no:'บทส่งท้าย', title:ep.title, sub:ep.sub}},
       {bg:'temple'},
       {narr:'ผู้ป่วยรายใหม่ค่อย ๆ หายไปจากรายงาน… ตำบลบ้านสุขใจกลับมามีชีวิตชีวาอีกครั้ง'},
       {say:'monk', expr:'smile', pos:'center', text:'อาตมาขออนุโมทนากับโยมวิและน้อง{name} ที่ใช้ความรู้ช่วยญาติโยมจนพ้นภัย'},
@@ -700,15 +734,22 @@
       {say:'doctor', expr:'smile', text:'คณิตศาสตร์ สถิติ ความรู้ทางสุขภาพ และคอมพิวเตอร์  ต้องใช้ครบทุกอย่างจริง ๆ ยินดีด้วยนะ'},
       ...tail('smile', 'ขอบคุณ{p}พี่วิ ถ้าไม่มีข้อมูลที่สะอาดและทีมที่ดี เราคงหาไม่เจอ'),
     ];
-    if(R.correctSource) return [
-      {card:{no:'บทส่งท้าย', title:'บทเรียนจากสนาม', sub:'หนึ่งสัปดาห์ต่อมา'}},
+    if(ep.id==='lesson') return [
+      {card:{no:'บทส่งท้าย', title:ep.title, sub:ep.sub}},
       {bg:'office'},
       {say:'doctor', expr:'neutral', pos:'center', text:`เราระบุ **${c}** ได้ถูกต้อง และการระบาดก็สงบลงในที่สุด`},
       {say:'doctor', expr:'serious', text:R.lesson},
       ...tail('neutral', 'ครั้งหน้าจะทำให้ดีกว่านี้{p}'),
     ];
+    if(ep.id==='near') return [
+      {card:{no:'ฉากจบ',title:ep.title,sub:ep.sub}},{bg:'office_night'},
+      {say:'doctor',expr:'serious',pos:'center',text:`รายงานของเราเฉียดคำตอบมาก หลักฐานหลายชิ้นชี้ไปถูกทาง แต่ต้นตอจริงคือ **${c}**`},
+      {narr:'เมื่อทีมส่วนกลางวางเส้นทางการส่งวัตถุดิบซ้อนกับแผนที่ผู้ป่วย จุดที่ขาดหายจึงปรากฏขึ้น'},
+      {say:'doctor',expr:'neutral',text:R.lesson},
+      ...tail('serious','ครั้งหน้าผมจะหยุดก่อนสรุป{p} แล้วถามว่าหลักฐานชิ้นไหนยังหายไป'),
+    ];
     return [
-      {card:{no:'บทส่งท้าย', title:'คืนที่ยาวนาน', sub:R.timeout ? 'หมดเวลาสอบสวน' : 'สามวันหลังส่งรายงาน'}},
+      {card:{no:'บทส่งท้าย', title:ep.title, sub:ep.sub}},
       {bg:'office_night'},
       {narr: R.timeout ? 'ทีมสอบสวนโรคจากส่วนกลางเดินทางมาถึงบ้านสุขใจในเช้าวันอังคาร…' : 'ผู้ป่วยรายใหม่ยังคงถูกรายงานเข้ามาทุกวัน แม้มาตรการจะประกาศไปแล้ว…'},
       {say:'doctor', expr:'worried', pos:'center', text:`ทีมส่วนกลางพบว่าต้นตอที่แท้จริงคือ **${c}**`},

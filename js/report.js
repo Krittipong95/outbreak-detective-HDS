@@ -342,10 +342,12 @@ OD.report = (function(){
     const story = s.type==='EVENT' ? `${M.SITES.E.name}  ${M.DISH[s.dish]}` : s.type==='SCHOOL' ? `${nm(s.culprit)}  ${SUB[s.sub]}` : nm(s.culprit);
     const MT = R.meta || {fresh:[]};
     const priorities = CAT.filter(([k,,mx])=>R.C[k]<mx).sort((a,b)=>(R.C[a[0]]/a[2])-(R.C[b[0]]/b[2])).slice(0,3);
+    const ending=R.ending||OD.story.endingProfile(W,S,R);
     U.$('#scr-result').innerHTML = `<div class="res">
-      <div class="res-hero"><div class="title-eyebrow">ผลการสอบสวนโรค · คดีที่ ${U.thaiNum(W.seed%10000)}${S.flags.daily?' · 📅 คดีประจำวัน':''}</div>
+      <div class="res-hero ending-${ending.id}"><img class="ending-team" src="img/ending-team-v2.png" alt="ทีมสอบสวนโรคบ้านสุขใจ" loading="eager"><div class="ending-copy"><div class="title-eyebrow">ผลการสอบสวนโรค · คดีที่ ${U.thaiNum(W.seed%10000)}${S.flags.daily?' · 📅 คดีประจำวัน':''}</div>
         <h1 class="display gold-text">${R.correctSource?'ไขคดีสำเร็จ':'คดียังไม่คลี่คลาย'}</h1>
-        ${MT.dailyRank ? `<div class="chip gold" style="font-size:14px;padding:3px 14px">🏆 อันดับ ${MT.dailyRank} ของวันนี้</div>` : ''}</div>
+        <div class="ending-name"><small>ฉากจบที่ได้รับ</small><b>${ending.title}</b><span>${ending.sub}</span></div>
+        ${MT.dailyRank ? `<div class="chip gold" style="font-size:14px;padding:3px 14px">🏆 อันดับ ${MT.dailyRank} ของวันนี้</div>` : ''}</div></div>
       ${MT.fresh.length ? `<div class="frame ach-new"><h3 class="display gold-text" style="font-size:22px;margin:0 0 8px">ได้รับเหรียญใหม่!</h3>
         <div class="ach-grid">${MT.fresh.map((a,i)=>`<div class="ach on pop" style="animation-delay:${.5+i*.1}s"><span class="ai">${a.icon}</span><b>${a.t}</b><small>${a.d}</small></div>`).join('')}</div></div>` : ''}
       <div class="res-top">

@@ -6,6 +6,11 @@
   const modes=['easy','normal','hard'], types=M.SCN_TYPES;
   const gradeCases=[[0,'F'],[299,'F'],[300,'D'],[449,'D'],[450,'C'],[599,'C'],[600,'B'],[749,'B'],[750,'A'],[879,'A'],[880,'S'],[1000,'S']];
   test('grade boundaries',()=>{ for(const [n,g] of gradeCases) assert(R.gradeFor(n,false)===g,'boundary '+n);assert(R.gradeFor(880,true)==='A','S decision rule'); });
+  test('eight distinct endings',()=>{
+    const P=OD.story.endingProfile,W={},s=trust=>({trust}),r=(o)=>Object.assign({correctSource:false,rank:'F',misses:4,total:200,badDec:false,timeout:false},o);
+    const ids=[P(W,s(80),r({correctSource:true,rank:'S',misses:0,total:950})),P(W,s(80),r({correctSource:true,rank:'A',total:830})),P(W,s(20),r({correctSource:true,rank:'A',total:820})),P(W,s(50),r({correctSource:true,rank:'B',total:720})),P(W,s(50),r({correctSource:true,rank:'C',total:520})),P(W,s(50),r({timeout:true,total:420})),P(W,s(50),r({total:600})),P(W,s(50),r({total:250}))].map(x=>x.id);
+    assert(new Set(ids).size===8,'ending profiles overlap: '+ids.join(','));
+  });
   test('statistical calculations',()=>{
     const U=OD.u, L=OD.ml, near=(a,b,t=1e-6)=>Math.abs(a-b)<t;
     assert(near(U.fisherP(1,9,11,3),0.002759456185,1e-8),'Fisher reference table');

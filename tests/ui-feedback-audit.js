@@ -23,6 +23,11 @@ window.addEventListener('load',async()=>{
       OD.vn.play([{bg:'hall',choice:[{text:'**เก็บข้อมูลเพิ่มก่อนตัดสินใจ**',hint:'ลดโอกาสปิดผิดแหล่ง'},{text:'ปิดทันทีตามข่าวลือ',hint:'ความเชื่อมั่นเพิ่มชั่วคราว'}]}]);await tick();
       assert(!!document.querySelector('.vn-choice b'),'important choice words are not highlighted');
       assert(getComputedStyle(document.querySelector('.vn-choice .hint')).color!==getComputedStyle(document.querySelector('.vn-choice')).color,'impact hint not visually distinct');
+    }else if(view==='ending'){
+      document.body.innerHTML='<section id="scr-result"><div class="res"><div class="res-hero ending-legend"><img class="ending-team" src="img/ending-team-v2.png" alt="ทีมสอบสวนโรคบ้านสุขใจ"><div class="ending-copy"><div class="title-eyebrow">ผลการสอบสวนโรค</div><h1 class="display gold-text">ไขคดีสำเร็จ</h1><div class="ending-name"><small>ฉากจบที่ได้รับ</small><b>ดาวเหนือแห่งบ้านสุขใจ</b><span>คดีสมบูรณ์แบบ · ชุมชนจดจำชื่อของคุณ</span></div></div></div></div></section>';
+      const img=document.querySelector('.ending-team');if(!img.complete)await new Promise(r=>{img.onload=r;img.onerror=r;});
+      assert(img.naturalWidth>1000,'ending character art did not load');
+      assert(document.querySelector('.res-hero').scrollWidth<=document.querySelector('.res-hero').clientWidth+1,'ending hero overflows');
     }
   }catch(e){errors.push(e.stack||String(e));}
   const pre=document.createElement('pre');pre.id='ui-feedback-output';pre.textContent=JSON.stringify({view,errors});document.body.append(pre);

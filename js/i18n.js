@@ -1,7 +1,7 @@
 /* English mode: manual UI glossary + cached on-demand translation for dynamic story text. */
 window.OD=window.OD||{};
 OD.i18n=(function(){
-  const KEY='od3-language',CACHE='od3-en-cache-v1',thai=/[ก-๙]/;
+  const KEY='od3-language',CACHE='od3-en-cache-v1',thai=/[ก-ฺเ-๙]/;
   const query=new URLSearchParams(location.search).get('lang');
   let lang=query==='en'||query==='th'?query:(localStorage.getItem(KEY)||'th');
   const exact={
@@ -34,12 +34,14 @@ OD.i18n=(function(){
     'วิเคราะห์อัตราส่วนออดส์ (OR)':'Odds Ratio (OR) analysis','อัตราส่วนออดส์ (OR)':'Odds Ratio (OR)','อัตราส่วนออดส์ (Odds Ratio; OR)':'Odds Ratio (OR)','ช่วงความเชื่อมั่น 95% (95% CI)':'95% Confidence Interval (95% CI)','อ่านค่า OR':'Interpret the Odds Ratio (OR)'
   };
   let cache={};try{cache=JSON.parse(localStorage.getItem(CACHE)||'{}')||{};}catch(e){}
-  const skip=el=>!el||/^(SCRIPT|STYLE|CODE|PRE|TEXTAREA|OPTION)$/i.test(el.nodeName)||el.closest?.('[data-no-translate],.notranslate');
+  Object.assign(exact,window.OD_FIELD_EN||{});
+  const skip=el=>!el||/^(SCRIPT|STYLE|CODE|PRE|TEXTAREA)$/i.test(el.nodeName)||el.closest?.('[data-no-translate],.notranslate');
   function save(){try{localStorage.setItem(CACHE,JSON.stringify(cache));}catch(e){}}
   function manual(s){
     const t=s.trim();if(exact[t])return s.replace(t,exact[t]);
     /* แทนได้หลายวลี แต่ห้ามยอมรับผลครึ่งไทยครึ่งอังกฤษ */
-    let out=s,changed=false;for(const k of Object.keys(exact).sort((a,b)=>b.length-a.length))if(out.includes(k)){out=out.split(k).join(exact[k]);changed=true;}
+    const digits=v=>v.replace(/[๐-๙]/g,c=>String(c.charCodeAt(0)-3664));
+    let out=digits(s),changed=out!==s;for(const k of Object.keys(exact).sort((a,b)=>b.length-a.length)){const key=digits(k);if(key.length>1&&out.includes(key)){out=out.split(key).join(exact[k]);changed=true;}}
     return changed&&!thai.test(out)?out:null;
   }
   const jobs=[],active={n:0};
@@ -67,9 +69,10 @@ OD.i18n=(function(){
   }
   function pump(){while(active.n<3&&jobs.length){const j=jobs.shift();active.n++;remote(j.text).then(j.ok).catch(()=>j.fail()).finally(()=>{active.n--;paintStatus();pump();});}paintStatus();}
   function enqueue(text,ok,fail=()=>{}){jobs.push({text,ok,fail});pump();}
+  const scheduled=new WeakMap();
   function translateNode(n){
     if(lang!=='en'||n.nodeType!==3||skip(n.parentElement))return;const s=n.nodeValue;if(!s||!thai.test(s))return;
-    const m=manual(s);if(m!=null){n.nodeValue=m;return;}const original=s;enqueue(s,out=>{if(n.isConnected&&n.nodeValue===original)n.nodeValue=out;});
+    const m=manual(s);if(m!=null){n.nodeValue=m;return;}if(n.parentElement.closest('.hidden')||scheduled.get(n)===s)return;scheduled.set(n,s);const original=s;enqueue(s,out=>{if(n.isConnected&&n.nodeValue===original)n.nodeValue=out;});
   }
   function scan(root=document.body){
     if(lang!=='en'||!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))translateNode(n);

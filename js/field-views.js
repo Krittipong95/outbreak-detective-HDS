@@ -45,7 +45,7 @@ OD.fieldViews = (function(){
     if(base) return base;
     let s = `<rect width="1000" height="680" class="m-land"/>`;
     for(const [x,y,w,h] of [[30,330,150,60],[560,250,120,70],[40,560,90,70],[880,560,110,80],[260,100,90,60],[640,30,110,40]]) s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" class="m-field"/>`;
-    const cd = smooth(M.CANAL); s += `<path d="${cd}" class="m-canal-e"/><path d="${cd}" class="m-canal"/>`;
+    const cd = smooth(M.CANAL); s += `<path d="${cd}" class="m-canal-e"/><path d="${cd}" class="m-canal"/><path d="${cd}" class="m-water-flow" fill="none" stroke="#f5e7bb" stroke-width="3" stroke-dasharray="10 38" opacity=".4"><animate attributeName="stroke-dashoffset" from="0" to="-96" dur="9s" repeatCount="indefinite"/></path>`;
     for(const r of M.ROADS) s += `<path d="${smooth(r)}" class="m-road-e"/>`;
     for(const r of M.ROADS) s += `<path d="${smooth(r)}" class="m-road"/>`;
     const lp = {1:[150,60],2:[360,40],3:[910,400],4:[130,660],5:[560,410]};

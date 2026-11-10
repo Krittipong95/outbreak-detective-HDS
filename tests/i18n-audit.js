@@ -27,6 +27,8 @@ window.addEventListener('load',async()=>{
     document.querySelector('[data-m="go"]').click();await new Promise(r=>setTimeout(r,100));
     const check=document.querySelector('.m-card');assert(check&&!/[ก-๙]/.test(check.textContent),'kit-check result contains Thai: '+check?.textContent);
     document.querySelector('[data-m="ok"]')?.click();
+    OD.field.render();OD.i18n.scan(document.querySelector('#scr-field'));await new Promise(r=>setTimeout(r,100));
+    for(const id of ['fActions','fAdv','fTop','fMap','fAna']){const el=document.getElementById(id);const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let node;const missing=[];while(node=walker.nextNode())if(/[ก-ฺเ-๙]/.test(node.nodeValue)&&node.parentElement.tagName!=='SCRIPT')missing.push(node.nodeValue.trim());assert(!missing.length,id+' untranslated: '+missing.join(' | '));}
     const chapter=OD.vn.play([{card:{no:'บทที่ ๓',title:'ลงพื้นที่บ้านสุขใจ',sub:'พุธ ๒๕ พฤศจิกายน ๒๕๖๙ · ๐๘:๐๐ น.'}},{narr:'เช้าวันพุธ หมอกยังลอยเรี่ยผิวน้ำในคลองสุขใจ…'}]);
     await new Promise(r=>setTimeout(r,100));const card=document.querySelector('.vn-card');assert(card&&!/[ก-๙]/.test(card.textContent),'English chapter card contains Thai: '+card?.textContent);card.click();
     await new Promise(r=>setTimeout(r,900));const opening=document.querySelector('.vn-text').textContent;assert(/Wednesday morning/.test(opening)&&!/[ก-๙]/.test(opening),'opening narration was not translated before rendering: '+opening);document.querySelector('.vn-box').click();document.querySelector('.vn-box').click();await chapter;

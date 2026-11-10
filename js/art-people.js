@@ -42,7 +42,7 @@ OD.config.customPortraits = true;
 OD.art.portrait = function(id, expr='neutral', opts={}){
   if(!OD.config.customPortraits) return OD.art.person(id,expr,opts);
   const f=id==='me'?'me_'+(opts.gender||(OD.S&&OD.S.gender)||'m'):id;
-  return `<img class="char-paint" src="img/${f}-v2.png" alt="" data-expr="${expr}" onerror="this.onerror=null;this.outerHTML=OD.art.person('${id}','${expr}',${id==='me'?`{gender:'${opts.gender||'m'}'}`:'{}'})">`;
+  return `<img class="char-paint" src="img/${f}-v2.png?v=20261110-2" alt="" data-expr="${expr}" onerror="this.onerror=null;this.outerHTML=OD.art.person('${id}','${expr}',${id==='me'?`{gender:'${opts.gender||'m'}'}`:'{}'})">`;
 };
 
 (function(A){

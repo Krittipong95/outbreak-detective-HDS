@@ -68,10 +68,10 @@
 .vn.overlay{background:rgba(8,5,3,.62);backdrop-filter:blur(2px)}
 .vn.overlay .vn-bg{display:none}
 .vn-chars{position:absolute;left:0;right:0;bottom:clamp(96px,15vh,150px);height:min(76vh,720px);pointer-events:none}
-.vn-char{position:absolute;bottom:0;height:100%;transition:opacity .35s,transform .35s,filter .35s;opacity:0}
+.vn-char{position:absolute;bottom:0;height:100%;overflow:hidden;transition:opacity .35s,transform .35s,filter .35s;opacity:0}
 .vn-char.on{opacity:1;animation:portraitBreathe 4.8s 380ms ease-in-out infinite alternate}
 .vn-char svg,.vn-char img{height:100%;width:auto;display:block;filter:drop-shadow(0 10px 24px rgba(0,0,0,.45))}
-.vn-char img.char-paint{max-width:min(46vw,620px);object-fit:contain;object-position:center bottom}
+.vn-char img.char-paint{height:168%;max-width:min(46vw,620px);object-fit:contain;object-position:center top}
 .vn-char.expr-worried img{filter:saturate(.82) brightness(.94) drop-shadow(0 10px 24px rgba(0,0,0,.45))}.vn-char.expr-serious img{filter:saturate(.9) contrast(1.07) drop-shadow(0 10px 24px rgba(0,0,0,.45))}.vn-char.expr-smile img{filter:saturate(1.08) brightness(1.04) drop-shadow(0 10px 24px rgba(0,0,0,.45))}
 .vn-char.left{left:max(2%,calc(50% - 640px))}
 .vn-char.right{right:max(2%,calc(50% - 640px))}
@@ -122,6 +122,7 @@
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @media (max-width:700px){
   .vn-chars{height:52vh;bottom:120px}
+  .vn-char img.char-paint{height:158%}
   .vn-char.left{left:-12%}.vn-char.right{right:-12%}
   .vn-box{padding:26px 18px 22px;min-height:150px}
   .vn-face{width:84px;height:84px;left:12px;top:-40px}

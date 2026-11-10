@@ -21,7 +21,9 @@ OD.i18n=(function(){
     'ผลการสอบสวนโรค':'Investigation results','ไขคดีสำเร็จ':'Case solved','คดียังไม่คลี่คลาย':'Case unresolved','ฉากจบที่ได้รับ':'Ending unlocked','เกรด':'Grade','จาก 1,000 คะแนน':'out of 1,000 points',
     'เฉลยคดี':'Case solution','แหล่งโรค:':'Source:','เชื้อ:':'Pathogen:','รูปแบบ:':'Pattern:','คุณตอบถูก':'Correct','ถูก':'Correct','ผิด':'Incorrect','ลองพัฒนาต่อ':'Focus next on',
     'เรื่องราวหลังจากนั้น':'What happened next','ผลจากการตัดสินใจของคุณระหว่างการสอบสวน':'Consequences of your decisions','สรุปว่าคุณพลาดอะไรบ้าง':'What could be improved','ไม่พลาดเลย!':'Perfect investigation!',
-    'คดีใหม่':'New case','ดาวน์โหลดข้อมูลไปวิเคราะห์ต่อ':'Download case data','กลับหน้าแรก':'Home','กำลังเปิดตัวประมวลผล SQL…':'Opening the SQL engine…','ข้อมูลพร้อมแล้ว':'Data ready',
+    'คดีใหม่':'New case','เริ่มคดีใหม่?':'Start a new case?','เริ่มคดีใหม่':'Start new case','กลับ':'Return',
+    'คดีใหม่จะบันทึกแทนแฟ้มเดิม ถ้ายังอยากสืบคดีเดิม ให้เลือกเล่นต่อจากหน้าแรก':'Starting a new case will overwrite your current case. To keep investigating it, choose Continue from the home screen.',
+    'ดาวน์โหลดข้อมูลไปวิเคราะห์ต่อ':'Download case data','กลับหน้าแรก':'Home','กำลังเปิดตัวประมวลผล SQL…':'Opening the SQL engine…','ข้อมูลพร้อมแล้ว':'Data ready',
     'ไม่มีแถวที่ตรงเงื่อนไข':'No rows match this query','กำลังประมวลผล…':'Processing…','รายงานสอบสวนโรค':'Outbreak investigation report','ส่งรายงาน':'Submit report','กระดานสืบสวน':'Investigation board',
     'เป้าหมายถัดไป':'Next objective','ทำตอนนี้':'Do it now','เดินสำรวจ':'Explore village','สัมภาษณ์':'Interview','ตรวจสถานที่':'Inspect site','วิเคราะห์':'Analyze','ผลแล็บ':'Lab results','หลักฐาน':'Evidence',
     'ดาวเหนือแห่งบ้านสุขใจ':'North Star of Ban Sukjai','ตำบลต้นแบบ':'A Model Community','ชนะคดี แพ้ใจคน':'Case Won, Trust Lost','ฟ้าหลังฝน':'Clear Skies After the Storm','บทเรียนจากสนาม':'Lessons from the Field','เข็มนาฬิกาหยุดลง':'When the Clock Ran Out','คำตอบที่เฉียดไป':'So Close to the Answer','คืนที่ยาวนาน':'The Long Night',
@@ -30,7 +32,12 @@ OD.i18n=(function(){
   let cache={};try{cache=JSON.parse(localStorage.getItem(CACHE)||'{}')||{};}catch(e){}
   const skip=el=>!el||/^(SCRIPT|STYLE|CODE|PRE|TEXTAREA|OPTION)$/i.test(el.nodeName)||el.closest?.('[data-no-translate],.notranslate');
   function save(){try{localStorage.setItem(CACHE,JSON.stringify(cache));}catch(e){}}
-  function manual(s){const t=s.trim();if(exact[t])return s.replace(t,exact[t]);for(const k of Object.keys(exact).sort((a,b)=>b.length-a.length))if(t.includes(k))return s.replace(k,exact[k]);return null;}
+  function manual(s){
+    const t=s.trim();if(exact[t])return s.replace(t,exact[t]);
+    /* แทนได้หลายวลี แต่ห้ามยอมรับผลครึ่งไทยครึ่งอังกฤษ */
+    let out=s,changed=false;for(const k of Object.keys(exact).sort((a,b)=>b.length-a.length))if(out.includes(k)){out=out.split(k).join(exact[k]);changed=true;}
+    return changed&&!thai.test(out)?out:null;
+  }
   const jobs=[],active={n:0};
   function chunks(s){const out=[];while(s.length>450){let i=Math.max(s.lastIndexOf(' ',450),s.lastIndexOf('。',450),s.lastIndexOf('!',450),s.lastIndexOf('?',450));if(i<180)i=450;out.push(s.slice(0,i+1));s=s.slice(i+1);}if(s)out.push(s);return out;}
   function one(q){

@@ -13,6 +13,9 @@ window.addEventListener('load',async()=>{
     const box=document.createElement('div');box.innerHTML='<button title="เปิดคู่มือ">เปิดคู่มือ</button><span>เป้าหมายถัดไป</span>';document.body.append(box);OD.i18n.scan(box);await new Promise(r=>setTimeout(r,100));
     assert(/Open handbook/.test(box.querySelector('button').textContent),'dynamic UI text not translated');
     assert(/Next objective/.test(box.querySelector('span').textContent),'dynamic objective not translated');
+    const modal=document.createElement('div');modal.innerHTML='<h2>เริ่มคดีใหม่?</h2><p>คดีใหม่จะบันทึกแทนแฟ้มเดิม ถ้ายังอยากสืบคดีเดิม ให้เลือกเล่นต่อจากหน้าแรก</p><button>กลับ</button><button>เริ่มคดีใหม่</button>';document.body.append(modal);OD.i18n.scan(modal);await new Promise(r=>setTimeout(r,100));
+    assert(!/[ก-๙]/.test(modal.textContent),'new-case modal contains mixed Thai and English: '+modal.textContent);
+    assert(/Start a new case\?/.test(modal.textContent),'new-case heading is not translated as a complete phrase');
     const direct=await OD.i18n.text('เปิดคู่มือ');assert(direct==='Open handbook','direct dialogue translation API failed');
     const story=OD.vn.play([{narr:'เปิดคู่มือ'}],{mode:'overlay'});await new Promise(r=>setTimeout(r,350));
     assert(/Open handbook/.test(document.querySelector('.vn-text').textContent),'current VN dialogue did not translate before rendering');

@@ -48,6 +48,12 @@ OD.i18n=(function(){
       if(name)out=out.split(token).join(name);cache[text]=out;save();return out;
     });
   }
+  /* ข้อความสำคัญ เช่นบทสนทนา ขอคำแปลโดยตรงก่อนวาด ไม่รอ MutationObserver */
+  function text(value){
+    const s=String(value??'');if(lang!=='en'||!thai.test(s))return Promise.resolve(s);
+    const m=manual(s);if(m!=null)return Promise.resolve(m);
+    return remote(s).catch(()=>s);
+  }
   function pump(){while(active.n<3&&jobs.length){const j=jobs.shift();active.n++;remote(j.text).then(j.ok).catch(()=>j.fail()).finally(()=>{active.n--;paintStatus();pump();});}paintStatus();}
   function enqueue(text,ok,fail=()=>{}){jobs.push({text,ok,fail});pump();}
   function translateNode(n){
@@ -68,5 +74,5 @@ OD.i18n=(function(){
     paintStatus();
   }
   document.addEventListener('DOMContentLoaded',init);
-  return {lang:()=>lang,setLanguage,scan};
+  return {lang:()=>lang,setLanguage,scan,text};
 })();

@@ -13,6 +13,10 @@ window.addEventListener('load',async()=>{
     const box=document.createElement('div');box.innerHTML='<button title="เปิดคู่มือ">เปิดคู่มือ</button><span>เป้าหมายถัดไป</span>';document.body.append(box);OD.i18n.scan(box);await new Promise(r=>setTimeout(r,100));
     assert(/Open handbook/.test(box.querySelector('button').textContent),'dynamic UI text not translated');
     assert(/Next objective/.test(box.querySelector('span').textContent),'dynamic objective not translated');
+    const direct=await OD.i18n.text('เปิดคู่มือ');assert(direct==='Open handbook','direct dialogue translation API failed');
+    const story=OD.vn.play([{narr:'เปิดคู่มือ'}],{mode:'overlay'});await new Promise(r=>setTimeout(r,350));
+    assert(/Open handbook/.test(document.querySelector('.vn-text').textContent),'current VN dialogue did not translate before rendering');
+    document.querySelector('.vn-box').click();document.querySelector('.vn-box').click();await story;
   }catch(e){errors.push(e.stack||String(e));}
   const pre=document.createElement('pre');pre.id='i18n-audit-output';pre.textContent=JSON.stringify({errors});document.body.append(pre);
 });

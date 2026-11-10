@@ -21,8 +21,8 @@ OD.vn = (function(){
     if(root.dataset.ready) return;
     root.innerHTML = `<div class="vn-bg"></div><div class="vn-fx"></div><div class="vn-chars"></div>
       <div class="vn-tools"><button class="btn btn-sm" data-vn="auto" title="เลื่อนข้อความเองตามความยาว (หยุดที่ตัวเลือก)">▶ อัตโนมัติ</button><button class="btn btn-sm" data-vn="ff" title="เร่งข้อความจนถึงตัวเลือกถัดไป">⏩ เร่ง</button></div>
-      <div class="vn-choices hidden"></div>
-      <div class="vn-box frame"><div class="vn-face avatar"></div><div class="vn-name"></div><div class="vn-text"></div><div class="vn-next">▼</div></div>`;
+      <div class="vn-choices hidden" data-no-translate></div>
+      <div class="vn-box frame"><div class="vn-face avatar"></div><div class="vn-name" data-no-translate></div><div class="vn-text" data-no-translate></div><div class="vn-next">▼</div></div>`;
     root.dataset.ready = '1';
     E = {bg:U.$('.vn-bg',root), fx:U.$('.vn-fx',root), chars:U.$('.vn-chars',root), choices:U.$('.vn-choices',root), box:U.$('.vn-box',root),
          face:U.$('.vn-face',root), name:U.$('.vn-name',root), text:U.$('.vn-text',root), next:U.$('.vn-next',root), ff:U.$('[data-vn=ff]',root), auto:U.$('[data-vn=auto]',root)};
@@ -53,8 +53,12 @@ OD.vn = (function(){
     return out;
   }
   function finishTyping(){ if(!typing) return; clearInterval(typing.timer); typing.done = true; E.text.innerHTML = renderRuns(typing.runs, Infinity); E.next.style.visibility='visible'; }
-  function typeText(text){
+  async function typeText(text){
     if(typing) clearInterval(typing.timer);
+    if(OD.i18n?.lang()==='en'){
+      E.text.textContent='Translating dialogue…';E.next.style.visibility='hidden';
+      text=await OD.i18n.text(text);
+    }
     const runs = parseRuns(text), total = runs.reduce((a,r)=>a+r.g.length,0);
     typing = {runs, total, n:0, done:false};
     E.next.style.visibility='hidden';
@@ -105,20 +109,28 @@ OD.vn = (function(){
     if(s.say!=null){
       const c = OD.CHARS[s.say];
       if(!charEl(s.say) || !charEl(s.say).classList.contains('on') || (s.expr && charEl(s.say).dataset.expr!==s.expr)) show(s.say, s.expr || (charEl(s.say)||{}).dataset?.expr || 'neutral', s.pos);
-      E.name.innerHTML = `${c.name}<small>${c.title}</small>`; focus(s.say); typeText(s.text);
+      const [name,title]=await Promise.all([OD.i18n?.text(c.name)||c.name,OD.i18n?.text(c.title)||c.title]);
+      E.name.innerHTML = `${name}<small>${title}</small>`; focus(s.say); await typeText(s.text);
     } else if(s.me!=null){
       if(charEl('me')){ if(s.expr && charEl('me').dataset.expr!==s.expr) show('me', s.expr); focus('me'); }
       else { meFace(s.expr || 'neutral'); focus('__none__'); }
-      E.name.innerHTML = `${U.esc(OD.S.name)}<small>คุณ · ${OD.CHARS['me_'+(OD.S.gender||'m')].title}</small>`; typeText(s.me);
-    } else { E.name.innerHTML = ''; focus(null); typeText(s.narr); }
+      const role=await (OD.i18n?.text('คุณ · '+OD.CHARS['me_'+(OD.S.gender||'m')].title)||('คุณ · '+OD.CHARS['me_'+(OD.S.gender||'m')].title));
+      E.name.innerHTML = `${U.esc(OD.S.name)}<small>${role}</small>`; await typeText(s.me);
+    } else { E.name.innerHTML = ''; focus(null); await typeText(s.narr); }
     await waitClick();
   }
 
-  function choose(s){
+  async function choose(s){
     fast = false; E.ff.classList.remove('btn-gold');
+    let prompt=s.prompt||'';let choices=s.choice;
+    if(OD.i18n?.lang()==='en'){
+      E.choices.innerHTML='<div class="frame tight">Translating choices…</div>';E.choices.classList.remove('hidden');
+      const translated=await Promise.all([OD.i18n.text(prompt),...s.choice.flatMap(c=>[OD.i18n.text(c.text),OD.i18n.text(c.hint||'')])]);
+      prompt=translated[0];let k=1;choices=s.choice.map(c=>Object.assign({},c,{text:translated[k++],hint:translated[k++]}));
+    }
     return new Promise(res=>{
-      E.choices.innerHTML = (s.prompt?`<div class="frame tight" style="max-width:720px;width:100%;text-align:center">${s.prompt}</div>`:'') +
-        s.choice.map((c,i)=>`<button class="vn-choice" data-i="${i}">${renderRuns(parseRuns(c.text), Infinity)}${c.hint?`<span class="hint">${c.hint}</span>`:''}</button>`).join('');
+      E.choices.innerHTML = (prompt?`<div class="frame tight" style="max-width:720px;width:100%;text-align:center">${prompt}</div>`:'') +
+        choices.map((c,i)=>`<button class="vn-choice" data-i="${i}">${renderRuns(parseRuns(c.text), Infinity)}${c.hint?`<span class="hint">${c.hint}</span>`:''}</button>`).join('');
       E.choices.classList.remove('hidden');
       E.choices.onclick = async e=>{
         const b = e.target.closest('.vn-choice'); if(!b) return;

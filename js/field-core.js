@@ -186,23 +186,27 @@ OD.field = (function(){
   /* ขั้นตอนที่ ๑: เตรียมอุปกรณ์ภาคสนาม */
   function packKit(){
     return new Promise(res=>{
+      const en = OD.i18n?.lang?.()==='en';
+      const L = (th,english)=>en?english:th;
       const items = U.shuffle(M.KIT), sel = new Set(S.flags.kitDraft || []);
       const kitArt = {
-        cary:['หลอดเก็บตัวอย่าง','<rect x="20" y="16" width="24" height="37" rx="8"/><path d="M19 16h26v-5H19z M26 34h12 M32 25v18"/>'],
-        bottle:['ขวดเก็บตัวอย่าง','<path d="M27 13h10v8l7 8v22a5 5 0 0 1-5 5H25a5 5 0 0 1-5-5V29l7-8z M25 12h14v5H25z"/><path d="M26 40c3-6 6-9 6-9s6 6 6 9a6 6 0 0 1-12 0z"/>'],
-        chlor:['ชุดตรวจน้ำ','<rect x="14" y="16" width="36" height="35" rx="5"/><path d="M22 23h20M22 30h8v12h-8z M36 30h6 M36 36h6 M36 42h6"/>'],
-        cold:['กล่องรักษาความเย็น','<rect x="12" y="25" width="40" height="26" rx="5"/><path d="M10 20h44v7H10z M25 20v-6h14v6 M32 30v15 M25 34l14 8 M39 34l-14 8"/>'],
-        form:['เอกสารสอบสวน','<rect x="17" y="12" width="30" height="42" rx="4"/><path d="M25 12v-3h14v3 M24 24h3 M32 24h9 M24 32h3 M32 32h9 M24 40h3 M32 40h9"/>'],
-        ppe:['อุปกรณ์ป้องกัน','<path d="M14 28q18-12 36 0v13q-18 13-36 0z M14 30l-5-4v15l5-2 M50 30l5-4v15l-5-2 M22 33q10 5 20 0 M22 39q10 5 20 0"/>'],
-        abx:['ยา','<path d="M17 39l17-18a10 10 0 0 1 14 14L31 53a10 10 0 0 1-14-14z M26 30l14 14"/>'],
-        lope:['ยา','<rect x="20" y="17" width="24" height="37" rx="5"/><path d="M23 11h18v7H23z M27 35h10 M32 30v10"/>'],
-        fog:['อุปกรณ์พ่นหมอก','<path d="M12 28h25v18H12z M37 32h13l7 5-7 5H37 M17 28l3-8h12l4 8 M19 46v6 M31 46v6 M52 21l3-4 M57 26l5-1"/>']
+        cary:[L('หลอดเก็บตัวอย่าง','Specimen collection'),'<rect x="20" y="16" width="24" height="37" rx="8"/><path d="M19 16h26v-5H19z M26 34h12 M32 25v18"/>'],
+        bottle:[L('ขวดเก็บตัวอย่าง','Sample bottle'),'<path d="M27 13h10v8l7 8v22a5 5 0 0 1-5 5H25a5 5 0 0 1-5-5V29l7-8z M25 12h14v5H25z"/><path d="M26 40c3-6 6-9 6-9s6 6 6 9a6 6 0 0 1-12 0z"/>'],
+        chlor:[L('ชุดตรวจน้ำ','Water testing'),'<rect x="14" y="16" width="36" height="35" rx="5"/><path d="M22 23h20M22 30h8v12h-8z M36 30h6 M36 36h6 M36 42h6"/>'],
+        cold:[L('กล่องรักษาความเย็น','Cold chain'),'<rect x="12" y="25" width="40" height="26" rx="5"/><path d="M10 20h44v7H10z M25 20v-6h14v6 M32 30v15 M25 34l14 8 M39 34l-14 8"/>'],
+        form:[L('เอกสารสอบสวน','Investigation documents'),'<rect x="17" y="12" width="30" height="42" rx="4"/><path d="M25 12v-3h14v3 M24 24h3 M32 24h9 M24 32h3 M32 32h9 M24 40h3 M32 40h9"/>'],
+        ppe:[L('อุปกรณ์ป้องกัน','Personal protection'),'<path d="M14 28q18-12 36 0v13q-18 13-36 0z M14 30l-5-4v15l5-2 M50 30l5-4v15l-5-2 M22 33q10 5 20 0 M22 39q10 5 20 0"/>'],
+        abx:[L('ยา','Medication'),'<path d="M17 39l17-18a10 10 0 0 1 14 14L31 53a10 10 0 0 1-14-14z M26 30l14 14"/>'],
+        lope:[L('ยา','Medication'),'<rect x="20" y="17" width="24" height="37" rx="5"/><path d="M23 11h18v7H23z M27 35h10 M32 30v10"/>'],
+        fog:[L('อุปกรณ์พ่นหมอก','Vector control'),'<path d="M12 28h25v18H12z M37 32h13l7 5-7 5H37 M17 28l3-8h12l4 8 M19 46v6 M31 46v6 M52 21l3-4 M57 26l5-1"/>']
       };
-      const draw = ()=>U.modal(`<div class="kit-head"><div><div class="kit-eyebrow">ภารกิจแรก · ก่อนออกเดินทาง</div><h2 class="display gold-text">จัดกระเป๋าลงพื้นที่</h2><p>เลือกอุปกรณ์ที่คิดว่าจำเป็นสำหรับสอบสวนโรคท้องร่วง</p></div><div class="kit-bag" aria-hidden="true">🎒<span>พร้อมลุย</span></div></div>
-        <div class="kit-guide">${OD.mentorFace()}<div><b>พี่วิแนะนำ</b><p>แตะการ์ดเพื่อหยิบของลงกระเป๋า เลือกเฉพาะสิ่งที่เหมาะกับงาน แล้วค่อยตรวจคำตอบก่อนออกเดินทางนะ</p></div></div>
-        <div class="kit-section"><b>เลือกอุปกรณ์</b><span>เลือกแล้ว ${sel.size} รายการ</span></div>
-        <div class="kit-grid">${items.map(it=>`<button type="button" class="kit-item ${sel.has(it.k)?'selected':''}" data-m="k${it.k}" aria-pressed="${sel.has(it.k)}"><span class="kit-icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${kitArt[it.k][1]}</svg></span><span class="kit-copy"><small>${kitArt[it.k][0]}</small><b>${it.t}</b></span><span class="kit-check" aria-hidden="true">${sel.has(it.k)?'✓':'+'}</span></button>`).join('')}</div>
-        <div class="kit-actions"><span>เลือกได้หลายรายการ กดซ้ำเพื่อนำออก</span><div><button class="btn" data-m="hb">📘 เปิดคู่มือ</button><button class="btn btn-gold" data-m="go">ตรวจของและออกเดินทาง →</button></div></div>`,
+      const itemName = it=>en?({cary:'Sterile swab with Cary-Blair transport medium',bottle:'Sterile water-sampling bottle with sodium thiosulfate',chlor:'Free residual chlorine test kit',cold:'Cool box with ice packs (4 °C)',form:'Case investigation form and consent form',ppe:'Gloves, masks, and soap/hand sanitizer',abx:'Antibiotics to hand out to residents',lope:'Antidiarrheal medicine to hand out',fog:'Mosquito fogging machine'}[it.k]):it.t;
+      const itemWhy = it=>en?({cary:'Required for stool or rectal-swab culture; poor collection or transport can reduce detection.',bottle:'The sodium thiosulfate neutralizes chlorine so organisms are not killed in transit.',chlor:'Measures whether water has adequate free residual chlorine (target 0.2–0.5 mg/L).',cold:'Keeps food, water, and ice specimens at the correct temperature in transit.',form:'Standardizes interviews and documents informed consent.',ppe:'Protects the investigation team and prevents onward transmission.',abx:'Do not distribute antibiotics without an indication; this promotes resistance and may affect cultures.',lope:'Antidiarrheals do not treat dehydration and are unsafe for children or bloody diarrhea with fever.',fog:'Diarrheal disease is not transmitted by mosquitoes.'}[it.k]):it.why;
+      const draw = ()=>U.modal(`<div class="kit-head"><div><div class="kit-eyebrow">${L('ภารกิจแรก · ก่อนออกเดินทาง','First mission · Before departure')}</div><h2 class="display gold-text">${L('จัดกระเป๋าลงพื้นที่','Pack your field kit')}</h2><p>${L('เลือกอุปกรณ์ที่คิดว่าจำเป็นสำหรับสอบสวนโรคท้องร่วง','Choose the equipment needed to investigate a diarrheal disease outbreak.')}</p></div><div class="kit-bag" aria-hidden="true">🎒<span>${L('พร้อมลุย','Ready')}</span></div></div>
+        <div class="kit-guide">${OD.mentorFace()}<div><b>${L('พี่วิแนะนำ','Vi’s tip')}</b><p>${L('แตะการ์ดเพื่อหยิบของลงกระเป๋า เลือกเฉพาะสิ่งที่เหมาะกับงาน แล้วค่อยตรวจคำตอบก่อนออกเดินทางนะ','Select only the items appropriate for this investigation, then check your kit before departing.')}</p></div></div>
+        <div class="kit-section"><b>${L('เลือกอุปกรณ์','Choose equipment')}</b><span>${en?`${sel.size} selected`:`เลือกแล้ว ${sel.size} รายการ`}</span></div>
+        <div class="kit-grid">${items.map(it=>`<button type="button" class="kit-item ${sel.has(it.k)?'selected':''}" data-m="k${it.k}" aria-pressed="${sel.has(it.k)}"><span class="kit-icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${kitArt[it.k][1]}</svg></span><span class="kit-copy"><small>${kitArt[it.k][0]}</small><b>${itemName(it)}</b></span><span class="kit-check" aria-hidden="true">${sel.has(it.k)?'✓':'+'}</span></button>`).join('')}</div>
+        <div class="kit-actions"><span>${L('เลือกได้หลายรายการ กดซ้ำเพื่อนำออก','Select multiple items. Select an item again to remove it.')}</span><div><button class="btn" data-m="hb">📘 ${L('เปิดคู่มือ','Open handbook')}</button><button class="btn btn-gold" data-m="go">${L('ตรวจของและออกเดินทาง →','Check kit and depart →')}</button></div></div>`,
         async k=>{
           if(k[0]==='k'){ const x = k.slice(1), scroll = U.$('#modal .m-card').scrollTop; sel.has(x) ? sel.delete(x) : sel.add(x); S.flags.kitDraft=[...sel]; OD.session?.save('field'); draw(); const card = U.$('#modal .m-card'); card.scrollTop = scroll; const button = card.querySelector('[data-m="'+k+'"]'); if(button) button.focus({preventScroll:true}); }
           else if(k==='hb'){ OD.handbook.open('lab'); }
@@ -211,11 +215,11 @@ OD.field = (function(){
             const miss = M.KIT.filter(i=>i.ok && !sel.has(i.k)), bad = M.KIT.filter(i=>!i.ok && sel.has(i.k));
             S.flags.kitScore = (M.KIT.filter(i=>i.ok).length - miss.length - bad.length) / M.KIT.filter(i=>i.ok).length;
             S.flags.kitMiss = miss.map(i=>i.k); S.flags.kitBad = bad.map(i=>i.k);
-            await U.ask(`<h2 class="display gold-text">${!miss.length && !bad.length ? 'อุปกรณ์ครบถ้วน!' : 'ตรวจอุปกรณ์'}</h2>
-              ${!miss.length && !bad.length ? '<p>เตรียมการได้ตามหลักครบทุกข้อ</p>' : ''}
-              ${miss.length ? `<div class="note red"><b>ลืมนำไป:</b><ul style="margin:4px 0 0;padding-left:20px">${miss.map(i=>`<li><b>${i.t}</b>  ${i.why}</li>`).join('')}</ul></div>` : ''}
-              ${bad.length ? `<div class="note red"><b>ไม่ควรนำไป:</b><ul style="margin:4px 0 0;padding-left:20px">${bad.map(i=>`<li><b>${i.t}</b>  ${i.why}</li>`).join('')}</ul></div>` : ''}
-              ${miss.length ? '<p class="muted">ผลกระทบในเกม: ตัวอย่างที่ต้องใช้อุปกรณ์ที่ขาดจะตรวจพบเชื้อได้น้อยลง หรือวัดค่าบางอย่างไม่ได้</p>' : ''}`, [['ok','ลงพื้นที่','btn-gold']]);
+            await U.ask(`<h2 class="display gold-text">${!miss.length && !bad.length ? L('อุปกรณ์ครบถ้วน!','Field kit complete!') : L('ตรวจอุปกรณ์','Kit check')}</h2>
+              ${!miss.length && !bad.length ? `<p>${L('เตรียมการได้ตามหลักครบทุกข้อ','Your kit meets every field-investigation requirement.')}</p>` : ''}
+              ${miss.length ? `<div class="note red"><b>${L('ลืมนำไป:','Missing:')}</b><ul style="margin:4px 0 0;padding-left:20px">${miss.map(i=>`<li><b>${itemName(i)}</b>  ${itemWhy(i)}</li>`).join('')}</ul></div>` : ''}
+              ${bad.length ? `<div class="note red"><b>${L('ไม่ควรนำไป:','Do not bring:')}</b><ul style="margin:4px 0 0;padding-left:20px">${bad.map(i=>`<li><b>${itemName(i)}</b>  ${itemWhy(i)}</li>`).join('')}</ul></div>` : ''}
+              ${miss.length ? `<p class="muted">${L('ผลกระทบในเกม: ตัวอย่างที่ต้องใช้อุปกรณ์ที่ขาดจะตรวจพบเชื้อได้น้อยลง หรือวัดค่าบางอย่างไม่ได้','Game impact: missing equipment reduces detection sensitivity or makes some field measurements unavailable.')}</p>` : ''}`, [['ok',L('ลงพื้นที่','Begin fieldwork'),'btn-gold']]);
             S.flags.kitReady=true;delete S.flags.kitDraft;OD.session?.save('field');
             res();
           }

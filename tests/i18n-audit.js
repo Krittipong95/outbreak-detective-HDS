@@ -16,6 +16,17 @@ window.addEventListener('load',async()=>{
     const modal=document.createElement('div');modal.innerHTML='<h2>เริ่มคดีใหม่?</h2><p>คดีใหม่จะบันทึกแทนแฟ้มเดิม ถ้ายังอยากสืบคดีเดิม ให้เลือกเล่นต่อจากหน้าแรก</p><button>กลับ</button><button>เริ่มคดีใหม่</button>';document.body.append(modal);OD.i18n.scan(modal);await new Promise(r=>setTimeout(r,100));
     assert(!/[ก-๙]/.test(modal.textContent),'new-case modal contains mixed Thai and English: '+modal.textContent);
     assert(/Start a new case\?/.test(modal.textContent),'new-case heading is not translated as a complete phrase');
+    OD.S.flags.v={fest:'kathin',patient:'baby',pressure:'hall',media:'radio'};OD.field.run();await new Promise(r=>setTimeout(r,100));
+    const kit=document.querySelector('.kit-modal');assert(kit,'English field-kit modal did not open');
+    assert(!/[ก-๙]/.test(kit.textContent),'field-kit modal contains mixed Thai and English: '+kit.textContent);
+    assert(/Pack your field kit/.test(kit.textContent)&&/Check kit and depart/.test(kit.textContent),'field-kit actions are not fully localized');
+    const first=kit.querySelector('.kit-item');first.click();await new Promise(r=>setTimeout(r,50));
+    const redrawn=document.querySelector('.kit-modal');assert(!/[ก-๙]/.test(redrawn.textContent),'field-kit redraw returned to Thai: '+redrawn.textContent);
+    assert(/1 selected/.test(redrawn.textContent),'English selection count did not update');
+    for(const it of OD.sim.KIT.filter(x=>x.ok))if(!document.querySelector('[data-m="k'+it.k+'"]').classList.contains('selected'))document.querySelector('[data-m="k'+it.k+'"]').click();
+    document.querySelector('[data-m="go"]').click();await new Promise(r=>setTimeout(r,100));
+    const check=document.querySelector('.m-card');assert(check&&!/[ก-๙]/.test(check.textContent),'kit-check result contains Thai: '+check?.textContent);
+    document.querySelector('[data-m="ok"]')?.click();
     const direct=await OD.i18n.text('เปิดคู่มือ');assert(direct==='Open handbook','direct dialogue translation API failed');
     const story=OD.vn.play([{narr:'เปิดคู่มือ'}],{mode:'overlay'});await new Promise(r=>setTimeout(r,350));
     assert(/Open handbook/.test(document.querySelector('.vn-text').textContent),'current VN dialogue did not translate before rendering');

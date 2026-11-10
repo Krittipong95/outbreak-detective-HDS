@@ -153,3 +153,7 @@ table.conf td.hl2{background:#d9eedc;font-weight:700}
 /* ---------- หน้าผลลัพธ์ ---------- */
 .skill.used{border-color:color-mix(in srgb,var(--jade) 55%,var(--line))}
 .skill h4 .chip{font-size:11px;vertical-align:2px}
+.sql-loading{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text)}
+.sql-loading small{color:var(--muted)}
+.sql-spinner{width:18px;height:18px;flex:none;border:2px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:sqlSpin .75s linear infinite}
+@keyframes sqlSpin{to{transform:rotate(360deg)}}

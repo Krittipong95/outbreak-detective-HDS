@@ -271,15 +271,28 @@ print(fit)
   }
 
   /* SQL console  โหลดตัวประมวลผล SQL (alasql) จาก CDN เมื่อเปิดใช้ครั้งแรกเท่านั้น */
-  const SQL_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/alasql/4.19.1/alasql.min.js';
+  const SQL_SOURCES = [
+    'https://cdnjs.cloudflare.com/ajax/libs/alasql/4.19.1/alasql.min.js',
+    'https://cdn.jsdelivr.net/npm/alasql@4.19.1/dist/alasql.min.js'
+  ];
   let sqlLoad = null;
-  const loadSql = () => sqlLoad || (sqlLoad = new Promise((res, rej)=>{
-    if(window.alasql) return res(window.alasql);
-    const s = document.createElement('script'); s.src = SQL_SRC; s.async = true;
-    s.onload = () => window.alasql ? res(window.alasql) : rej(new Error('no alasql'));
-    s.onerror = () => { sqlLoad = null; rej(new Error('load failed')); };
-    document.head.appendChild(s);
-  }));
+  function loadSqlSource(src){
+    return new Promise((res,rej)=>{
+      const s=document.createElement('script');let done=false;
+      const finish=(ok,err)=>{if(done)return;done=true;clearTimeout(timer);if(!ok)s.remove();ok?res(window.alasql):rej(err);};
+      const timer=setTimeout(()=>finish(false,new Error('timeout')),10000);
+      s.src=src;s.async=true;s.crossOrigin='anonymous';
+      s.onload=()=>finish(!!window.alasql,new Error('no alasql'));
+      s.onerror=()=>finish(false,new Error('load failed'));
+      document.head.appendChild(s);
+    });
+  }
+  const loadSql = () => sqlLoad || (sqlLoad=(async()=>{
+    if(window.alasql)return window.alasql;
+    let last;
+    for(const src of SQL_SOURCES){try{return await loadSqlSource(src);}catch(e){last=e;}}
+    throw last||new Error('load failed');
+  })().catch(e=>{sqlLoad=null;throw e;}));
   const SAMPLES = [
     ['ผู้ป่วยตามหมู่บ้าน', 'SELECT village, COUNT(*) AS n\nFROM linelist\nGROUP BY village\nORDER BY n DESC'],
     ['เส้นโค้งการระบาด', 'SELECT onset_day, COUNT(*) AS n\nFROM linelist\nWHERE onset_day IS NOT NULL\nGROUP BY onset_day\nORDER BY onset_day'],
@@ -309,14 +322,19 @@ print(fit)
   async function runSql(W,S){
     const box = U.$('#sqlOut'), q = (U.$('#sqlIn')||{}).value || ''; if(!box) return;
     S.ui.sql = q;
-    box.innerHTML = '<span class="faint">กำลังประมวลผล…</span>';
+    const line=linelistTable(W,S), survey=surveyTable(W,S);
+    if(!line.length&&!survey.length){
+      box.innerHTML='<div class="note amber"><b>ยังไม่มีข้อมูลคดีให้วิเคราะห์</b><br>สัมภาษณ์ผู้ป่วยหรือเก็บกลุ่มควบคุมก่อน แล้วกลับมารันใหม่</div>';
+      return;
+    }
+    box.innerHTML = `<div class="sql-loading"><span class="sql-spinner" aria-hidden="true"></span><span><b>ข้อมูลพร้อมแล้ว</b> · linelist ${U.thaiNum(line.length)} แถว · survey ${U.thaiNum(survey.length)} แถว<br><small>กำลังเปิดตัวประมวลผล SQL…</small></span></div>`;
     let A;
     try{ A = await loadSql(); }
     catch(e){ box.innerHTML = '<div class="note red">โหลดตัวประมวลผล SQL ไม่สำเร็จ  ต้องต่ออินเทอร์เน็ตครั้งแรก (ระหว่างนี้ใช้ปุ่มดาวน์โหลด CSV แล้ววิเคราะห์ในโปรแกรมอื่นได้)</div>'; return; }
     try{
       const db = new A.Database();
-      db.exec('CREATE TABLE linelist'); db.tables.linelist.data = linelistTable(W,S);
-      db.exec('CREATE TABLE survey'); db.tables.survey.data = surveyTable(W,S);
+      db.exec('CREATE TABLE linelist'); db.tables.linelist.data = line;
+      db.exec('CREATE TABLE survey'); db.tables.survey.data = survey;
       let r = db.exec(q);
       if(Array.isArray(r) && r.length && Array.isArray(r[r.length-1])) r = r[r.length-1];
       S.flags.coder = true;

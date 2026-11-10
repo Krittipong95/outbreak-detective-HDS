@@ -67,15 +67,15 @@ OD.field = (function(){
     OD.sfx && OD.sfx('page');
     await new Promise(res=>{
       let first = true;
-      const draw = () => { U.modal(`<div class="brief"><div class="title-eyebrow">☀️ รายงานเช้า · ${M.fmtDay(M.dayOf(S.T))}</div>
+      const draw = () => { U.modal(`<div class="brief" data-m="ok" role="button" tabindex="0" aria-label="ปิดรายงานเช้าและทำงานต่อ"><div class="title-eyebrow">☀️ รายงานเช้า · ${M.fmtDay(M.dayOf(S.T))}</div>
         <div class="brief-stats"><div><span>ผู้ป่วยรายใหม่ ๒๔ ชม.</span><b class="${up?'up':''}">${now} ${up?'▲':now<prev?'▼':'■'}</b><small>เมื่อวาน ${prev}</small></div>
           <div><span>ในฐานข้อมูลทั้งหมด</span><b>${recs.length}</b><small>ราย</small></div>
           <div><span>เหลือเวลา</span><b class="${left<=48?'up':''}">${left}</b><small>ชั่วโมง</small></div>
           <div><span>ผลแล็บรอออก</span><b>${labs}</b><small>รายการ</small></div></div>
         <div class="brief-chart"><span class="muted">ผู้ป่วยรายใหม่ต่อวัน (ตั้งแต่ลงพื้นที่)</span>${spark}</div>
         ${OD.ai.fcHtml(S, lastFc)}
-        <div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${msg}</div></div></div></div>
-        <div class="m-actions"><button class="btn btn-gold" data-m="ok">ลุยต่อ</button></div>`,
+        <div class="mentor">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${msg}</div></div></div>
+        <div class="brief-dismiss">แตะที่รายงาน หรือกด Enter เพื่อทำงานต่อ</div></div>`,
         k=>{
           if(k==='ok'){ U.closeModal(); res(); return; }
           if(k.startsWith('fc:')){ OD.ai.fcPick(S, k.slice(3)); const y = U.$('#modal .m-card').scrollTop; draw(); U.$('#modal .m-card').scrollTop = y; }

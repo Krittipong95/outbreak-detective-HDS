@@ -116,6 +116,10 @@ OD.u = (function(){
       e.preventDefault();(e.shiftKey?last:first).focus();
     }
   },true);
+  document.addEventListener('keydown',e=>{
+    const action=e.target.closest?.('[data-m][role="button"]');
+    if(action && (e.key==='Enter'||e.key===' ')){e.preventDefault();action.click();}
+  });
   U.ask = (html, buttons, opts={}) => new Promise(res=>{
     U.modal(html + `<div class="m-actions">${buttons.map(([k,label,cls])=>`<button class="btn ${cls||''}" data-m="${k}">${label}</button>`).join('')}</div>`,
       k=>{ U.closeModal(); res(k); }, Object.assign({locked:true}, opts));

@@ -64,7 +64,10 @@ window.addEventListener('load',async()=>{
   });
   await test('practice completes with retries and leaves case untouched',()=>{
     const before=localStorage.getItem(KEY),world=OD.W,state=OD.S;localStorage.removeItem('od3-practice-v1');OD.practice.open();
-    click('[data-m="talk:a"]');click('[data-m="talk:b"]');click('[data-m="q:blame"]');assert(!document.querySelector('[data-m="next"]'),'wrong answer advanced');
+    const practiceCard=document.querySelector('.practice-modal');
+    click('[data-m="talk:a"]');assert(document.querySelector('.practice-modal')===practiceCard,'practice modal recreated and flashed');
+    click('[data-m="talk:b"]');assert(document.querySelector('.practice-modal')===practiceCard,'practice modal recreated after second choice');
+    click('[data-m="q:blame"]');assert(document.querySelector('.practice-modal')===practiceCard,'practice modal recreated after feedback');assert(!document.querySelector('[data-m="next"]'),'wrong answer advanced');
     click('[data-m="q:more"]');click('[data-m="next"]');click('[data-term="or"]');assert(document.querySelector('.term-modal'),'no definition');click('[data-m="close"]');assert(document.querySelector('.practice-modal'),'practice lost');
     click('[data-m="q:investigate"]');click('[data-m="next"]');click('[data-m="q:sample"]');click('[data-m="next"]');
     for(const id of ['stat','env','lab']){click('[data-m="card:'+id+'"]');if(id==='stat')click('[data-m="pin:shop"]');click('[data-m="pin:well"]');}

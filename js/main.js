@@ -29,28 +29,27 @@ OD.main = (function(){
     const root = U.$('#scr-title');
     root.innerHTML = `<div class="title-bg">${OD.art.scene('temple')}</div>
       <button class="btn btn-ghost btn-sm" data-t="theme" style="position:absolute;top:14px;right:14px;z-index:2" title="สลับธีม">🌓 ธีม</button>
-      <div class="frame title-card">
-        <div class="krajang-band"></div>
-        <div class="title-identity"><span class="title-emblem" aria-hidden="true">${OD.art.prajamInline(32)}</span></div>
-        <div class="title-eyebrow">แฟ้มคดีบ้านสุขใจ · เกมสืบสวนโรคระบาด</div>
+      <div class="frame title-card title-compact">
+        <div class="title-layout"><div class="title-intro">
+        <div class="title-sign"><span class="title-emblem" aria-hidden="true">${OD.art.prajamInline(32)}</span><span class="title-eyebrow">แฟ้มคดีบ้านสุขใจ</span></div>
         <h1 class="display gold-text title-main">นักสืบโรคระบาด<span class="title-num">๒</span></h1>
         <div class="title-sub">ปริศนาแห่งบ้านสุขใจ</div>
-        <div class="orn-divider"></div>
-        <p class="title-story">ผู้ป่วยท้องร่วงเพิ่มขึ้นผิดปกติในตำบลริมคลอง ข่าวลือแพร่เร็วกว่าเชื้อโรค  คุณคือนักวิทยาศาสตร์ข้อมูลสุขภาพที่ต้องใช้สถิติ ระบาดวิทยา และหลักฐานภาคสนาม ไขปริศนาให้ทันก่อนส่วนกลางจะมาถึง</p>
-        ${saved && !saved.invalid ? `<div class="resume-card"><div><b>แฟ้มคดีของ ${U.esc(saved.name)}</b><small>${saved.label} · ${new Date(saved.at).toLocaleString('th-TH')}</small><small>บันทึกในเบราว์เซอร์นี้ หลังจบแต่ละขั้นตอน</small></div><button class="btn btn-gold" data-t="resume">${saved.stage==='result'?'ดูผลคดีล่าสุด':'เล่นต่อ →'}</button></div>` : saved?.invalid ? `<p class="note">อ่านแฟ้มบันทึกเดิมไม่ได้ คุณยังเริ่มคดีใหม่ได้</p>` : ''}
-        <div class="practice-invite"><div><b>คดีแรกของคุณ เริ่มได้ทีละก้าว</b><small>คดีฝึก 5–10 นาที · มีพี่วิช่วย · ไม่กระทบคดีที่บันทึก</small></div><button class="btn" data-t="practice">🌱 ลองคดีฝึก</button></div>
+        <p class="title-story">ตามหาต้นตอโรคระบาดในหมู่บ้านริมคลอง<br>ฟังชาวบ้าน เชื่อมหลักฐาน และหยุดโรคให้ทันเวลา</p>
+        <div class="title-postcard" aria-hidden="true">${OD.art.scene('village')}<span>หนึ่งหมู่บ้าน · หกปริศนา</span></div>
+        ${saved && !saved.invalid ? `<div class="resume-card"><div><b>แฟ้มของ ${U.esc(saved.name)}</b><small>${saved.label} · ${new Date(saved.at).toLocaleDateString('th-TH')}</small></div><button class="btn btn-gold" data-t="resume">${saved.stage==='result'?'ดูผลคดี':'เล่นต่อ →'}</button></div>` : saved?.invalid ? `<p class="note">อ่านแฟ้มเดิมไม่ได้ คุณยังเริ่มคดีใหม่ได้</p>` : ''}
+        <div class="practice-invite"><div><b>เล่นครั้งแรก?</b><small>คดีฝึก 5–10 นาที · พี่วิพาเล่น</small></div><button class="btn" data-t="practice">🌱 ลองคดีฝึก</button></div>
+        ${(()=>{const m=OD.meta.summary();return m.cases?`<div class="title-prog"><span>🗂️ ไขได้ ${U.thaiNum(m.solvedTypes)}/๖ ต้นตอ</span><span>🎖️ ${U.thaiNum(m.ach)} เหรียญ</span><span>🏅 สูงสุด ${m.best}</span></div>`:'<div class="title-route"><span>① สัมภาษณ์</span><span>② ตรวจหลักฐาน</span><span>③ สรุปคดี</span></div>';})()}
+        </div><div class="title-setup">
+        <div class="setup-heading"><b>เปิดแฟ้มคดีใหม่</b><span>ประมาณ 30–45 นาที</span></div>
         <div class="title-form">
           <label>ชื่อของคุณ<input type="text" id="tName" maxlength="20" placeholder="เช่น ต้นกล้า" value="${U.esc(pref.name)}"></label>
-          <div><label>ตัวละครของคุณ</label><div class="who-grid">${Object.entries(GENDER).map(([g,o])=>`<button class="diff who ${pref.gender===g?'on':''}" data-g="${g}">${'<span class="avatar">'+OD.art.person('me', pref.gender===g?'smile':'neutral', {gender:g, tag:pref.name})+'</span>'}<span><b>${o.t}</b><small>นักวิทยาศาสตร์ข้อมูลสุขภาพจบใหม่ · ใช้คำลงท้าย “${o.pol}”</small></span></button>`).join('')}</div></div>
-          <div><label>ระดับความยาก</label><div class="diff-grid">${Object.keys(D).map(k=>`<button class="diff ${pref.diff===k?'on':''}" data-diff="${k}"><b>${D[k].label}</b><small>${desc[k]}</small></button>`).join('')}</div></div>
+          <div><div class="setup-label" id="character-label">เลือกตัวละคร</div><div class="who-grid" role="group" aria-labelledby="character-label">${Object.entries(GENDER).map(([g,o])=>`<button class="diff who ${pref.gender===g?'on':''}" data-g="${g}" aria-pressed="${pref.gender===g}">${'<span class="avatar">'+OD.art.person('me', pref.gender===g?'smile':'neutral', {gender:g, tag:pref.name})+'</span>'}<span><b>${o.t}</b><small>ใช้คำลงท้าย “${o.pol}”</small></span></button>`).join('')}</div></div>
+          <div><div class="setup-label" id="difficulty-label">ระดับความยาก</div><div class="diff-grid" role="group" aria-labelledby="difficulty-label">${Object.keys(D).map(k=>`<button class="diff ${pref.diff===k?'on':''}" data-diff="${k}" aria-pressed="${pref.diff===k}" aria-describedby="difficulty-note" title="${D[k].label}"><b>${{easy:'เริ่มต้น',normal:'มาตรฐาน',hard:'ท้าทาย'}[k]}</b><small>${{easy:'มีคำใบ้ละเอียด',normal:'มีคำใบ้',hard:'ไม่มีคำใบ้'}[k]}</small></button>`).join('')}</div><p id="difficulty-note" class="difficulty-note" aria-live="polite">${desc[pref.diff]}</p></div>
         </div>
-        <div class="title-actions"><button class="btn btn-gold btn-lg" data-t="start">เริ่มเรื่อง</button><button class="btn btn-lg" data-t="quick" title="ข้ามบทนำ บทที่ ๑ และ ๒">ลงพื้นที่ทันที</button></div>
-        <div class="title-actions" style="margin-top:10px"><button class="btn" data-t="howto">🎮 วิธีเล่น</button><button class="btn daily-btn" data-t="daily" title="ทุกคนเล่นคดีเดียวกันในวันนี้ · ระดับนักวิทยาศาสตร์ข้อมูล · ลงพื้นที่ทันที">📅 คดีประจำวัน</button><button class="btn" data-t="stats">🏆 สถิติและเหรียญ</button><button class="btn" data-t="hb">📘 คู่มือนักสืบมือใหม่</button></div>
-        ${(()=>{ const m = OD.meta.summary(); return m.cases ? `<div class="title-prog"><span>🗂️ ไขได้ ${U.thaiNum(m.solvedTypes)}/๖ ต้นตอ</span><span>🎖️ เหรียญ ${U.thaiNum(m.ach)}/${U.thaiNum(m.achMax)}</span><span>📜 เหตุการณ์ ${U.thaiNum(m.seen)}/${U.thaiNum(m.seenMax)}</span><span>🏅 คะแนนสูงสุด ${m.best}</span></div>`
-          : `<div class="title-new"><b>เริ่มแบบง่าย ๆ</b><ol><li>ลงพื้นที่ดูว่าเกิดอะไรขึ้น</li><li>สัมภาษณ์และตรวจสถานที่</li><li>เทียบหลักฐานก่อนสรุปคดี</li></ol><span>เมื่ออยู่หน้าภาคสนาม กด <b>🚶 เดินสำรวจ</b> เพื่อเปิดโหมดเดินในหมู่บ้าน</span></div>`; })()}
-        <div class="title-tools"><span>🚨 ระบบเตือนภัย</span><span>🤖 ML</span><span>🧭 เชิงพื้นที่</span><span>📱 NLP</span><span>⚖️ AI รับผิดชอบ</span><span>🔮 พยากรณ์</span><span>💻 SQL · Python · R</span></div>
-        <div class="title-foot">สุ่มต้นตอใหม่ทุกคดีจาก ๖ รูปแบบ พร้อมคดีหักมุม · ใช้เวลาเล่นประมาณ ๓๐–๔๕ นาที · ตัวละคร สถานที่ และข้อมูลทั้งหมดเป็นเรื่องสมมติ</div>
-        <div class="krajang-band down" style="margin-top:12px"></div>
+        <div class="title-actions title-play"><button class="btn btn-gold btn-lg" data-t="start">เริ่มเรื่อง →</button><button class="btn btn-lg" data-t="quick" title="ข้ามบทนำ บทที่ ๑ และ ๒">ลงพื้นที่ทันที</button></div>
+        <nav class="title-shortcuts" aria-label="เมนูเพิ่มเติม"><button class="btn" data-t="howto">🎮 วิธีเล่น</button><button class="btn daily-btn" data-t="daily" title="คดีเดียวกันสำหรับทุกคนวันนี้ · ระดับมาตรฐาน">📅 คดีประจำวัน</button><button class="btn" data-t="stats">🏆 สถิติและเหรียญ</button><button class="btn" data-t="hb">📘 คู่มือนักสืบ</button></nav>
+        </div></div>
+        <div class="title-foot">บันทึกอัตโนมัติในเบราว์เซอร์นี้ · ตัวละคร สถานที่ และข้อมูลเป็นเรื่องสมมติ</div>
       </div>`;
     root.onclick = async e=>{
       const b = e.target.closest('button'); if(!b) return;

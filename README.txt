@@ -127,3 +127,4 @@
   ปุ่มศัพท์ในหน้าวิเคราะห์อธิบาย OR, CI, กลุ่มควบคุม, ตัวแปรกวน, ผลแล็บลบ และ AUC
   เปิดคู่มือระหว่างหน้าต่างคำถามได้ ปิดแล้วกลับมาเลือกต่อ; Escape ปิดคู่มือ และ Tab เดินภายในหน้าต่าง
   ทดสอบเพิ่มเติม: tests/run-onboarding-audit.ps1 และ tests/run-resume-flow-audit.ps1
+  การตรวจหน้าแรก/ข้อเสนอแนะ UI: tests/run-title-layout-audit.ps1 และ tests/run-ui-feedback-audit.ps1

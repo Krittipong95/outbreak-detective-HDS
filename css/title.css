@@ -1,0 +1,40 @@
+/* Compact case folder. Natural scrolling remains available for zoom and short screens. */
+#scr-title{padding:24px 64px;min-height:100svh}
+#scr-title .title-compact{width:min(1140px,100%);padding:24px 30px 16px;text-align:left}
+.title-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:34px;align-items:center}
+.title-intro,.title-setup{min-width:0}
+.title-sign{display:flex;gap:12px;align-items:center;margin-bottom:8px}.title-sign .title-emblem{width:32px;height:32px;flex:none}.title-sign .title-eyebrow{margin:0;font-size:12px}
+.title-compact .title-main{font-size:clamp(34px,4.2vw,52px);line-height:1.4;margin:0 0 3px;white-space:nowrap}
+.title-compact .title-sub{font-size:14px;padding:2px 12px}
+.title-compact .title-story{margin:12px 0;font-size:14px;line-height:1.65}
+.title-postcard{height:142px;position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}
+.title-postcard svg{display:block;width:100%;height:100%;object-fit:cover}.title-postcard>span{position:absolute;bottom:9px;left:12px;padding:3px 10px;border-radius:20px;background:#21170ee6;color:#fff1d0;font-size:12px}
+.title-compact .resume-card,.title-compact .practice-invite{padding:11px 13px;margin:10px 0 0;gap:10px;flex-direction:row;align-items:center;border-radius:9px}
+.title-compact .resume-card b,.title-compact .practice-invite b{font-size:14px;overflow-wrap:anywhere}.title-compact .resume-card small,.title-compact .practice-invite small{font-size:12px;margin-top:2px}
+.title-compact .resume-card .btn,.title-compact .practice-invite .btn{font-size:13px;flex:none;min-height:40px;padding:7px 12px}
+.title-route,.title-compact .title-prog{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:6px 14px;margin-top:12px;color:var(--muted);font-size:12px}
+.title-setup{border-left:1px solid var(--line);padding-left:30px}
+.setup-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.setup-heading>b{font-size:20px;color:var(--text)}.setup-heading>span{font-size:12px;color:var(--muted)}
+.title-compact .title-form{gap:12px;margin:0;max-width:none}.title-compact .title-form label,.setup-label{font-size:13px;font-weight:600;color:var(--gold-2)}
+.title-compact .title-form input{min-height:40px;font-size:16px;margin-top:4px;padding:8px 11px}
+.title-compact .who-grid,.title-compact .diff-grid{gap:8px;margin-top:5px}.title-compact .diff-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.title-compact .diff{padding:9px 10px;min-width:0}.title-compact .diff b{font-size:14px}.title-compact .diff small{font-size:11px;line-height:1.4}
+.title-compact .diff.who{gap:9px}.title-compact .diff.who .avatar{width:48px;height:48px}.title-compact .diff.who small{display:block}
+.difficulty-note{min-height:42px;margin:7px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+.title-compact .title-play{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.title-compact .title-play .btn{padding:10px 8px;font-size:16px;min-height:46px}
+.title-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.title-shortcuts .btn{min-height:38px;padding:6px 5px;font-size:12px}
+.title-compact .title-foot{font-size:11px;text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid var(--line);line-height:1.5}
+@media(min-width:901px) and (max-height:720px){
+  #scr-title{padding-top:10px;padding-bottom:10px}.title-postcard{height:78px}#scr-title .title-compact{padding:14px 22px 10px}.title-compact .title-foot{margin-top:7px;padding-top:7px}.title-compact .title-story{margin:5px 0;line-height:1.45}.title-sign{margin-bottom:2px}.title-compact .resume-card,.title-compact .practice-invite{padding:8px 10px;margin-top:7px}.title-compact .title-form{gap:8px}.setup-heading{margin-bottom:8px}.difficulty-note{min-height:34px;margin-top:4px}.title-compact .title-play,.title-shortcuts{margin-top:7px}.title-shortcuts{padding-top:7px}
+}
+@media(max-width:1100px) and (min-width:901px){#scr-title{padding-left:42px;padding-right:42px}.title-layout{gap:22px}.title-setup{padding-left:22px}.title-compact .title-main{font-size:36px}}
+@media(max-width:900px){
+  #scr-title{padding:16px 44px}.title-layout{grid-template-columns:1fr;gap:18px;max-width:580px;margin:auto}#scr-title .title-compact{width:min(650px,100%);padding:20px}
+  .title-setup{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:14px}.title-postcard,.title-route{display:none}.title-sign{justify-content:center;margin-bottom:3px}.title-intro{text-align:center}.title-compact .title-main{font-size:36px}.title-compact .title-story{margin:7px 0;font-size:13px}.title-compact .title-story br{display:none}.title-compact .title-sub{font-size:13px}.title-compact .title-prog{justify-content:center;margin-top:7px}.title-compact .resume-card,.title-compact .practice-invite{text-align:left}.title-shortcuts{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  #scr-title{width:100%;min-width:0;padding:10px 10px 56px;align-items:flex-start}#scr-title .title-compact{width:100%;max-width:100%;padding:15px 16px 12px}.title-layout{gap:12px}.title-sign{display:none}.title-compact .title-main{font-size:clamp(28px,8.2vw,36px);white-space:normal}.title-compact .title-story{line-height:1.5;font-size:12px;margin:6px 0}.title-compact .resume-card>div,.title-compact .practice-invite>div{min-width:0}.title-shortcuts .btn{min-width:0;overflow-wrap:anywhere}
+  .title-compact .resume-card,.title-compact .practice-invite{padding:8px 10px;margin-top:7px}.title-compact .resume-card b,.title-compact .practice-invite b{font-size:13px}.title-compact .resume-card small,.title-compact .practice-invite small{font-size:11px}.title-compact .resume-card .btn,.title-compact .practice-invite .btn{font-size:12px;padding:7px 9px;min-height:38px}
+  .title-setup{padding-top:10px}.setup-heading{margin-bottom:9px}.setup-heading>b{font-size:17px}.setup-heading>span{font-size:11px}.title-compact .title-form{gap:9px}.title-compact .diff.who .avatar{width:38px;height:38px}.title-compact .diff.who small{font-size:10px}.title-compact .diff{padding:7px 8px}.title-compact .diff b{font-size:13px}.title-compact .diff small{font-size:10px}.title-compact .diff.who{gap:7px}
+  .difficulty-note{font-size:11px;min-height:35px;margin-top:5px}.title-compact .title-play{margin-top:8px}.title-compact .title-play .btn{font-size:14px;min-height:44px;padding:9px 5px}.title-shortcuts{gap:6px;margin-top:9px;padding-top:9px}.title-shortcuts .btn{font-size:12px;min-height:36px}.title-compact .title-foot{font-size:10px;margin-top:10px;padding-top:8px}
+}

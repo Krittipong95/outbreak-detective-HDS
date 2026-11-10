@@ -33,7 +33,7 @@ OD.ch1 = (function(){
   }
 
   function chart(d){
-    const w=520, h=230, m={l:36,r:34,t:16,b:30}, iw=w-m.l-m.r, ih=h-m.t-m.b;
+    const w=520, h=230, m={l:36,r:48,t:24,b:30}, iw=w-m.l-m.r, ih=h-m.t-m.b;
     const top = Math.max(...d.cur, ...d.hist.flatMap(x=>x.w)) + 4;
     const X = i => m.l + i*iw/4, Y = v => m.t + ih - v/top*ih;
     const meds = [0,1,2,3,4].map(i=>U.median(d.hist.map(x=>x.w[i])));
@@ -44,7 +44,7 @@ OD.ch1 = (function(){
     s += `<polyline points="${d.cur.map((v,i)=>X(i)+','+Y(v)).join(' ')}" fill="none" stroke="#a8301d" stroke-width="3.2"/>`;
     d.cur.forEach((v,i)=>{ s += `<circle cx="${X(i)}" cy="${Y(v)}" r="4" fill="#a8301d"/>`; });
     [44,45,46,47,48].forEach((wk,i)=>{ s += `<text x="${X(i)}" y="${h-10}" font-size="11.5" text-anchor="middle" fill="#6b5537">สัปดาห์ ${U.thaiNum(wk)}</text>`; });
-    s += `<text x="${X(4)-6}" y="${Y(d.cur[4])-10}" font-size="12" font-weight="700" text-anchor="end" fill="#a8301d">๒๕๖๙ (๓ วัน)</text>`;
+    s += `<text x="${X(4)}" y="${Math.max(14,Y(d.cur[4])-11)}" font-size="12" font-weight="700" text-anchor="middle" fill="#a8301d">ปี ๒๕๖๙ · ๓ วัน</text>`;
     return s + `</svg><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;margin-top:4px;color:#5f4a2f">
       <span><i style="display:inline-block;width:18px;height:3px;background:#a8301d;vertical-align:3px"></i> ปี ๒๕๖๙</span>
       <span><i style="display:inline-block;width:18px;border-top:3px dashed #9a7424;vertical-align:3px"></i> ค่ามัธยฐาน ๕ ปี</span>
@@ -103,21 +103,24 @@ OD.ch1 = (function(){
       U.show('scr-ch1'); if(OD.sound)OD.sound.setScene('office');
       const box = U.$('#ch1q'), root2 = U.$('#scr-ch1');
       const md = t => t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+      let view=Math.max(0,Q.findIndex(q=>!q.done));
       function render(){
         const cur = Q.findIndex(q=>!q.done);
-        box.innerHTML = `<div class="ch-progress"><b>ตอบคำถาม ${U.thaiNum(cur < 0 ? Q.length : cur + 1)} จาก ${U.thaiNum(Q.length)}</b><span>ดูตารางแล้วเลือกคำตอบ หากตอบผิดลองใหม่ได้</span></div>` + Q.map((q,qi)=>{
-          if(qi>cur && cur>=0) return '';
-          return `<div class="frame tight qcard" data-q="${qi}"><h3>ข้อ ${U.thaiNum(qi+1)}. ${md(q.q)}</h3><div class="qopts">${
+        if(view<0)view=Q.length-1;
+        if(cur>=0 && view>cur)view=cur;
+        const nav=`<div class="question-tabs" role="tablist" aria-label="เลือกข้อคำถาม">${Q.map((q,i)=>`<button type="button" role="tab" aria-selected="${view===i}" class="question-tab ${view===i?'on':''} ${q.done?'done':''}" data-qnav="${i}" ${i>cur&&cur>=0?'disabled':''}><span>${q.done?'✓':U.thaiNum(i+1)}</span>ข้อ ${U.thaiNum(i+1)}</button>`).join('')}</div>`;
+        const q=Q[view];
+        box.innerHTML = `<div class="ch-progress"><b>${cur<0?'ตอบครบทุกข้อแล้ว':`กำลังทำข้อ ${U.thaiNum(cur+1)} จาก ${U.thaiNum(Q.length)}`}</b><span>เลือกดูทีละข้อ จึงไม่ต้องไล่อ่านการ์ดยาว ๆ</span>${nav}</div>` + (q?`<div class="frame tight qcard" data-q="${view}"><h3><span>คำถามข้อ ${U.thaiNum(view+1)}</span>${md(q.q)}</h3><div class="qopts">${
             q.opts.map((o,oi)=>`<button class="qopt ${o.state||''}" data-o="${oi}" ${q.done||o.state?'disabled':''}><span class="lt">${'กขคง'[oi]}</span>${o.t}</button>`).join('')}</div>
-            ${q.fb?`<div class="mentor" style="margin-top:12px">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${q.fb}</div></div></div>`:''}</div>`;
-        }).join('') + (cur<0 ? `<div class="ch-complete"><b>เรียบร้อย! คุณยืนยันการระบาดและกำหนดนิยามผู้ป่วยแล้ว</b><p>ขั้นต่อไป ตรวจสอบข้อมูลผู้ป่วยให้พร้อมสำหรับการสอบสวน</p><button class="btn btn-gold btn-lg" id="ch1next">ไปต่อ: ตรวจสอบข้อมูล →</button></div>` : '');
+            ${q.fb?`<div class="mentor" style="margin-top:12px">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${q.fb}</div></div></div>`:''}</div>`:'') + (cur<0 ? `<div class="ch-complete"><b>เรียบร้อย! คุณยืนยันการระบาดและกำหนดนิยามผู้ป่วยแล้ว</b><p>ขั้นต่อไป ตรวจสอบข้อมูลผู้ป่วยให้พร้อมสำหรับการสอบสวน</p><button class="btn btn-gold btn-lg" id="ch1next">ไปต่อ: ตรวจสอบข้อมูล →</button></div>` : '');
       }
       root2.onclick = async e=>{
+        const tab=e.target.closest('[data-qnav]');if(tab&&!tab.disabled){view=+tab.dataset.qnav;render();return;}
         if(e.target.closest('#ch1next')){ root2.onclick = null; await OD.vn.play(OD.story.ch1_done(W,S), {mode:'overlay'}); resolve(); return; }
         const b = e.target.closest('.qopt'); if(!b || b.disabled) return;
         const q = Q[+b.closest('[data-q]').dataset.q], o = q.opts[+b.dataset.o];
         OD.sfx && OD.sfx(o.ok?'correct':'wrong'); q.tries++; o.state = o.ok ? 'right' : 'wrong'; q.fb = (o.ok?'✅ ':'❌ ') + o.fb;
-        if(o.ok){ q.done = true; S.acc.ch1 += q.tries===1 ? 2 : q.tries===2 ? 1 : 0; }
+        if(o.ok){ q.done = true; S.acc.ch1 += q.tries===1 ? 2 : q.tries===2 ? 1 : 0; view=Math.min(Q.length-1,view+1); }
         else S.mistakes.push({area:'ch1', title:q.q.replace(/\*\*/g,''), chosen:o.t, correct:q.opts.find(x=>x.ok).t, why:o.fb});
         render(); OD.session?.save('ch1');
       };

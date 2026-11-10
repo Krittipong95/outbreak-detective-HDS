@@ -25,6 +25,8 @@ OD.main = (function(){
 
   function title(){
     const D = M.DIFF, saved = OD.session.status();
+    const english = OD.i18n?.lang?.()==='en';
+    document.body.classList.add('on-title');
     const desc = {easy:'งบ ฿60,000 · คำใบ้ละเอียด · ความไวแล็บพื้นฐาน ~๙๒%', normal:'งบ ฿45,000 · มีคำใบ้ · ความไวแล็บพื้นฐาน ~๘๒%', hard:'งบ ฿32,000 · ไม่มีคำใบ้ · ความไวแล็บพื้นฐาน ~๗๐% · ชาวบ้านจำคลาดเคลื่อนมากขึ้น'};
     const root = U.$('#scr-title');
     root.innerHTML = `<div class="title-bg">${OD.art.scene('temple')}</div>
@@ -42,6 +44,7 @@ OD.main = (function(){
         </div><div class="title-setup">
         <div class="setup-heading"><b>เปิดแฟ้มคดีใหม่</b><span>ประมาณ 30–45 นาที</span></div>
         <div class="title-form">
+          <div class="setup-language" data-no-translate><div><b>${english?'Language':'ภาษา'}</b><small>${english?'Choose once before starting':'เลือกครั้งเดียวก่อนเริ่มเกม'}</small></div><div class="setup-language-buttons" role="group" aria-label="Language"><button type="button" class="${!english?'on':''}" data-ui-lang="th">ไทย</button><button type="button" class="${english?'on':''}" data-ui-lang="en">English</button></div></div>
           <label>ชื่อของคุณ<input type="text" id="tName" maxlength="20" placeholder="เช่น ต้นกล้า" value="${U.esc(pref.name)}"></label>
           <div><div class="setup-label" id="character-label">เลือกตัวละคร</div><div class="who-grid" role="group" aria-labelledby="character-label">${Object.entries(GENDER).map(([g,o])=>`<button class="diff who ${pref.gender===g?'on':''}" data-g="${g}" aria-pressed="${pref.gender===g}">${'<span class="avatar">'+OD.art.portrait('me', pref.gender===g?'smile':'neutral', {gender:g, tag:pref.name})+'</span>'}<span><b>${o.t}</b><small>ใช้คำลงท้าย “${o.pol}”</small></span></button>`).join('')}</div></div>
           <div><div class="setup-label" id="difficulty-label">ระดับความยาก</div><div class="diff-grid" role="group" aria-labelledby="difficulty-label">${Object.keys(D).map(k=>`<button class="diff ${pref.diff===k?'on':''}" data-diff="${k}" aria-pressed="${pref.diff===k}" aria-describedby="difficulty-note" title="${D[k].label}"><b>${{easy:'เริ่มต้น',normal:'มาตรฐาน',hard:'ท้าทาย'}[k]}</b><small>${{easy:'มีคำใบ้ละเอียด',normal:'มีคำใบ้',hard:'ไม่มีคำใบ้'}[k]}</small></button>`).join('')}</div><p id="difficulty-note" class="difficulty-note" aria-live="polite">${desc[pref.diff]}</p></div>
@@ -53,6 +56,7 @@ OD.main = (function(){
       </div>`;
     root.onclick = async e=>{
       const b = e.target.closest('button'); if(!b) return;
+      if(b.dataset.uiLang) return OD.i18n.setLanguage(b.dataset.uiLang);
       if(b.dataset.g){ pref.gender = b.dataset.g; title(); }
       if(b.dataset.diff){ pref.diff = b.dataset.diff; title(); }
       if(b.dataset.t==='theme') OD.toggleTheme();
@@ -98,6 +102,7 @@ OD.main = (function(){
   }
 
   async function continueCase(stage, fresh=false){
+    document.body.classList.remove('on-title');
     const W=OD.W, S=OD.S;
     if(stage==='result')return OD.reportSaved();
     if(stage==='prologue'){

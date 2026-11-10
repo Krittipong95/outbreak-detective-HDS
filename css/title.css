@@ -18,6 +18,7 @@
 .title-compact .title-form{gap:12px;margin:0;max-width:none}.title-compact .title-form label,.setup-label{font-size:13px;font-weight:600;color:var(--gold-2)}
 .title-compact .title-form input{min-height:40px;font-size:16px;margin-top:4px;padding:8px 11px}
 .title-compact .who-grid,.title-compact .diff-grid{gap:8px;margin-top:5px}.title-compact .diff-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.setup-language{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid var(--gold-3);border-radius:6px;background:color-mix(in srgb,var(--gold) 9%,var(--panel-2))}.setup-language>div:first-child{display:flex;align-items:baseline;gap:8px}.setup-language b{color:var(--gold-2)}.setup-language small{color:var(--muted);font-size:11px}.setup-language-buttons{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}.setup-language-buttons button{border:0;border-radius:999px;padding:3px 12px;background:transparent;color:var(--muted);font-weight:700;cursor:pointer}.setup-language-buttons button.on{background:var(--gold);color:#211509}.on-title>.lang-switch{display:none}
 .title-compact .diff{padding:9px 10px;min-width:0}.title-compact .diff b{font-size:14px}.title-compact .diff small{font-size:11px;line-height:1.4}
 .title-compact .diff.who{gap:9px}.title-compact .diff.who .avatar{width:48px;height:48px}.title-compact .diff.who small{display:block}
 .difficulty-note{min-height:42px;margin:7px 0 0;color:var(--muted);font-size:12px;line-height:1.6}

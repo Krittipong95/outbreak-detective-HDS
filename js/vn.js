@@ -139,10 +139,12 @@ OD.vn = (function(){
       };
     });
   }
-  function card(c){
+  async function card(c){
+    let no=c.no||'',title=c.title||'',sub=c.sub||'',next='คลิกเพื่อดำเนินเรื่องต่อ';
+    if(OD.i18n?.lang()==='en') [no,title,sub,next]=await Promise.all([OD.i18n.text(no),OD.i18n.text(title),OD.i18n.text(sub),OD.i18n.text(next)]);
     return new Promise(res=>{
       const el = document.createElement('div'); el.className = 'vn-card';
-      el.innerHTML = `${c.no?`<div class="no gold-text">${c.no}</div>`:''}<div class="orn-divider"></div><div class="tt gold-text">${c.title}</div>${c.sub?`<div class="st">${c.sub}</div>`:''}<div class="orn-divider"></div><div class="muted" style="font-size:13px;margin-top:10px">คลิกเพื่อดำเนินเรื่องต่อ</div>`;
+      el.innerHTML = `${no?`<div class="no gold-text">${no}</div>`:''}<div class="orn-divider"></div><div class="tt gold-text">${title}</div>${sub?`<div class="st">${sub}</div>`:''}<div class="orn-divider"></div><div class="muted" style="font-size:13px;margin-top:10px">${next}</div>`;
       root.appendChild(el);
       const done = ()=>{ el.remove(); res(); };
       el.addEventListener('click', done);

@@ -27,6 +27,9 @@ window.addEventListener('load',async()=>{
     document.querySelector('[data-m="go"]').click();await new Promise(r=>setTimeout(r,100));
     const check=document.querySelector('.m-card');assert(check&&!/[ก-๙]/.test(check.textContent),'kit-check result contains Thai: '+check?.textContent);
     document.querySelector('[data-m="ok"]')?.click();
+    const chapter=OD.vn.play([{card:{no:'บทที่ ๓',title:'ลงพื้นที่บ้านสุขใจ',sub:'พุธ ๒๕ พฤศจิกายน ๒๕๖๙ · ๐๘:๐๐ น.'}},{narr:'เช้าวันพุธ หมอกยังลอยเรี่ยผิวน้ำในคลองสุขใจ…'}]);
+    await new Promise(r=>setTimeout(r,100));const card=document.querySelector('.vn-card');assert(card&&!/[ก-๙]/.test(card.textContent),'English chapter card contains Thai: '+card?.textContent);card.click();
+    await new Promise(r=>setTimeout(r,900));const opening=document.querySelector('.vn-text').textContent;assert(/Wednesday morning/.test(opening)&&!/[ก-๙]/.test(opening),'opening narration was not translated before rendering: '+opening);document.querySelector('.vn-box').click();document.querySelector('.vn-box').click();await chapter;
     const direct=await OD.i18n.text('เปิดคู่มือ');assert(direct==='Open handbook','direct dialogue translation API failed');
     const story=OD.vn.play([{narr:'เปิดคู่มือ'}],{mode:'overlay'});await new Promise(r=>setTimeout(r,350));
     assert(/Open handbook/.test(document.querySelector('.vn-text').textContent),'current VN dialogue did not translate before rendering');

@@ -261,7 +261,7 @@ OD.report = (function(){
     const ev = [];
     if(S.flags.kitMiss && S.flags.kitMiss.length) ev.push(`<b>ลืมนำอุปกรณ์</b>: ${S.flags.kitMiss.map(kitName).join(' · ')}`);
     if(S.flags.kitBad && S.flags.kitBad.length) ev.push(`<b>หยิบของที่ไม่ควรนำไป</b>: ${S.flags.kitBad.map(kitName).join(' · ')}`);
-    if(!S.controls.length) ev.push('<b>ไม่ได้เก็บกลุ่มควบคุม</b>  ไม่มี Odds Ratio ยืนยันทางสถิติว่าสัมผัสอะไรแล้วเสี่ยง');
+    if(!S.controls.length) ev.push('<b>ไม่ได้เก็บกลุ่มควบคุม</b>  จึงคำนวณอัตราส่วนออดส์ (Odds Ratio; OR) เพื่อวัดความสัมพันธ์ระหว่างการสัมผัสกับการป่วยไม่ได้');
     if(!S.hyp.some(x=>related(W).includes(x))) ev.push('<b>สมมติฐานไม่ครอบคลุมแหล่งโรคจริง</b>  ใช้ข้อมูลเวลา–สถานที่–บุคคลช่วยตั้งสมมติฐาน');
     if((s.type==='ICE' || s.type==='FARM') && !S.supply && !S.known.has(src)) ev.push(`<b>ไม่ได้ขอข้อมูลห่วงโซ่อุปทาน</b>  ทางเดียวที่จะเห็นว่าหลายแห่งใช้${s.type==='ICE'?'น้ำแข็ง':'ผักสด'}จากแหล่งเดียวกัน`);
     if(!S.inspected[src]) ev.push(`<b>ไม่ได้ตรวจสิ่งแวดล้อมที่${nm(src)}</b> ซึ่งเป็นต้นตอจริง`);
@@ -383,7 +383,7 @@ OD.report = (function(){
       </div>
       <h2 class="display gold-text" style="margin-top:22px;font-size:26px">ทักษะของนักวิทยาศาสตร์ข้อมูลสุขภาพที่คุณได้ใช้</h2>
       <div class="skills">${(()=>{ const f = S.flags, fc = OD.ai.fcScore(S); return [
-        ['📊','ชีวสถิติ','ค่ามัธยฐาน Odds Ratio ช่วงความเชื่อมั่น การแยกวิเคราะห์ Mantel–Haenszel และปัญหาการเปรียบเทียบหลายครั้ง', !!f.vOR],
+        ['📊','ชีวสถิติ','ค่ามัธยฐาน · อัตราส่วนออดส์ (Odds Ratio; OR) · ช่วงความเชื่อมั่น 95% · การวิเคราะห์ Mantel–Haenszel · ปัญหาการเปรียบเทียบหลายครั้ง', !!f.vOR],
         ['🦠','ระบาดวิทยาและการแพทย์','นิยามผู้ป่วย case-control เส้นโค้งการระบาด ระยะฟักตัว ตัวแปรกวน เชื้อก่อโรค และความไวของการตรวจทางห้องปฏิบัติการ', S.controls.length>0],
         ['🧹','การจัดการข้อมูล','รวมข้อมูลหลายแหล่ง ตัดข้อมูลซ้ำ แปลงรูปแบบวันที่ จัดการค่าว่างโดยไม่ทิ้งข้อมูลจริง', !f.quick],
         ['🤖','Machine Learning','Logistic regression หลายตัวแปร (OR ที่ปรับแล้ว) · decision tree · cross-validation · AUC · overfitting', !!f.vML],

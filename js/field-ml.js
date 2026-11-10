@@ -95,7 +95,7 @@ OD.mlViews = (function(){
     if(m.empty) return h + `<div class="lockbox" style="padding:16px">เลือกตัวแปรอย่างน้อย ๑ ตัว และต้องมีข้อมูลครบอย่างน้อย ๑๐ แถว</div>`;
     S.flags.vML = true;
     h += `<div class="ml-step"><b>๒. ผลของโมเดล</b> <span class="faint">${U.thaiNum(m.y.length)} แถว (ผู้ป่วย ${m.y.filter(v=>v).length} · กลุ่มควบคุม ${m.y.filter(v=>!v).length})${m.drop?` · ตัดแถวที่ตอบ “ไม่ทราบ” ออก ${m.drop} แถว (complete-case)`:''}</span>
-      <div class="atable-wrap"><table class="at ml-t"><thead><tr><th>ตัวแปร</th><th>OR หยาบ</th><th>OR ที่ปรับแล้ว <span class="faint">(95% CI)</span></th><th class="pcol">p</th><th class="fcol">0.1 ─ 1 ─ 10 ─ 100</th></tr></thead><tbody>`;
+      <div class="atable-wrap"><table class="at ml-t"><thead><tr><th>ตัวแปร</th><th>อัตราส่วนออดส์แบบหยาบ<br><span class="faint">Crude OR</span></th><th>อัตราส่วนออดส์ที่ปรับแล้ว<br><span class="faint">Adjusted OR พร้อม 95% CI</span></th><th class="pcol">p-value</th><th class="fcol">0.1 ─ 1 ─ 10 ─ 100</th></tr></thead><tbody>`;
     const notes = [];
     m.cols.forEach((c,i)=>{
       const a = m.fit.coef[i+1], cr = c.t==='exp' ? crude[c.k] : null, sig = a.lo>1;

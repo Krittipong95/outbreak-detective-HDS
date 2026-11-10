@@ -203,15 +203,15 @@ OD.fieldViews = (function(){
     return `<svg class="forest" viewBox="0 0 ${w} 16"><line class="ax" x1="6" x2="${w-6}" y1="8" y2="8"/><line class="one" x1="${X(1)}" x2="${X(1)}" y1="1" y2="15"/><line class="ci" x1="${X(r.lo)}" x2="${X(r.hi)}" y1="8" y2="8"/><rect class="pt${r.lo>1?' s':''}" x="${X(r.or)-3.5}" y="4.5" width="7" height="7"/></svg>`;
   }
   function ana(){
-    if(!Object.keys(S.ans).length) return `<div class="lockbox"><div class="big">🗣️</div><b>ยังไม่มีข้อมูลการสัมผัส</b><div>สัมภาษณ์ผู้ป่วยก่อน แล้วเก็บกลุ่มควบคุมเพื่อคำนวณ Odds Ratio</div></div>`;
+    if(!Object.keys(S.ans).length) return `<div class="lockbox"><div class="big">🗣️</div><b>ยังไม่มีข้อมูลการสัมผัส</b><div>สัมภาษณ์ผู้ป่วยก่อน แล้วเก็บกลุ่มควบคุมเพื่อคำนวณอัตราส่วนออดส์ (Odds Ratio; OR)</div></div>`;
     const rows = M.analyze(W,S), hasC = S.controls.length>0;
     if(hasC) S.flags.vOR = true;
     let list = rows.slice();
     if(S.ui.sort==='or' && hasC) list.sort((a,b)=>(b.or||0)-(a.or||0));
     let h = `<div class="ptitle"><h3 style="font-size:15.5px;margin:0">${hasC?'การศึกษาแบบ case-control':'สัดส่วนการสัมผัสในผู้ป่วย'}</h3>
-      ${hasC?`<label class="muted" style="font-size:13px">เรียงตาม <select id="vSort"><option value="grp">กลุ่มคำถาม</option><option value="or">Odds Ratio</option></select></label>`:''}</div>
+      ${hasC?`<label class="muted" style="font-size:13px">เรียงตาม <select id="vSort"><option value="grp">กลุ่มคำถาม</option><option value="or">อัตราส่วนออดส์ (OR)</option></select></label>`:''}</div>
       ${hasC?'':`<div class="note">มีแต่ข้อมูลผู้ป่วย  สัดส่วนสูงไม่ได้แปลว่าเสี่ยง ถ้าคนทั้งตำบลก็สัมผัสสิ่งนั้นเหมือนกัน ต้อง <b>เก็บกลุ่มควบคุม</b> มาเทียบ</div>`}
-      <div class="atable-wrap"><table class="at"><thead><tr><th>ปัจจัย</th><th>ผู้ป่วย</th><th>กลุ่มควบคุม</th><th>OR <span class="faint">(95% CI)</span></th><th class="pcol">p</th><th>0.1 ─ 1 ─ 10 ─ 100</th></tr></thead><tbody>`;
+      <div class="atable-wrap"><table class="at"><thead><tr><th>ปัจจัย</th><th>ผู้ป่วย</th><th>กลุ่มควบคุม</th><th>อัตราส่วนออดส์ (OR)<br><span class="faint">ช่วงความเชื่อมั่น 95% (95% CI)</span></th><th class="pcol">p-value</th><th>0.1 ─ 1 ─ 10 ─ 100</th></tr></thead><tbody>`;
     let g = null;
     for(const r of list){
       if(S.ui.sort!=='or' || !hasC){ if(r.g!==g){ g = r.g; h += `<tr class="grp"><td colspan="6">${g}</td></tr>`; } }
@@ -234,7 +234,7 @@ OD.fieldViews = (function(){
     }
     h += `<details class="howto"><summary>อ่านตารางนี้อย่างไร?</summary><ul>
       <li><b>Odds Ratio (OR)</b> = (ผู้ป่วยที่สัมผัส × กลุ่มควบคุมที่ไม่สัมผัส) ÷ (ผู้ป่วยที่ไม่สัมผัส × กลุ่มควบคุมที่สัมผัส)  OR &gt; 1 ชี้ความสัมพันธ์เชิงบวก แต่ไม่ใช่จำนวนเท่าของความเสี่ยงโดยตรง</li>
-      <li><b>95% CI</b> ไม่คร่อม 1 (เส้นประในกราฟ) = มีนัยสำคัญทางสถิติ (ทำเครื่องหมาย *)</li>
+      <li><b>ช่วงความเชื่อมั่น 95% (95% CI)</b> ไม่รวม 1 (เส้นประในกราฟ) = มีนัยสำคัญทางสถิติตามวิธีคำนวณนี้ที่ระดับ 0.05 (ทำเครื่องหมาย *) แต่ยังไม่ยืนยันความเป็นเหตุและผล</li>
       <li>ถาม ${U.thaiNum(M.exposures(S).length)} ข้อ ที่ p &lt; 0.05 อาจเกิดขึ้นโดยบังเอิญได้ราว ๑ ข้อ  ต้องดูขนาดผล ความเป็นไปได้ทางชีววิทยา และหลักฐานอื่น</li>
       <li>ถ้าสองปัจจัยสูงพร้อมกัน แตะแถวเพื่อ <b>แยกวิเคราะห์ตามหมู่บ้าน</b>  ถ้า OR ที่ปรับด้วย Mantel–Haenszel ลดลงใกล้ 1 อาจมีตัวแปรกวน ควรพิจารณาหลักฐานอื่นร่วมด้วย</li></ul></details>`;
     return h;
@@ -281,7 +281,7 @@ OD.fieldViews = (function(){
     return `<div class="evs">${S.evidence.slice().reverse().map(e=>`<div class="ev"><span class="k">${ic[e.kind]||'📄'}</span><div><div>${e.text}</div><div class="tm">${M.fmtT(e.t)}</div></div></div>`).join('')}</div>`;
   }
 
-  const TABS = [['curve','📈 เส้นโค้งการระบาด',curve],['ana','📊 วิเคราะห์ OR',ana],['ml','🤖 ML',()=>OD.mlViews.html(W,S)],['sym','🩺 อาการ/อายุ',sym],['list','📋 รายชื่อ',list],['ev','🗂️ หลักฐาน',evid],['ck','✅ เช็คลิสต์',()=>OD.checklist.html(W,S)]];
+  const TABS = [['curve','📈 เส้นโค้งการระบาด',curve],['ana','📊 วิเคราะห์อัตราส่วนออดส์ (OR)',ana],['ml','🤖 ML',()=>OD.mlViews.html(W,S)],['sym','🩺 อาการ/อายุ',sym],['list','📋 รายชื่อ',list],['ev','🗂️ หลักฐาน',evid],['ck','✅ เช็คลิสต์',()=>OD.checklist.html(W,S)]];
   function render(w, s){
     W = w; S = s;
     U.$('#fMap').innerHTML = `<div class="ptitle"><h2>แผนที่ตำบลบ้านสุขใจ</h2><span class="faint" style="font-size:12.5px">แตะสถานที่เพื่อไฮไลต์ผู้สัมผัส</span></div>

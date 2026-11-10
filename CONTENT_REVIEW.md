@@ -10,6 +10,7 @@
 - การไม่พบคลอรีนคงเหลือไม่ได้พิสูจน์ว่าน้ำไม่เคยผ่านการฆ่าเชื้อ จึงปรับคำอธิบายให้ระบุว่าไม่พบ ณ จุดตรวจ ช่วง ๐.๒–๐.๕ มก./ล. ในคู่มือเป็นแนวทาง WHO สำหรับน้ำใช้ในบริบทที่ระบุ ไม่ใช่การรับประกันความปลอดภัยของน้ำ: https://www.who.int/docs/default-source/wash-documents/wash-in-emergencies/technical-notes-on-wash-in-emergencies/who-tn-11-measuring-chlorine-levels-in-water-supplies.pdf
 - โซเดียมไทโอซัลเฟตใช้ลดฤทธิ์คลอรีนตกค้างในตัวอย่างน้ำที่เหมาะสม: https://www.cdc.gov/infection-control/hcp/environmental-control/environmental-sampling.html
 - OR ที่สูงหรือช่วงความเชื่อมั่นไม่คร่อม ๑ ไม่ยืนยันเหตุและผลเพียงลำพัง จึงเปลี่ยนคำแนะนำให้พิจารณาตัวแปรกวนและหลักฐานอื่นร่วมกัน: https://www.cdc.gov/field-epi-manual/php/chapters/field-investigation.html
+- กำหนดศัพท์มาตรฐานให้เขียนชื่อเต็มครั้งแรกว่า “อัตราส่วนออดส์ (Odds Ratio; OR)” หรือ “Odds Ratio (OR)” และใช้ “odds” เดี่ยว ๆ เฉพาะเมื่อตั้งใจหมายถึง odds ทางคณิตศาสตร์ ไม่ใช้แทนชื่อมาตรวัด OR: https://www.cdc.gov/field-epi-manual/php/chapters/analyze-interpret-data.html
 
 ตัวละคร เนื้อเรื่อง ตัวเลขอัตรา ความไวของแล็บ งบ เวลา และเหตุการณ์เป็นค่าจำลอง รวมถึงตัวอย่างแหล่งอ้างอิงปลอมที่ AI ในเกมสร้างขึ้นเพื่อสอนการตรวจสอบ ไม่ควรนำไปอ้างว่าเป็นงานวิจัยจริง
 

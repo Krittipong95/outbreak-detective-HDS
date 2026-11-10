@@ -24,7 +24,8 @@ OD.i18n=(function(){
     'คดีใหม่':'New case','ดาวน์โหลดข้อมูลไปวิเคราะห์ต่อ':'Download case data','กลับหน้าแรก':'Home','กำลังเปิดตัวประมวลผล SQL…':'Opening the SQL engine…','ข้อมูลพร้อมแล้ว':'Data ready',
     'ไม่มีแถวที่ตรงเงื่อนไข':'No rows match this query','กำลังประมวลผล…':'Processing…','รายงานสอบสวนโรค':'Outbreak investigation report','ส่งรายงาน':'Submit report','กระดานสืบสวน':'Investigation board',
     'เป้าหมายถัดไป':'Next objective','ทำตอนนี้':'Do it now','เดินสำรวจ':'Explore village','สัมภาษณ์':'Interview','ตรวจสถานที่':'Inspect site','วิเคราะห์':'Analyze','ผลแล็บ':'Lab results','หลักฐาน':'Evidence',
-    'ดาวเหนือแห่งบ้านสุขใจ':'North Star of Ban Sukjai','ตำบลต้นแบบ':'A Model Community','ชนะคดี แพ้ใจคน':'Case Won, Trust Lost','ฟ้าหลังฝน':'Clear Skies After the Storm','บทเรียนจากสนาม':'Lessons from the Field','เข็มนาฬิกาหยุดลง':'When the Clock Ran Out','คำตอบที่เฉียดไป':'So Close to the Answer','คืนที่ยาวนาน':'The Long Night'
+    'ดาวเหนือแห่งบ้านสุขใจ':'North Star of Ban Sukjai','ตำบลต้นแบบ':'A Model Community','ชนะคดี แพ้ใจคน':'Case Won, Trust Lost','ฟ้าหลังฝน':'Clear Skies After the Storm','บทเรียนจากสนาม':'Lessons from the Field','เข็มนาฬิกาหยุดลง':'When the Clock Ran Out','คำตอบที่เฉียดไป':'So Close to the Answer','คืนที่ยาวนาน':'The Long Night',
+    'วิเคราะห์อัตราส่วนออดส์ (OR)':'Odds Ratio (OR) analysis','อัตราส่วนออดส์ (OR)':'Odds Ratio (OR)','อัตราส่วนออดส์ (Odds Ratio; OR)':'Odds Ratio (OR)','ช่วงความเชื่อมั่น 95% (95% CI)':'95% Confidence Interval (95% CI)','อ่านค่า OR':'Interpret the Odds Ratio (OR)'
   };
   let cache={};try{cache=JSON.parse(localStorage.getItem(CACHE)||'{}')||{};}catch(e){}
   const skip=el=>!el||/^(SCRIPT|STYLE|CODE|PRE|TEXTAREA|OPTION)$/i.test(el.nodeName)||el.closest?.('[data-no-translate],.notranslate');
@@ -43,6 +44,7 @@ OD.i18n=(function(){
     const name=OD.S?.name,token='__PLAYER_NAME__';let q=name&&text.includes(name)?text.split(name).join(token):text;
     return Promise.all(chunks(q).map(one)).then(parts=>{
       let out=parts.join('');if(!out||thai.test(out))throw Error('translation incomplete');
+      if(/\bOR\b/.test(text))out=out.replace(/\bOdds\b(?!\s+(?:Ratio|of))/gi,'Odds Ratio (OR)');
       if(name)out=out.split(token).join(name);cache[text]=out;save();return out;
     });
   }

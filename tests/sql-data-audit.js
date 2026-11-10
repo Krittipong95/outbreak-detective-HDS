@@ -12,6 +12,7 @@ window.addEventListener('load',async()=>{
     const end=Date.now()+23000;while(Date.now()<end&&!host.querySelector('#sqlOut table'))await new Promise(r=>setTimeout(r,250));
     assert(!!host.querySelector('#sqlOut table'),'SQL did not render a result table: '+host.querySelector('#sqlOut')?.textContent.trim());
     assert(!/ไม่มีข้อมูลคดี/.test(host.querySelector('#sqlOut')?.textContent||''),'data incorrectly reported empty');
+    for(const b of [...host.querySelectorAll('[data-sqls]')]){b.click();const until=Date.now()+1500;while(Date.now()<until&&host.querySelector('.sql-loading'))await new Promise(r=>setTimeout(r,30));assert(!host.querySelector('#sqlOut .note.red'),'sample SQL '+b.dataset.sqls+' failed: '+host.querySelector('#sqlOut')?.textContent.trim());}
     const early=M.newState(W,'easy','ยังไม่สำรวจ');early.ui=early.ui||{};early.ui.mlTab='code';host.innerHTML=OD.mlViews.html(W,early);OD.mlViews.wire(W,early,()=>{});host.querySelector('[data-sqlrun]').click();
     const endEarly=Date.now()+3000;while(Date.now()<endEarly&&!host.querySelector('#sqlOut table'))await new Promise(r=>setTimeout(r,100));
     assert(OD.mlViews.linelistTable(W,early).length>0,'early linelist should contain reported cases');

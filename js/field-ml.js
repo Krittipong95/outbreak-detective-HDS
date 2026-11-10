@@ -301,6 +301,25 @@ print(fit)
     ['ตาราง 2×2', 'SELECT is_case, W1, COUNT(*) AS n\nFROM survey\nWHERE W1 IS NOT NULL\nGROUP BY is_case, W1\nORDER BY is_case DESC, W1 DESC'],
     ['อายุผิดปกติ', 'SELECT * FROM linelist\nWHERE age > 110 OR age < 0'],
   ];
+  /* ตัวประมวลผลออฟไลน์สำหรับ SELECT ที่ใช้สอนในเกม ไม่ให้ CDN ล่มแล้วข้อมูลหาย */
+  function localSql(q,tables){
+    const sql=String(q).replace(/;\s*$/,'').trim(),up=sql.toUpperCase(),fm=/\bFROM\s+(linelist|survey)\b/i.exec(sql);if(!/^SELECT\b/i.test(sql)||!fm)throw Error('LOCAL_UNSUPPORTED');
+    let data=(tables[fm[1].toLowerCase()]||[]).slice();
+    const wm=/\bWHERE\s+([\s\S]*?)(?=\bGROUP\s+BY\b|\bORDER\s+BY\b|\bHAVING\b|$)/i.exec(sql);
+    const atom=(row,s)=>{s=s.trim().replace(/^\(|\)$/g,'');let m=/^(\w+)\s+IS\s+(NOT\s+)?NULL$/i.exec(s);if(m)return m[2]?row[m[1]]!=null:row[m[1]]==null;m=/^(\w+)\s*(=|<>|!=|>=|<=|>|<)\s*(?:'([^']*)'|"([^"]*)"|(-?[\d.]+))$/i.exec(s);if(!m)throw Error('LOCAL_UNSUPPORTED');const a=row[m[1]],b=m[3]??m[4]??+m[5];return {'=':a==b,'<>':a!=b,'!=':a!=b,'>':a>b,'<':a<b,'>=':a>=b,'<=':a<=b}[m[2]];};
+    if(wm)data=data.filter(r=>wm[1].split(/\s+OR\s+/i).some(or=>or.split(/\s+AND\s+/i).every(x=>atom(r,x))));
+    const gm=/\bGROUP\s+BY\s+([\w\s,]+?)(?=\bHAVING\b|\bORDER\s+BY\b|$)/i.exec(sql),sm=/^\s*SELECT\s+([\s\S]*?)\s+FROM\s+/i.exec(sql);if(!sm)throw Error('LOCAL_UNSUPPORTED');
+    const parts=sm[1].split(/,(?![^()]*\))/).map(x=>x.trim());let out;
+    if(gm){const keys=gm[1].split(',').map(x=>x.trim()),groups=new Map();for(const r of data){const k=JSON.stringify(keys.map(x=>r[x]));if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);}out=[...groups.values()].map(rows=>{const o={};for(const p of parts){let m=/^COUNT\(\*\)\s+(?:AS\s+)?(\w+)$/i.exec(p);if(m){o[m[1]]=rows.length;continue;}m=/^ROUND\(AVG\((\w+)\)\*100\)\s+(?:AS\s+)?(\w+)$/i.exec(p);if(m){const v=rows.map(r=>r[m[1]]).filter(x=>x!=null);o[m[2]]=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*100):null;continue;}m=/^(\w+)(?:\s+AS\s+(\w+))?$/i.exec(p);if(!m)throw Error('LOCAL_UNSUPPORTED');o[m[2]||m[1]]=rows[0][m[1]];}return o;});
+      const hm=/\bHAVING\s+COUNT\(\*\)\s*>\s*(\d+)/i.exec(sql);if(hm)out=out.filter(r=>{const countKey=Object.keys(r).find(k=>/^(n|count)$/i.test(k));return countKey&&r[countKey]>+hm[1];});
+    }else if(parts.length===1&&parts[0]==='*')out=data;else out=data.map(r=>{const o={};for(const p of parts){const m=/^(\w+)(?:\s+AS\s+(\w+))?$/i.exec(p);if(!m)throw Error('LOCAL_UNSUPPORTED');o[m[2]||m[1]]=r[m[1]];}return o;});
+    const om=/\bORDER\s+BY\s+(\w+)(?:\s+(ASC|DESC))?/i.exec(sql);if(om)out.sort((a,b)=>((a[om[1]]>b[om[1]])-(a[om[1]]<b[om[1]]))*(String(om[2]).toUpperCase()==='DESC'?-1:1));return out;
+  }
+  function showSql(box,r){
+    if(!Array.isArray(r)){box.innerHTML=`<div class="faint">ผลลัพธ์: ${U.esc(JSON.stringify(r))}</div>`;return;}
+    if(!r.length){box.innerHTML='<div class="faint">ไม่มีแถวที่ตรงเงื่อนไข</div>';return;}
+    const cols=Object.keys(r[0]);box.innerHTML=`<div class="faint" style="font-size:12.5px">${r.length} แถว${r.length>200?' (แสดง ๒๐๐ แถวแรก)':''}</div><div class="linelist" style="max-height:260px"><table class="doc"><thead><tr>${cols.map(c=>`<th>${U.esc(c)}</th>`).join('')}</tr></thead><tbody>${r.slice(0,200).map(o=>`<tr>${cols.map(c=>`<td>${o[c]==null?'<span class="faint">NULL</span>':U.esc(typeof o[c]==='number'&&!Number.isInteger(o[c])?o[c].toFixed(3):o[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
   function codeHtml(W,S){
     const nS = rows(W,S).length, nL = M.records(W,S).length;
     return `<div class="ml-step"><b>⬇️ ดาวน์โหลดข้อมูลคดีนี้ไปวิเคราะห์ต่อ</b> <span class="faint">ข้อมูลใช้รหัสแทนชื่อ (PDPA) และมีปัญหาคุณภาพข้อมูลจริงจากบทที่ ๒ ติดไปด้วย</span>
@@ -312,7 +331,7 @@ print(fit)
       <div class="ml-step"><b>🗄️ SQL console</b> <span class="faint">ตาราง <code>linelist</code> (รายชื่อผู้ป่วยทั้งหมด) และ <code>survey</code> (ผู้ตอบแบบสอบถาม)</span>
         <div class="sql-samples">${SAMPLES.map(([t],i)=>`<button class="fchip" data-sqls="${i}">${t}</button>`).join('')}</div>
         <textarea id="sqlIn" class="sql-in" spellcheck="false" rows="5">${U.esc(S.ui.sql || SAMPLES[0][1])}</textarea>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-sm btn-gold" data-sqlrun="1">▶ รันคำสั่ง</button><span class="faint" style="font-size:12.5px">Ctrl+Enter เพื่อรัน · ใช้ alasql (โหลดจากอินเทอร์เน็ตครั้งแรก)</span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-sm btn-gold" data-sqlrun="1">▶ รันคำสั่ง</button><span class="faint" style="font-size:12.5px">Ctrl+Enter เพื่อรัน · ตัวอย่างพื้นฐานใช้ได้ออฟไลน์ · คำสั่งขั้นสูงใช้ alasql</span></div>
         <div id="sqlOut" class="sql-out"></div>
         <details class="howto"><summary>พจนานุกรมข้อมูล (data dictionary)</summary>
           <p style="margin:6px 0"><b>linelist</b>: id · village (หมู่ ๑–๕) · age · sex (M/F) · onset_date (วว/ดด/ปปปป) · onset_day (วันที่ ๑ = ส. ๒๑ พ.ย.) · admitted · confirmed (ผลแล็บยืนยัน) · community_found (พบจากค้นหาเชิงรุก) · interviewed</p>
@@ -327,7 +346,8 @@ print(fit)
       box.innerHTML='<div class="note amber"><b>ยังไม่มีข้อมูลคดีให้วิเคราะห์</b><br>สัมภาษณ์ผู้ป่วยหรือเก็บกลุ่มควบคุมก่อน แล้วกลับมารันใหม่</div>';
       return;
     }
-    box.innerHTML = `<div class="sql-loading"><span class="sql-spinner" aria-hidden="true"></span><span><b>ข้อมูลพร้อมแล้ว</b> · linelist ${U.thaiNum(line.length)} แถว · survey ${U.thaiNum(survey.length)} แถว<br><small>กำลังเปิดตัวประมวลผล SQL…</small></span></div>`;
+    try{const r=localSql(q,{linelist:line,survey});S.flags.coder=true;showSql(box,r);return;}catch(e){if(e.message!=='LOCAL_UNSUPPORTED'){box.innerHTML=`<div class="note red">SQL ผิดพลาด: ${U.esc(e.message||e)}</div>`;return;}}
+    box.innerHTML = `<div class="sql-loading"><span class="sql-spinner" aria-hidden="true"></span><span><b>ข้อมูลพร้อมแล้ว</b> · linelist ${U.thaiNum(line.length)} แถว · survey ${U.thaiNum(survey.length)} แถว<br><small>กำลังเปิดตัวประมวลผล SQL ขั้นสูง…</small></span></div>`;
     let A;
     try{ A = await loadSql(); }
     catch(e){ box.innerHTML = '<div class="note red">โหลดตัวประมวลผล SQL ไม่สำเร็จ  ต้องต่ออินเทอร์เน็ตครั้งแรก (ระหว่างนี้ใช้ปุ่มดาวน์โหลด CSV แล้ววิเคราะห์ในโปรแกรมอื่นได้)</div>'; return; }
@@ -338,11 +358,7 @@ print(fit)
       let r = db.exec(q);
       if(Array.isArray(r) && r.length && Array.isArray(r[r.length-1])) r = r[r.length-1];
       S.flags.coder = true;
-      if(!Array.isArray(r)){ box.innerHTML = `<div class="faint">ผลลัพธ์: ${U.esc(JSON.stringify(r))}</div>`; return; }
-      if(!r.length){ box.innerHTML = '<div class="faint">ไม่มีแถวที่ตรงเงื่อนไข</div>'; return; }
-      const cols = Object.keys(r[0]);
-      box.innerHTML = `<div class="faint" style="font-size:12.5px">${r.length} แถว${r.length>200?' (แสดง ๒๐๐ แถวแรก)':''}</div><div class="linelist" style="max-height:260px"><table class="doc"><thead><tr>${cols.map(c=>`<th>${U.esc(c)}</th>`).join('')}</tr></thead><tbody>${
-        r.slice(0,200).map(o=>`<tr>${cols.map(c=>`<td>${o[c]==null?'<span class="faint">NULL</span>':U.esc(typeof o[c]==='number' && !Number.isInteger(o[c]) ? o[c].toFixed(3) : o[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+      showSql(box,r);
     }catch(e){ box.innerHTML = `<div class="note red">SQL ผิดพลาด: ${U.esc(e.message||e)}</div>`; }
   }
   function dlClick(W,S,k){

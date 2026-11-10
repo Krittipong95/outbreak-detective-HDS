@@ -49,6 +49,13 @@ window.addEventListener('load',async()=>{
       const box=document.querySelector('.vn-box'),s=getComputedStyle(box);assert(s.zIndex==='3','dialogue box layer is incorrect');assert(parseFloat(s.backgroundColor.match(/[\d.]+/g)?.[3]||1)>.95,'light dialogue box is transparent');assert(s.color==='rgb(43, 33, 23)','light dialogue text color is incorrect');
       const portraits=[...document.querySelectorAll('.vn-char img.char-paint')];assert(portraits.length===2,'painted cutscene portraits missing');assert(portraits.every(x=>x.naturalWidth===1024),'painted portrait asset failed to load');
     }else if(view==='painted-scenes'){
+      for(const id of Object.keys(OD.CHARS)){
+        const holder=document.createElement('div');holder.innerHTML=OD.art.portrait(id);document.body.append(holder);
+        const image=holder.querySelector('img');await new Promise(resolve=>{if(image.complete)resolve();else {image.onload=resolve;image.onerror=resolve;}});
+        assert(image.naturalWidth>0,id+' portrait failed to load');
+        OD.art.retryPortrait(image);await new Promise(r=>setTimeout(r,500));
+        assert(!holder.querySelector('svg')&&holder.querySelector('img')===image,id+' reverted to legacy art after a load error');holder.remove();
+      }
       const keys=['village','temple','school','hall','office','office_night','clinic','lab','market','somtam','noodle_boat','chicken_rice','mookata','well_temple','well_market','well_canal','ice_factory','farm'];
       const host=document.createElement('div');document.body.append(host);for(const key of keys){host.innerHTML=OD.art.scene(key);const img=host.querySelector('image');assert(!!img,key+' is not mapped to painted art');if(img){const src=img.getAttribute('href'),probe=new Image();probe.src=src;await new Promise(r=>{probe.onload=r;probe.onerror=r;});assert(probe.naturalWidth>=1600,key+' painted asset failed to load');}}
     }

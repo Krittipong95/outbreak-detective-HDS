@@ -9,7 +9,7 @@ $reportPath = Join-Path $root ("__audit_report_" + $tag + '.js')
 $profile = Join-Path ([IO.Path]::GetTempPath()) ("od-audit-" + $tag)
 try {
   $report = [IO.File]::ReadAllText((Join-Path $root 'js\report.js')).Replace('return {run, truth, related};','return {run, truth, related, gradeFor, score};')
-  $html = [IO.File]::ReadAllText((Join-Path $root 'index.html')).Replace('src="js/report.js"',('src="' + [IO.Path]::GetFileName($reportPath) + '"')).Replace('</body>','<script src="tests/outbreak-audit.js"></script></body>')
+  $html = ([IO.File]::ReadAllText((Join-Path $root 'index.html')) -replace 'src="js/report\.js(?:\?[^" ]*)?"',('src="' + [IO.Path]::GetFileName($reportPath) + '"')).Replace('</body>','<script src="tests/outbreak-audit.js"></script></body>')
   [IO.File]::WriteAllText($reportPath,$report,[Text.UTF8Encoding]::new($false))
   [IO.File]::WriteAllText($htmlPath,$html,[Text.UTF8Encoding]::new($false))
   $url = ([Uri]$htmlPath).AbsoluteUri

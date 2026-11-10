@@ -12,7 +12,8 @@ try{
     $shot=Join-Path $root ('.qa-review\feedback-'+$view+'.png')
     $url=([Uri]$htmlPath).AbsoluteUri+'?view='+$view
     $ErrorActionPreference='Continue'
-    $output=(& $chrome --headless --disable-gpu --no-sandbox '--window-size=1366,820' "--user-data-dir=$profile" --virtual-time-budget=4000 "--screenshot=$shot" --dump-dom $url 2>$null|Out-String)
+    $budget=if($view -eq 'painted-scenes'){15000}else{4000}
+    $output=(& $chrome --headless --disable-gpu --no-sandbox '--window-size=1366,820' "--user-data-dir=$profile" "--virtual-time-budget=$budget" "--screenshot=$shot" --dump-dom $url 2>$null|Out-String)
     $ErrorActionPreference='Stop'
     if($output -notmatch '(?s)<pre id="ui-feedback-output">(.*?)</pre>'){throw "UI feedback output missing for $view"}
     $result=[Net.WebUtility]::HtmlDecode($Matches[1])|ConvertFrom-Json;$results+=$result

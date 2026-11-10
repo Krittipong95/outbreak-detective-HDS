@@ -40,10 +40,15 @@ OD.config = OD.config || {};
 OD.config.customPortraits = true;
 /* ภาพวาดตัวละครชุดใหม่ ใช้ไฟล์เดียวทุกอารมณ์และคง SVG เดิมเป็น fallback */
 OD.art.portrait = function(id, expr='neutral', opts={}){
-  if(!OD.config.customPortraits) return OD.art.person(id,expr,opts);
-  const f=id==='me'?'me_'+(opts.gender||(OD.S&&OD.S.gender)||'m'):id;
-  const version=f==='doctor'?'v3':'v2';
-  return `<img class="char-paint" src="img/${f}-${version}.png?v=20261110-6" alt="" data-expr="${expr}" onerror="this.onerror=null;this.outerHTML=OD.art.person('${id}','${expr}',${id==='me'?`{gender:'${opts.gender||'m'}'}`:'{}'})">`;
+  const f=id==='me'?'me_'+(opts.gender||(OD.S&&OD.S.gender)||'m'):(id==='itofficer'?'doctor':id);
+  const version=id==='doctor'?'v3':'v2';
+  return `<img class="char-paint" src="img/${f}-${version}.png?v=20261110-9" alt="" data-expr="${expr}" onerror="OD.art.retryPortrait(this)">`;
+};
+/* A transient network error must never replace current artwork with legacy art. */
+OD.art.retryPortrait = function(img){
+  const attempt=Number(img.dataset.retry||0)+1;img.dataset.retry=String(attempt);
+  if(attempt>3){img.onerror=null;img.alt='Portrait unavailable';return;}
+  setTimeout(()=>{if(img.isConnected){const url=new URL(img.src,document.baseURI);url.searchParams.set('retry',String(attempt));img.src=url.href;}},attempt*350);
 };
 
 (function(A){

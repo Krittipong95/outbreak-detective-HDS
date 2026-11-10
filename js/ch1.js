@@ -2,7 +2,7 @@
    บทที่ ๑  ยืนยันการระบาด (ค่ามัธยฐาน ๕ ปี) และนิยามผู้ป่วย
    ========================================================= */
 window.OD = window.OD || {};
-OD.mentorFace = () => `<div class="face">${OD.art.person('doctor','neutral')}</div>`;
+OD.mentorFace = () => `<div class="face">${OD.art.portrait('doctor','neutral')}</div>`;
 
 OD.ch1 = (function(){
   const U = OD.u, M = OD.sim;

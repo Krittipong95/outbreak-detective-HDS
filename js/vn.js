@@ -6,7 +6,7 @@
           {label} {goto} {do:fn} {if:fn,then:[],else:[]} {wait:ms}
    ========================================================= */
 window.OD = window.OD || {};
-OD.config = OD.config || {customPortraits:false};
+OD.config = OD.config || {customPortraits:true};
 
 OD.vn = (function(){
   const U = OD.u;
@@ -79,9 +79,7 @@ OD.vn = (function(){
 
   /* ---------- ตัวละคร ---------- */
   function portrait(id, expr){
-    if(OD.config.customPortraits){ const f = id==='me' ? 'me_'+((OD.S && OD.S.gender) || 'm') : id;
-      return `<img src="img/${f}-${expr}.png" alt="" onerror="this.onerror=null;this.src='img/${f}.png'">`; }
-    return OD.art.person(id, expr);
+    return OD.art.portrait(id,expr,{gender:(OD.S&&OD.S.gender)||'m'});
   }
   function charEl(id){ return E.chars.querySelector(`[data-id="${id}"]`); }
   function show(id, expr='neutral', pos){
@@ -90,7 +88,7 @@ OD.vn = (function(){
     if(!el){ el = document.createElement('div'); el.dataset.id = id; E.chars.appendChild(el); }
     clearTimeout(el._rm);   // ถ้าเพิ่งสั่งซ่อน แล้วเรียกกลับมาทันที อย่าลบทิ้ง
     if(el.dataset.expr!==expr){ el.innerHTML = portrait(id, expr); el.dataset.expr = expr; }
-    el.dataset.pos = pos; el.className = `vn-char ${pos}`;
+    el.dataset.pos = pos; el.className = `vn-char ${pos} expr-${expr}`;
     requestAnimationFrame(()=>el.classList.add('on'));
   }
   function hide(id){ const el = charEl(id); if(el){ el.classList.remove('on'); clearTimeout(el._rm); el._rm = setTimeout(()=>{ if(!el.classList.contains('on')) el.remove(); }, 360); } }

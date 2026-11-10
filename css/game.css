@@ -31,6 +31,7 @@
 /* ภาพหน้าตัวละครแบบวงกลม (ใช้ซ้ำทั้งเกม) */
 .avatar{flex:none;display:inline-block;width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);background:var(--panel-3);vertical-align:middle}
 .avatar svg,.avatar img{width:100%;height:auto;display:block;transform:translateY(-5%) scale(1.6);transform-origin:50% 45%}
+.avatar img.char-paint,.face img.char-paint{width:100%;height:100%;object-fit:contain;object-position:50% 10%;transform:scale(2.55);transform-origin:50% 17%;filter:none}
 .avatar.sm{width:38px;height:38px;border-width:1.5px}
 .avatar.lg{width:96px;height:96px;margin:0 auto -10px;position:relative;z-index:1}
 .title-foot{font-size:13px;color:var(--faint);margin-top:16px}
@@ -68,6 +69,8 @@
 .vn-char{position:absolute;bottom:0;height:100%;transition:opacity .35s,transform .35s,filter .35s;opacity:0}
 .vn-char.on{opacity:1;animation:portraitBreathe 4.8s 380ms ease-in-out infinite alternate}
 .vn-char svg,.vn-char img{height:100%;width:auto;display:block;filter:drop-shadow(0 10px 24px rgba(0,0,0,.45))}
+.vn-char img.char-paint{max-width:min(46vw,620px);object-fit:contain;object-position:center bottom}
+.vn-char.expr-worried img{filter:saturate(.82) brightness(.94) drop-shadow(0 10px 24px rgba(0,0,0,.45))}.vn-char.expr-serious img{filter:saturate(.9) contrast(1.07) drop-shadow(0 10px 24px rgba(0,0,0,.45))}.vn-char.expr-smile img{filter:saturate(1.08) brightness(1.04) drop-shadow(0 10px 24px rgba(0,0,0,.45))}
 .vn-char.left{left:max(2%,calc(50% - 640px))}
 .vn-char.right{right:max(2%,calc(50% - 640px))}
 .vn-char.center{left:50%;transform:translateX(-50%)}
@@ -135,6 +138,7 @@
 .mentor{display:flex;gap:12px;align-items:flex-start}
 .mentor .face{flex:none;width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);background:var(--panel-3)}
 .mentor .face svg{width:100%;height:auto;transform:translateY(-8%) scale(1.7);transform-origin:50% 47%}
+.mentor .face img.char-paint{display:block}
 .mentor .who{font-family:var(--font-hand);font-weight:700;color:var(--gold-2);font-size:17px}
 
 /* ใบรายงาน 506 */

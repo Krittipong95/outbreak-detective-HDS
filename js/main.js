@@ -13,7 +13,7 @@ OD.main = (function(){
   const faceCache = new Map();
   OD.meFace = function(expr='neutral', cls=''){
     const g = (OD.S && OD.S.gender) || pref.gender, nm = (OD.S && OD.S.name) || pref.name, key = [g,nm,expr].join('|');
-    if(!faceCache.has(key)) faceCache.set(key, OD.art.person('me', expr, {gender:g, tag:nm}));
+    if(!faceCache.has(key)) faceCache.set(key, OD.art.portrait('me', expr, {gender:g, tag:nm}));
     return `<span class="avatar ${cls}">${faceCache.get(key)}</span>`;
   };
 
@@ -43,7 +43,7 @@ OD.main = (function(){
         <div class="setup-heading"><b>เปิดแฟ้มคดีใหม่</b><span>ประมาณ 30–45 นาที</span></div>
         <div class="title-form">
           <label>ชื่อของคุณ<input type="text" id="tName" maxlength="20" placeholder="เช่น ต้นกล้า" value="${U.esc(pref.name)}"></label>
-          <div><div class="setup-label" id="character-label">เลือกตัวละคร</div><div class="who-grid" role="group" aria-labelledby="character-label">${Object.entries(GENDER).map(([g,o])=>`<button class="diff who ${pref.gender===g?'on':''}" data-g="${g}" aria-pressed="${pref.gender===g}">${'<span class="avatar">'+OD.art.person('me', pref.gender===g?'smile':'neutral', {gender:g, tag:pref.name})+'</span>'}<span><b>${o.t}</b><small>ใช้คำลงท้าย “${o.pol}”</small></span></button>`).join('')}</div></div>
+          <div><div class="setup-label" id="character-label">เลือกตัวละคร</div><div class="who-grid" role="group" aria-labelledby="character-label">${Object.entries(GENDER).map(([g,o])=>`<button class="diff who ${pref.gender===g?'on':''}" data-g="${g}" aria-pressed="${pref.gender===g}">${'<span class="avatar">'+OD.art.portrait('me', pref.gender===g?'smile':'neutral', {gender:g, tag:pref.name})+'</span>'}<span><b>${o.t}</b><small>ใช้คำลงท้าย “${o.pol}”</small></span></button>`).join('')}</div></div>
           <div><div class="setup-label" id="difficulty-label">ระดับความยาก</div><div class="diff-grid" role="group" aria-labelledby="difficulty-label">${Object.keys(D).map(k=>`<button class="diff ${pref.diff===k?'on':''}" data-diff="${k}" aria-pressed="${pref.diff===k}" aria-describedby="difficulty-note" title="${D[k].label}"><b>${{easy:'เริ่มต้น',normal:'มาตรฐาน',hard:'ท้าทาย'}[k]}</b><small>${{easy:'มีคำใบ้ละเอียด',normal:'มีคำใบ้',hard:'ไม่มีคำใบ้'}[k]}</small></button>`).join('')}</div><p id="difficulty-note" class="difficulty-note" aria-live="polite">${desc[pref.diff]}</p></div>
         </div>
         <div class="title-actions title-play"><button class="btn btn-gold btn-lg" data-t="start">เริ่มเรื่อง →</button><button class="btn btn-lg" data-t="quick" title="ข้ามบทนำ บทที่ ๑ และ ๒">ลงพื้นที่ทันที</button></div>

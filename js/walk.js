@@ -1259,7 +1259,7 @@ OD.walk = (function(){
   function namedSheet(f){
     const c = OD.CHARS[f.a.who], q = Q();
     if(!q.talked.includes(f.a.who)) q.talked.push(f.a.who);
-    sheet(head('💬', c.name, c.title) + `<div class="wk-sh-b"><div class="wk-say"><div class="face">${OD.art.person(f.a.who,'neutral')}</div><div>${SAY[f.a.who]()}</div></div></div>`
+    sheet(head('💬', c.name, c.title) + `<div class="wk-sh-b"><div class="wk-say"><div class="face">${OD.art.portrait(f.a.who,'neutral')}</div><div>${SAY[f.a.who]()}</div></div></div>`
       + (f.a.who==='doctor' ? `<div class="wk-acts">${cloneActs(['interview','hyp','skip'])}</div>` : f.a.who==='boonma' ? `<div class="wk-acts">${cloneActs(['acf'])}</div>` : ''), f);
     checkBadges();
   }

@@ -36,6 +36,14 @@ OD.CHARS = {
   patientM:{name:'ลุงสมชาย', title:'ผู้ป่วย', color:'#4f7fa8',
            skin:'#c08455', hair:'#24201c', face:'man', fem:false, hairS:'short', outfit:'tee', shirt:'#4f7fa8', acc:[]},
 };
+OD.config = OD.config || {};
+OD.config.customPortraits = true;
+/* ภาพวาดตัวละครชุดใหม่ ใช้ไฟล์เดียวทุกอารมณ์และคง SVG เดิมเป็น fallback */
+OD.art.portrait = function(id, expr='neutral', opts={}){
+  if(!OD.config.customPortraits) return OD.art.person(id,expr,opts);
+  const f=id==='me'?'me_'+(opts.gender||(OD.S&&OD.S.gender)||'m'):id;
+  return `<img class="char-paint" src="img/${f}-v2.png" alt="" data-expr="${expr}" onerror="this.onerror=null;this.outerHTML=OD.art.person('${id}','${expr}',${id==='me'?`{gender:'${opts.gender||'m'}'}`:'{}'})">`;
+};
 
 (function(A){
   let uid = 0;

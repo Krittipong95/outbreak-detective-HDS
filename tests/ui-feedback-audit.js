@@ -45,8 +45,9 @@ window.addEventListener('load',async()=>{
       document.querySelector('[data-pick-unlink]').click();await tick();assert(!!document.querySelector('[data-confirm-unlink]'),'remove confirmation missing');
     }else if(view==='dialogue-light'){
       document.documentElement.dataset.theme='light';OD.W=OD.sim.build(15);OD.S=OD.sim.newState(OD.W,'easy','ทดสอบ');OD.S.gender='m';OD.S.pol='ครับ';
-      OD.vn.play([{bg:'market'},{show:'phi',expr:'neutral',pos:'left'},{show:'boonma',expr:'happy',pos:'right'},{say:'phi',text:'ข้อความบนแถบต้องอ่านชัดทั้งประโยค'}]);await tick();
+      OD.vn.play([{bg:'market'},{show:'doctor',expr:'neutral',pos:'left'},{show:'boonma',expr:'smile',pos:'right'},{say:'doctor',text:'ข้อความบนแถบต้องอ่านชัดทั้งประโยค'}]);await tick();
       const box=document.querySelector('.vn-box'),s=getComputedStyle(box);assert(s.zIndex==='3','dialogue box layer is incorrect');assert(parseFloat(s.backgroundColor.match(/[\d.]+/g)?.[3]||1)>.95,'light dialogue box is transparent');assert(s.color==='rgb(43, 33, 23)','light dialogue text color is incorrect');
+      const portraits=[...document.querySelectorAll('.vn-char img.char-paint')];assert(portraits.length===2,'painted cutscene portraits missing');assert(portraits.every(x=>x.naturalWidth===1024),'painted portrait asset failed to load');
     }else if(view==='painted-scenes'){
       const keys=['village','temple','school','hall','office','office_night','clinic','lab','market','somtam','noodle_boat','chicken_rice','mookata','well_temple','well_market','well_canal','ice_factory','farm'];
       const host=document.createElement('div');document.body.append(host);for(const key of keys){host.innerHTML=OD.art.scene(key);const img=host.querySelector('image');assert(!!img,key+' is not mapped to painted art');if(img){const src=img.getAttribute('href'),probe=new Image();probe.src=src;await new Promise(r=>{probe.onload=r;probe.onerror=r;});assert(probe.naturalWidth>=1600,key+' painted asset failed to load');}}

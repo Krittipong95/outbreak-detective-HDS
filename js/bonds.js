@@ -58,7 +58,7 @@ OD.bonds = (function(){
 
   /* ---------- แผงแสดงผล ---------- */
   const faces = new Map();
-  const face = id => { if(!faces.has(id)) faces.set(id, OD.art.person(id, 'smile')); return faces.get(id); };
+  const face = id => { if(!faces.has(id)) faces.set(id, OD.art.portrait(id, 'smile')); return faces.get(id); };
   function html(S){
     return `<div class="bonds">${Object.entries(WHO).map(([id,w])=>{ const v = S.bonds[id], st = v>=HI ? 'hi' : v<=LO ? 'lo' : '';
       return `<div class="bond ${st}" title="${w.name} ${v}/100  ${v>=HI ? 'สนิทใจ: '+w.perk : v<=LO ? 'ห่างเหิน: '+w.low : 'ถึง ๗๐ จะปลดล็อก: '+w.perk}">

@@ -7,8 +7,9 @@ window.addEventListener('load',async()=>{
     assert(!!document.querySelector('[data-lang="en"]'),'English switch is missing');
     const start=document.querySelector('[data-t="start"]'),practice=document.querySelector('[data-t="practice"]');
     assert(start&&/Start story/i.test(start.textContent),'start action not translated');
-    assert(practice&&/tutorial/i.test(practice.textContent),'tutorial action not translated');
+    assert(practice&&/tutorial|practice/i.test(practice.textContent),'tutorial action not translated');
     assert(!/[ก-๙]/.test(start.textContent+practice.textContent),'primary English actions contain Thai');
+    OD.i18n.setLanguage('th');assert(OD.i18n.lang()==='th'&&/เริ่มเรื่อง/.test(document.querySelector('[data-t="start"]').textContent),'instant Thai selection failed');OD.i18n.setLanguage('en');assert(/Start story/.test(document.querySelector('[data-t="start"]').textContent),'instant English selection failed');assert(!document.querySelector('.lang-state.busy'),'runtime translation queue is still visible');
     OD.W=OD.sim.build(4,'WELL');OD.S=OD.sim.newState(OD.W,'easy','Alex');OD.S.gender='m';OD.S.pol='ครับ';
     const box=document.createElement('div');box.innerHTML='<button title="เปิดคู่มือ">เปิดคู่มือ</button><span>เป้าหมายถัดไป</span>';document.body.append(box);OD.i18n.scan(box);await new Promise(r=>setTimeout(r,100));
     assert(/Open handbook/.test(box.querySelector('button').textContent),'dynamic UI text not translated');

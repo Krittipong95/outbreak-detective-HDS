@@ -40,7 +40,7 @@ OD.config = OD.config || {};
 OD.config.customPortraits = true;
 /* ภาพวาดตัวละครชุดใหม่ ใช้ไฟล์เดียวทุกอารมณ์และคง SVG เดิมเป็น fallback */
 OD.art.portrait = function(id, expr='neutral', opts={}){
-  const f=id==='me'?'me_'+(opts.gender||(OD.S&&OD.S.gender)||'m'):(id==='itofficer'?'doctor':id);
+  const f=id==='me'?'me_'+(opts.gender||(OD.S&&OD.S.gender)||'m'):id;
   const version=id==='doctor'?'v3':'v2';
   return `<img class="char-paint" src="img/${f}-${version}.png?v=20261110-9" alt="" data-expr="${expr}" onerror="OD.art.retryPortrait(this)">`;
 };

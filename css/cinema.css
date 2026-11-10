@@ -1,0 +1,38 @@
+/* Cinematic Thai village: separate foreground props, light and water layers. */
+.cinema-depth{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.cinema-foliage{position:absolute;inset:-2%;background:url('../img/cinema-foliage-v1.png') top center/100% auto no-repeat;transform-origin:0 0;animation:frondSway 9s ease-in-out infinite alternate;opacity:.8}
+.foliage-left{clip-path:inset(0 50% 0 0)}.foliage-right{clip-path:inset(0 0 0 50%);transform-origin:100% 0;animation-duration:12s;animation-delay:-4s}
+.cinema-lantern{position:absolute;left:2%;top:-35px;width:clamp(85px,11vw,180px);height:clamp(180px,34vh,360px);object-fit:contain;object-position:top center;transform-origin:50% 0;animation:lanternSway 5.8s ease-in-out infinite alternate;filter:drop-shadow(0 0 18px #ffc86655)}
+.cinema-lantern-light{position:absolute;left:-7%;top:0;width:30%;height:60%;background:radial-gradient(ellipse at 40% 30%,#ffbe552b,transparent 65%);animation:lampBreath 5s ease-in-out infinite alternate;mix-blend-mode:screen}
+.cinema-water{position:absolute;inset:-1.5%;background-position:center;background-size:cover;clip-path:polygon(0 73%,100% 73%,100% 100%,0 100%);mask-image:linear-gradient(transparent 70%,#000 81%);animation:livingWater 5s ease-in-out infinite alternate;opacity:.6}
+.vn[data-cinema-scene="farm"] .cinema-water{clip-path:polygon(78% 47%,100% 45%,100% 100%,67% 100%);mask-image:linear-gradient(transparent 45%,#000 60%)}
+.cinema-cloud{position:absolute;inset:0;background:radial-gradient(ellipse at 15% 14%,#fff8df17,transparent 44%),radial-gradient(ellipse at 85% 25%,#d8e8ff12,transparent 40%);animation:cloudPass 28s ease-in-out infinite alternate}
+.cinema-fireflies i{position:absolute;left:calc(8% + var(--p)*9%);top:calc(35% + var(--p)*4%);width:3px;height:3px;border-radius:50%;background:#fff3ab;box-shadow:0 0 10px 3px #f3d77366;opacity:0;animation:firefly 8s ease-in-out infinite;animation-delay:calc(var(--p)*-.87s)}
+.vn[data-outdoor="false"] .cinema-foliage,.vn[data-outdoor="false"] .cinema-cloud,.vn[data-water="false"] .cinema-water,.vn[data-lantern="false"] .cinema-lantern,.vn[data-lantern="false"] .cinema-lantern-light,.vn[data-night="false"] .cinema-fireflies,.vn.overlay .cinema-depth,.vn.overlay .cinema-location{display:none}
+.cinema-location{position:absolute;left:24px;top:24px;z-index:2;padding:7px 14px;border-left:2px solid #d8b667;background:#17130dc9;color:#ffedc4;font-size:12px;letter-spacing:.08em;pointer-events:none;max-width:34vw;backdrop-filter:blur(8px);border-radius:0 6px 6px 0;opacity:0}
+.cinema-location.reveal{animation:locationReveal 5s ease both}.cinema-location:empty{display:none}
+.vn-chars{z-index:2}.vn-tools{z-index:4}.vn-card{z-index:5}
+.vn-char{width:min(47vw,680px)}
+.vn-char img.char-paint{position:absolute;top:0;left:50%;width:auto;max-width:none;height:220%;object-fit:fill;transform:translateX(-50%)}
+body:has(.vn:not(.hidden)){overflow:hidden}
+.vn-box{border-radius:10px;box-shadow:0 18px 60px #0008,inset 0 0 0 4px #17110d,inset 0 0 0 5px #c7a25566}
+.vn-name{border-radius:5px;padding:6px 22px;line-height:1.35}.vn-text{line-height:1.8}.vn-text b{color:#ffdf83;text-shadow:0 1px 8px #f2c55a24}:root[data-theme="light"] .vn-text b{color:#704900;text-shadow:none}
+.vn-choice{border-radius:9px;border-color:#b39861;backdrop-filter:blur(16px);padding:17px 22px;box-shadow:0 8px 26px #0004}.vn-choice:focus-visible{outline:3px solid #ffe099;outline-offset:3px}
+.title-card{border-color:#b99a56}.title-postcard{border-radius:10px;overflow:hidden}.title-intro .title-story{max-width:42ch}.title-compact .diff,.title-compact .practice-invite,.title-compact .resume-card{border-radius:9px}
+.title-preview{position:absolute;right:9px;bottom:9px;padding:5px 10px;font:600 11px var(--font-body);color:#ffedc4;background:#21170ee8;border:1px solid #cfaa59;border-radius:999px;cursor:pointer;box-shadow:0 3px 12px #0004}.title-preview:hover{background:#674b1b}.title-preview:focus-visible{outline:2px solid #fff1c9;outline-offset:2px}.title-postcard svg{animation:postcardDrift 20s ease-in-out infinite alternate;transform-origin:center}.title-bg svg{animation:postcardDrift 35s ease-in-out infinite alternate}.title-compact .title-main{white-space:normal}
+:root[data-lang="en"] .title-main{font-family:Georgia,serif;font-size:clamp(30px,3.2vw,46px);line-height:1.2;letter-spacing:-.04em}:root[data-lang="en"] .vn-card .tt{font-family:Georgia,serif;font-size:clamp(32px,5vw,68px);max-width:80%;text-wrap:balance}:root[data-lang="en"] .vn-card .no{font-family:var(--font-body);font-size:20px;text-transform:uppercase;letter-spacing:.18em}
+@keyframes postcardDrift{from{transform:scale(1.01)}to{transform:scale(1.08) translateX(-.5%)}}
+.f-mission{border-left:4px solid var(--gold);border-radius:9px;background:linear-gradient(110deg,color-mix(in srgb,var(--gold) 17%,var(--panel)),var(--panel))}.act{border-radius:8px;transition:transform .15s,background .15s,border-color .15s}.act:not(:disabled):hover{transform:translateY(-2px)}.f-actions{gap:9px}.m-card{border-radius:10px}
+@keyframes frondSway{from{transform:rotate(-.7deg) translateX(-.3%)}to{transform:rotate(1.2deg) translateX(.7%)}}
+@keyframes lanternSway{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+@keyframes lampBreath{to{opacity:.5;transform:scale(1.07)}}
+@keyframes livingWater{from{transform:translateX(-2px) scaleY(1.005);filter:brightness(.98)}to{transform:translateX(4px) scaleY(1.018);filter:brightness(1.06)}}
+@keyframes cloudPass{to{transform:translateX(4%);opacity:.4}}
+@keyframes firefly{15%,75%{opacity:0}40%{opacity:.7;transform:translate(20px,-18px)}65%{transform:translate(-8px,-30px)}}
+@keyframes locationReveal{0%{opacity:0;transform:translateY(-7px)}12%,75%{opacity:1;transform:none}100%{opacity:0}}
+:root[data-motion="off"] .vn *,:root[data-motion="off"] .vn *::before,:root[data-motion="off"] .vn *::after,:root[data-motion="off"] .m-water-flow{animation:none!important;transition:none!important}:root[data-motion="off"] .cinema-fireflies,:root[data-motion="off"] .vn-atmosphere{display:none}
+:root[data-motion="off"] .cinema-location{opacity:1}
+:root[data-motion="off"] .title-postcard svg,:root[data-motion="off"] .title-bg svg{animation:none!important}
+@media(prefers-reduced-motion:reduce){.cinema-depth{display:none}.cinema-location.reveal{animation:none;opacity:1}}
+@media(max-width:700px){.cinema-location{top:58px;left:12px;max-width:75vw;font-size:11px}.vn-tools{top:10px;right:10px;gap:4px}.vn-tools .btn{font-size:11px;padding:5px 8px}.cinema-lantern{left:-20px;opacity:.8}.cinema-foliage{background-size:150% auto}.cinema-fireflies i:nth-child(n+5){display:none}.vn-name small{display:block;margin-left:0;font-size:10px}.vn-name{font-size:18px;max-width:80%}.vn-box{bottom:12px}.vn-choices{bottom:220px}.vn-choice{font-size:15px;padding:12px 15px}}
+@media(max-width:700px){.vn-chars{height:56vh;bottom:145px}.vn-char{width:52vw}.vn-char.left{left:0}.vn-char.right{right:0}.vn-char img.char-paint{height:215%}}

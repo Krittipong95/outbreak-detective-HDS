@@ -1,7 +1,7 @@
-/* English mode: manual UI glossary + cached on-demand translation for dynamic story text. */
+/* Bundled English catalogue: synchronous rendering, no online translation. */
 window.OD=window.OD||{};
 OD.i18n=(function(){
-  const KEY='od3-language',CACHE='od3-en-cache-v1',thai=/[ก-ฺเ-๙]/;
+  const KEY='od3-language',thai=/[ก-ฺเ-๙]/;
   const query=new URLSearchParams(location.search).get('lang');
   let lang=query==='en'||query==='th'?query:(localStorage.getItem(KEY)||'th');
   const exact={
@@ -33,60 +33,65 @@ OD.i18n=(function(){
     'ดาวเหนือแห่งบ้านสุขใจ':'North Star of Ban Sukjai','ตำบลต้นแบบ':'A Model Community','ชนะคดี แพ้ใจคน':'Case Won, Trust Lost','ฟ้าหลังฝน':'Clear Skies After the Storm','บทเรียนจากสนาม':'Lessons from the Field','เข็มนาฬิกาหยุดลง':'When the Clock Ran Out','คำตอบที่เฉียดไป':'So Close to the Answer','คืนที่ยาวนาน':'The Long Night',
     'วิเคราะห์อัตราส่วนออดส์ (OR)':'Odds Ratio (OR) analysis','อัตราส่วนออดส์ (OR)':'Odds Ratio (OR)','อัตราส่วนออดส์ (Odds Ratio; OR)':'Odds Ratio (OR)','ช่วงความเชื่อมั่น 95% (95% CI)':'95% Confidence Interval (95% CI)','อ่านค่า OR':'Interpret the Odds Ratio (OR)'
   };
-  let cache={};try{cache=JSON.parse(localStorage.getItem(CACHE)||'{}')||{};}catch(e){}
+  // Authored terminology wins over the prebuilt catalogue.
+  const authored=Object.assign({},exact,window.OD_FIELD_EN||{});
+  Object.assign(exact,window.OD_EN_CATALOGUE||{},authored);
   Object.assign(exact,window.OD_FIELD_EN||{});
   const skip=el=>!el||/^(SCRIPT|STYLE|CODE|PRE|TEXTAREA)$/i.test(el.nodeName)||el.closest?.('[data-no-translate],.notranslate');
-  function save(){try{localStorage.setItem(CACHE,JSON.stringify(cache));}catch(e){}}
+  const digits=v=>v.replace(/[๐-๙]/g,c=>String(c.charCodeAt(0)-3664));
+  const phrases=Object.keys(exact).filter(k=>k.length>1&&!/ZXQ\d+XZ/.test(k)).sort((a,b)=>b.length-a.length).map(k=>[digits(k),exact[k]]);
+  const escapeRE=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const templates=Object.keys(exact).filter(k=>/ZXQ\d+XZ/.test(k)).sort((a,b)=>b.length-a.length).map(k=>{
+    const ids=[...k.matchAll(/ZXQ(\d+)XZ/g)].map(m=>m[1]);
+    return {source:k,re:new RegExp('^'+digits(k).split(/ZXQ\d+XZ/).map(escapeRE).join('([\\s\\S]*?)')+'$'),ids,out:exact[k]};
+  });
+  const missing=new Set();
+  const localized=s=>!thai.test(OD.S?.name?s.split(OD.S.name).join(''):s);
   function manual(s){
-    const t=s.trim();if(exact[t])return s.replace(t,exact[t]);
+    const t=s.trim();if(Object.prototype.hasOwnProperty.call(exact,t))return s.replace(t,exact[t]);
+    for(const p of templates){const m=digits(t).match(p.re);if(m){let out=p.out;p.ids.forEach((id,i)=>{out=out.split('ZXQ'+id+'XZ').join(local(m[i+1],1));});if(localized(out))return s.replace(t,out);}}
     /* แทนได้หลายวลี แต่ห้ามยอมรับผลครึ่งไทยครึ่งอังกฤษ */
-    const digits=v=>v.replace(/[๐-๙]/g,c=>String(c.charCodeAt(0)-3664));
-    let out=digits(s),changed=out!==s;for(const k of Object.keys(exact).sort((a,b)=>b.length-a.length)){const key=digits(k);if(key.length>1&&out.includes(key)){out=out.split(key).join(exact[k]);changed=true;}}
-    return changed&&!thai.test(out)?out:null;
+    let out=digits(s),changed=out!==s;for(const [key,value] of phrases)if(out.includes(key)){out=out.split(key).join(value);changed=true;}
+    return changed&&localized(out)?out:null;
   }
-  const jobs=[],active={n:0};
-  function chunks(s){const out=[];while(s.length>450){let i=Math.max(s.lastIndexOf(' ',450),s.lastIndexOf('。',450),s.lastIndexOf('!',450),s.lastIndexOf('?',450));if(i<180)i=450;out.push(s.slice(0,i+1));s=s.slice(i+1);}if(s)out.push(s);return out;}
-  function one(q){
-    if(window.__OD_I18N_OFFLINE__)return Promise.reject(Error('offline test'));
-    const url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=th|en';
-    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),5000);
-    return fetch(url,{signal:ctl.signal}).then(r=>{if(!r.ok)throw Error('translation unavailable');return r.json();}).then(x=>{const out=x?.responseData?.translatedText;if(!out)throw Error('translation empty');return out;}).finally(()=>clearTimeout(timer));
-  }
-  function remote(text){
-    if(cache[text])return Promise.resolve(cache[text]);
-    const name=OD.S?.name,token='__PLAYER_NAME__';let q=name&&text.includes(name)?text.split(name).join(token):text;
-    return Promise.all(chunks(q).map(one)).then(parts=>{
-      let out=parts.join('');if(!out||thai.test(out))throw Error('translation incomplete');
-      if(/\bOR\b/.test(text))out=out.replace(/\bOdds\b(?!\s+(?:Ratio|of))/gi,'Odds Ratio (OR)');
-      if(name)out=out.split(token).join(name);cache[text]=out;save();return out;
-    });
+  function local(value){
+    const s=String(value??'');if(lang!=='en'||!thai.test(s)||s===OD.S?.name)return s;
+    if(/<\/?[a-z][^>]*>/i.test(s)){
+      const template=document.createElement('template');template.innerHTML=s;const walker=document.createTreeWalker(template.content,NodeFilter.SHOW_TEXT);let node;while(node=walker.nextNode()){const out=local(node.nodeValue);if(out!==node.nodeValue)node.nodeValue=out;}return template.innerHTML;
+    }
+    const result=manual(s);if(result!=null)return result.replace(/\{p\}/g,'').replace(/Ban Suk Jai/gi,'Ban Sukjai').replace(/Plague Detective/gi,'Outbreak Detective').replace(/\bOdds\b(?!\s+(?:Ratio|of))/gi,'Odds Ratio (OR)');
+    if(s!==OD.S?.name)missing.add(s);return s;
   }
   /* ข้อความสำคัญ เช่นบทสนทนา ขอคำแปลโดยตรงก่อนวาด ไม่รอ MutationObserver */
   function text(value){
-    const s=String(value??'');if(lang!=='en'||!thai.test(s))return Promise.resolve(s);
-    const m=manual(s);if(m!=null)return Promise.resolve(m);
-    return remote(s).catch(()=>s);
+    return Promise.resolve(local(value));
   }
-  function pump(){while(active.n<3&&jobs.length){const j=jobs.shift();active.n++;remote(j.text).then(j.ok).catch(()=>j.fail()).finally(()=>{active.n--;paintStatus();pump();});}paintStatus();}
-  function enqueue(text,ok,fail=()=>{}){jobs.push({text,ok,fail});pump();}
-  const scheduled=new WeakMap();
+  const originals=new WeakMap(),attributeOriginals=new WeakMap();
+  function restore(root){
+    const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while(node=w.nextNode()){const old=originals.get(node);if(old&&node.nodeValue===old.en)node.nodeValue=old.th;}
+    for(const el of root.querySelectorAll('[title],[placeholder],[aria-label]')){const attrs=attributeOriginals.get(el);if(attrs)for(const [key,old] of Object.entries(attrs))if(el.getAttribute(key)===old.en)el.setAttribute(key,old.th);}
+  }
   function translateNode(n){
     if(lang!=='en'||n.nodeType!==3||skip(n.parentElement))return;const s=n.nodeValue;if(!s||!thai.test(s))return;
-    const m=manual(s);if(m!=null){n.nodeValue=m;return;}if(n.parentElement.closest('.hidden')||scheduled.get(n)===s)return;scheduled.set(n,s);const original=s;enqueue(s,out=>{if(n.isConnected&&n.nodeValue===original)n.nodeValue=out;});
+    const out=local(s);if(out!==s){originals.set(n,{th:s,en:out});n.nodeValue=out;}
   }
   function scan(root=document.body){
     if(lang!=='en'||!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))translateNode(n);
-    const els=root.querySelectorAll?.('[title],[placeholder],[aria-label]')||[];for(const el of els)for(const a of ['title','placeholder','aria-label']){const s=el.getAttribute(a);if(!s||!thai.test(s))continue;const m=manual(s);if(m!=null)el.setAttribute(a,m);else enqueue(s,out=>el.isConnected&&el.setAttribute(a,out));}
+    const els=[...(root.matches?.('[title],[placeholder],[aria-label]')?[root]:[]),...(root.querySelectorAll?.('[title],[placeholder],[aria-label]')||[])];for(const el of els)for(const a of ['title','placeholder','aria-label']){const s=el.getAttribute(a);if(s&&thai.test(s)){const out=local(s);const attrs=attributeOriginals.get(el)||{};attrs[a]={th:s,en:out};attributeOriginals.set(el,attrs);el.setAttribute(a,out);}}
   }
   let badge;
-  function paintStatus(){if(!badge)return;const pending=jobs.length+active.n;badge.textContent=pending?'Translating '+pending+'…':'English';badge.classList.toggle('busy',!!pending);}
-  function setLanguage(v){localStorage.setItem(KEY,v);const u=new URL(location.href);if(v==='en')u.searchParams.set('lang','en');else u.searchParams.delete('lang');location.href=u.href;}
+  function paintStatus(){if(badge){badge.textContent='';badge.classList.remove('busy');}}
+  function setLanguage(v){
+    localStorage.setItem(KEY,v);const u=new URL(location.href);if(v==='en')u.searchParams.set('lang','en');else u.searchParams.delete('lang');
+    if(document.body.classList.contains('on-title')){lang=v;if(v==='th')restore(document.body);document.documentElement.lang=v;document.documentElement.dataset.lang=v;history.replaceState(null,'',u.href);OD.main.title();scan(document.body);document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('on',b.dataset.lang===v));return;}
+    location.href=u.href;
+  }
   function init(){
     document.documentElement.lang=lang==='en'?'en':'th';document.documentElement.dataset.lang=lang;
     const ctl=document.createElement('div');ctl.className='lang-switch notranslate';ctl.setAttribute('data-no-translate','');ctl.innerHTML=`<button class="${lang==='th'?'on':''}" data-lang="th">ไทย</button><button class="${lang==='en'?'on':''}" data-lang="en">English</button><span class="lang-state"></span>`;document.body.append(ctl);badge=ctl.querySelector('.lang-state');ctl.onclick=e=>{const b=e.target.closest('[data-lang]');if(b&&b.dataset.lang!==lang)setLanguage(b.dataset.lang);};
-    if(lang==='en'){scan();new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===3)translateNode(n);else if(n.nodeType===1)scan(n);}))).observe(document.body,{childList:true,subtree:true});}
+    scan();new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===3)translateNode(n);else if(n.nodeType===1)scan(n);}))).observe(document.body,{childList:true,subtree:true});
     paintStatus();
   }
   document.addEventListener('DOMContentLoaded',init);
-  return {lang:()=>lang,setLanguage,scan,text};
+  return {lang:()=>lang,setLanguage,scan,text,t:local,missing:()=>[...missing]};
 })();

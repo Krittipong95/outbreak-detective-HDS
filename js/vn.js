@@ -26,6 +26,7 @@ OD.vn = (function(){
     root.dataset.ready = '1';
     E = {bg:U.$('.vn-bg',root), fx:U.$('.vn-fx',root), chars:U.$('.vn-chars',root), choices:U.$('.vn-choices',root), box:U.$('.vn-box',root),
          face:U.$('.vn-face',root), name:U.$('.vn-name',root), text:U.$('.vn-text',root), next:U.$('.vn-next',root), ff:U.$('[data-vn=ff]',root), auto:U.$('[data-vn=auto]',root)};
+    OD.cinema?.attach(root);
     E.box.addEventListener('click', advance);
     E.auto.classList.toggle('btn-gold', auto);
     E.auto.addEventListener('click', e=>{ e.stopPropagation(); auto = !auto; E.auto.classList.toggle('btn-gold', auto); try{ localStorage.setItem('od2-auto', auto?'1':'0'); }catch(er){} if(auto) armAuto(); });
@@ -56,7 +57,6 @@ OD.vn = (function(){
   async function typeText(text){
     if(typing) clearInterval(typing.timer);
     if(OD.i18n?.lang()==='en'){
-      E.text.textContent='Translating dialogue…';E.next.style.visibility='hidden';
       text=await OD.i18n.text(text);
     }
     const runs = parseRuns(text), total = runs.reduce((a,r)=>a+r.g.length,0);
@@ -122,7 +122,6 @@ OD.vn = (function(){
     fast = false; E.ff.classList.remove('btn-gold');
     let prompt=s.prompt||'';let choices=s.choice;
     if(OD.i18n?.lang()==='en'){
-      E.choices.innerHTML='<div class="frame tight">Translating choices…</div>';E.choices.classList.remove('hidden');
       const translated=await Promise.all([OD.i18n.text(prompt),...s.choice.flatMap(c=>[OD.i18n.text(c.text),OD.i18n.text(c.hint||'')])]);
       prompt=translated[0];let k=1;choices=s.choice.map(c=>Object.assign({},c,{text:translated[k++],hint:translated[k++]}));
     }
@@ -163,6 +162,7 @@ OD.vn = (function(){
         root.dataset.atmosphere=/village|well_|farm/.test(scene)?'water':/market|somtam|noodle|chicken|mookata/.test(scene)?'steam':/office|clinic|lab|hall/.test(scene)?'light':'leaves';
         const hr=OD.S?OD.S.T%24:12, time=hr<5?'night':hr<8?'dawn':hr<17?'day':hr<19?'dusk':'night';
         E.bg.classList.remove('scene-enter');void E.bg.offsetWidth;E.bg.innerHTML=OD.art.scene(s.bg);E.bg.dataset.scene=String(s.bg).split(':')[0];E.bg.dataset.time=String(s.bg).includes('night')?'night':time;E.bg.classList.add('scene-enter');
+        OD.cinema?.set(s.bg,E.bg.dataset.time,root);
         OD.music && OD.music.sceneMood(s.bg);if(OD.sound)OD.sound.setScene(s.bg,{night:E.bg.dataset.time==='night'});
       }
       if(s.fx!==undefined){ E.fx.className='vn-fx'+(s.fx?' '+s.fx:'');E.bg.classList.toggle('weather-rain',s.fx==='rain');if(OD.sound)OD.sound.setRain(s.fx==='rain'); }
@@ -184,9 +184,11 @@ OD.vn = (function(){
 
   async function play(steps, opts={}){
     ensure();
+    E.auto.textContent=OD.i18n?.lang()==='en'?'▶ Auto':'▶ อัตโนมัติ';E.ff.textContent=OD.i18n?.lang()==='en'?'⏩ Fast-forward':'⏩ เร่ง';
     if(root.classList.contains('hidden') && OD.sound) previousSoundScene=OD.sound.scene();
     root.classList.toggle('overlay', opts.mode==='overlay');
     root.classList.remove('hidden');
+    OD.i18n?.scan(root);
     E.text.innerHTML='';E.name.innerHTML='';E.choices.classList.add('hidden');E.box.classList.remove('me');E.fx.className='vn-fx';E.bg.classList.remove('weather-rain');
     if(opts.mode!=='overlay' && !steps.some(s=>s.bg) && !opts.stay) E.bg.innerHTML = OD.art.scene('village');
     // ผู้เล่นใหม่: บอกวิธีอ่านต่อครั้งเดียว

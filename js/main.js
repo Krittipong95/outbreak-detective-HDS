@@ -37,7 +37,7 @@ OD.main = (function(){
         <h1 class="display gold-text title-main">นักสืบโรคระบาด<span class="title-num">๒</span></h1>
         <div class="title-sub">ปริศนาแห่งบ้านสุขใจ</div>
         <p class="title-story">ตามหาต้นตอโรคระบาดในหมู่บ้านริมคลอง<br>ฟังชาวบ้าน เชื่อมหลักฐาน และหยุดโรคให้ทันเวลา</p>
-        <div class="title-postcard" aria-hidden="true">${OD.art.scene('village')}<span>หนึ่งหมู่บ้าน · หกปริศนา</span></div>
+        <div class="title-postcard">${OD.art.scene('village')}<span>หนึ่งหมู่บ้าน · หกปริศนา</span><button class="title-preview" data-t="preview" data-no-translate>▶ ${english?'Preview the village':'ชมบรรยากาศหมู่บ้าน'}</button></div>
         ${saved && !saved.invalid ? `<div class="resume-card"><div><b>แฟ้มของ ${U.esc(saved.name)}</b><small>${saved.label} · ${new Date(saved.at).toLocaleDateString('th-TH')}</small></div><button class="btn btn-gold" data-t="resume">${saved.stage==='result'?'ดูผลคดี':'เล่นต่อ →'}</button></div>` : saved?.invalid ? `<p class="note">อ่านแฟ้มเดิมไม่ได้ คุณยังเริ่มคดีใหม่ได้</p>` : ''}
         <div class="practice-invite"><div><b>เล่นครั้งแรก?</b><small>คดีฝึก 5–10 นาที · พี่วิพาเล่น</small></div><button class="btn" data-t="practice">🌱 ลองคดีฝึก</button></div>
         ${(()=>{const m=OD.meta.summary();return m.cases?`<div class="title-prog"><span>🗂️ ไขได้ ${U.thaiNum(m.solvedTypes)}/๖ ต้นตอ</span><span>🎖️ ${U.thaiNum(m.ach)} เหรียญ</span><span>🏅 สูงสุด ${m.best}</span></div>`:'<div class="title-route"><span>① สัมภาษณ์</span><span>② ตรวจหลักฐาน</span><span>③ สรุปคดี</span></div>';})()}
@@ -60,6 +60,7 @@ OD.main = (function(){
       if(b.dataset.g){ pref.gender = b.dataset.g; title(); }
       if(b.dataset.diff){ pref.diff = b.dataset.diff; title(); }
       if(b.dataset.t==='theme') OD.toggleTheme();
+      if(b.dataset.t==='preview')return OD.vn.play([{bg:'village'},{narr:english?'One village. Six mysteries. Follow the evidence and protect Ban Sukjai.':'หนึ่งหมู่บ้าน หกปริศนา ตามรอยหลักฐานและปกป้องบ้านสุขใจ'}]);
       if(b.dataset.t==='practice') return OD.practice.open();
       if(b.dataset.t==='resume'){const stage=OD.session.restore();if(!stage){U.toast('อ่านแฟ้มนี้ไม่ได้ กรุณาเริ่มคดีใหม่');return;}root.onclick=null;return continueCase(stage);}
       if(b.dataset.t==='hb') OD.handbook.open();

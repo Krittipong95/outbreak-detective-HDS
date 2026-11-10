@@ -181,7 +181,13 @@ OD.vn = (function(){
     try { await run(steps, steps); }
     finally {
       fast = false; E.ff.classList.remove('btn-gold');
-            if(!opts.keep){ root.classList.add('hidden'); E.chars.innerHTML = ''; if(OD.sound && previousSoundScene)OD.sound.setScene(previousSoundScene.place,previousSoundScene); previousSoundScene=null; }
+      if(!opts.keep){
+        root.classList.add('hidden');
+        root.classList.remove('overlay');
+        E.fx.className='vn-fx'; E.bg.classList.remove('weather-rain'); E.chars.innerHTML='';
+        if(OD.sound && previousSoundScene)OD.sound.setScene(previousSoundScene.place,previousSoundScene);
+        previousSoundScene=null;
+      }
     }
   }
   return {play, show, hide, hideAll};

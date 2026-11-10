@@ -28,6 +28,22 @@ window.addEventListener('load',async()=>{
       const img=document.querySelector('.ending-team');if(!img.complete)await new Promise(r=>{img.onload=r;img.onerror=r;});
       assert(img.naturalWidth>1000,'ending character art did not load');
       assert(document.querySelector('.res-hero').scrollWidth<=document.querySelector('.res-hero').clientWidth+1,'ending hero overflows');
+    }else if(view==='overlay-cleanup'){
+      OD.W=OD.sim.build(15);OD.S=OD.sim.newState(OD.W,'easy','ทดสอบ');OD.S.gender='m';OD.S.pol='ครับ';
+      const p=OD.vn.play([{narr:'ข้อความทดสอบ'}],{mode:'overlay'});await tick();document.querySelector('.vn-box').click();await p;
+      const vn=document.querySelector('#vn');assert(vn.classList.contains('hidden'),'VN did not close');assert(!vn.classList.contains('overlay'),'dark overlay class remained after dialogue');
+      OD.u.modal('<h2>ชั้นแรก</h2><button data-m="open">เปิดซ้อน</button>',k=>{if(k==='open')OD.u.modalOverlay(()=>OD.u.modal('<h2>ชั้นสอง</h2><button data-m="close">ปิด</button>',()=>OD.u.closeModal()));});
+      document.querySelector('[data-m="open"]').click();document.querySelector('[data-m="close"]').click();OD.u.closeModal();
+      assert(!document.querySelector('#modal').classList.contains('open'),'modal backdrop remained after nested close');
+    }else if(view==='board-lines'){
+      OD.W=OD.sim.build(15);OD.S=OD.sim.newState(OD.W,'easy','ทดสอบ');OD.S.known=new Set(Object.keys(OD.sim.SITES));
+      const ev=[{id:'e1',cat:'stat',kind:'or',text:'หลักฐานทดสอบ',target:'W1'}],links=new Map([['e1','W1']]);OD.board.run(OD.W,OD.S,ev,links);await tick();
+      assert(!!document.querySelector('[data-manage-lines]'),'manage lines button missing');assert(!document.querySelector('[data-pick-unlink]'),'remove control visible outside manage mode');
+      document.querySelector('[data-manage-lines]').click();await tick();assert(!!document.querySelector('[data-pick-unlink]'),'line selector missing in manage mode');
+      document.querySelector('[data-pick-unlink]').click();await tick();assert(!!document.querySelector('[data-confirm-unlink]'),'remove confirmation missing');
+    }else if(view==='painted-scenes'){
+      const keys=['village','temple','school','hall','office','office_night','clinic','lab','market','somtam','noodle_boat','chicken_rice','mookata','well_temple','well_market','well_canal','ice_factory','farm'];
+      const host=document.createElement('div');document.body.append(host);for(const key of keys){host.innerHTML=OD.art.scene(key);const img=host.querySelector('image');assert(!!img,key+' is not mapped to painted art');if(img){const src=img.getAttribute('href'),probe=new Image();probe.src=src;await new Promise(r=>{probe.onload=r;probe.onerror=r;});assert(probe.naturalWidth>=1600,key+' painted asset failed to load');}}
     }
   }catch(e){errors.push(e.stack||String(e));}
   const pre=document.createElement('pre');pre.id='ui-feedback-output';pre.textContent=JSON.stringify({view,errors});document.body.append(pre);

@@ -7,7 +7,7 @@ try{
   $html=[IO.File]::ReadAllText((Join-Path $root 'index.html')).Replace('</body>','<script src="tests/ui-feedback-audit.js"></script></body>')
   [IO.File]::WriteAllText($htmlPath,$html,[Text.UTF8Encoding]::new($false))
   $results=@()
-  foreach($view in @('practice','ch1','handbook','choices','ending')){
+  foreach($view in @('practice','ch1','handbook','choices','ending','overlay-cleanup','board-lines','painted-scenes')){
     $profile=Join-Path ([IO.Path]::GetTempPath()) ('od-feedback-'+[guid]::NewGuid().ToString('N'))
     $shot=Join-Path $root ('.qa-review\feedback-'+$view+'.png')
     $url=([Uri]$htmlPath).AbsoluteUri+'?view='+$view

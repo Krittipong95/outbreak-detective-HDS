@@ -100,10 +100,15 @@ OD.u = (function(){
   };
   U.closeModal = () => {
     const r=U.$('#modal'), previous=overlays.pop(); r.replaceChildren();
-    if(previous){r.append(previous.nodes);r.onclick=previous.click;mh=previous.handler;modalOpts=previous.opts;modalFocus=previous.origin;
+    if(previous){r.classList.add('open');r.append(previous.nodes);r.onclick=previous.click;mh=previous.handler;modalOpts=previous.opts;modalFocus=previous.origin;
       (previous.focus?.isConnected?previous.focus:r.firstElementChild)?.focus({preventScroll:true});return;}
     r.classList.remove('open');r.onclick=null;mh=null;modalOpts={};
     if(modalFocus?.isConnected)modalFocus.focus({preventScroll:true});modalFocus=null;
+  };
+  /* ทางออกฉุกเฉินสำหรับการเปลี่ยนหน้าระหว่างหน้าต่างซ้อน ป้องกันฉากมืดค้าง */
+  U.clearModals = () => {
+    const r=U.$('#modal'); overlays.length=0; r?.replaceChildren(); r?.classList.remove('open');
+    if(r) r.onclick=null; mh=null; modalOpts={}; modalFocus=null;
   };
   document.addEventListener('keydown',e=>{
     const root=U.$('#modal');if(!root?.classList.contains('open'))return;

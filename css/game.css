@@ -49,19 +49,32 @@
 
 /* ---------- visual novel ---------- */
 .vn{position:fixed;inset:0;z-index:60;overflow:hidden;user-select:none}
-.vn-bg{position:absolute;inset:0;transition:opacity .5s}
-.vn-bg svg{width:100%;height:100%;display:block}
-.vn-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 40%,rgba(8,5,3,.6) 100%)}
+.vn-bg{position:absolute;inset:-1.5%;overflow:hidden;transition:filter .8s;background:#17100b}
+.vn-bg svg{width:103%;height:103%;display:block;transform:scale(1.015);transform-origin:center;filter:saturate(1.08) contrast(1.04)}
+.vn-bg.scene-enter svg{animation:sceneReveal 1.15s cubic-bezier(.2,.7,.2,1) both,sceneDrift 22s 1.15s ease-in-out infinite alternate}
+.vn-bg::before,.vn-bg::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;transition:background .8s,opacity .8s}
+.vn-bg::before{background:radial-gradient(ellipse at 50% 38%,transparent 35%,rgba(12,7,3,.28) 100%);mix-blend-mode:multiply}
+.vn-bg::after{background:linear-gradient(180deg,rgba(0,0,0,.02) 32%,rgba(8,5,3,.7) 100%)}
+.vn-bg[data-time="dawn"]{filter:sepia(.08) hue-rotate(-8deg) brightness(1.04)}
+.vn-bg[data-time="dusk"]{filter:sepia(.16) saturate(1.12)}
+.vn-bg[data-time="night"]{filter:brightness(.6) saturate(.82) hue-rotate(8deg)}
+.vn-bg[data-time="night"]::before{background:linear-gradient(180deg,rgba(13,24,58,.42),rgba(28,13,35,.28)),radial-gradient(circle at 72% 18%,rgba(204,218,255,.2),transparent 18%)}
+.vn-bg.weather-rain{filter:brightness(.72) saturate(.75) contrast(1.08)}
+@keyframes sceneReveal{from{opacity:.15;transform:scale(1.065);filter:blur(5px)}to{opacity:1;transform:scale(1.015);filter:blur(0)}}
+@keyframes sceneDrift{from{transform:scale(1.015) translate3d(-.35%,0,0)}to{transform:scale(1.045) translate3d(.35%,-.35%,0)}}
 .vn.overlay{background:rgba(8,5,3,.62);backdrop-filter:blur(2px)}
 .vn.overlay .vn-bg{display:none}
 .vn-chars{position:absolute;left:0;right:0;bottom:clamp(96px,15vh,150px);height:min(76vh,720px);pointer-events:none}
 .vn-char{position:absolute;bottom:0;height:100%;transition:opacity .35s,transform .35s,filter .35s;opacity:0}
-.vn-char.on{opacity:1}
+.vn-char.on{opacity:1;animation:portraitBreathe 4.8s 380ms ease-in-out infinite alternate}
 .vn-char svg,.vn-char img{height:100%;width:auto;display:block;filter:drop-shadow(0 10px 24px rgba(0,0,0,.45))}
 .vn-char.left{left:max(2%,calc(50% - 640px))}
 .vn-char.right{right:max(2%,calc(50% - 640px))}
 .vn-char.center{left:50%;transform:translateX(-50%)}
 .vn-char.dim{filter:brightness(.55) saturate(.75)}
+@keyframes portraitBreathe{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+.vn-char.center.on{animation:portraitBreatheCenter 4.8s 380ms ease-in-out infinite alternate}
+@keyframes portraitBreatheCenter{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-5px)}}
 .vn-box{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);width:min(1120px,calc(100% - 32px));min-height:178px;padding:30px 34px 26px;cursor:pointer;
   background-color:color-mix(in srgb,var(--panel) 94%,transparent)}
 .vn-name{position:absolute;top:-21px;left:30px;padding:3px 24px 4px;font-family:var(--font-hand);font-weight:700;font-size:22px;color:#24170a;
@@ -88,9 +101,12 @@
 .vn-box.me .vn-name{left:180px}
 /* ฝนตก */
 .vn-fx{position:absolute;inset:0;pointer-events:none;z-index:1}
-.vn-fx.rain{background:repeating-linear-gradient(104deg,transparent 0 22px,rgba(200,220,255,.22) 22px 23px,transparent 23px 47px),
-  linear-gradient(180deg,rgba(20,30,50,.45),rgba(20,30,50,.15));background-size:120px 120px,100% 100%;animation:rain .45s linear infinite}
+.vn-fx.rain{background:repeating-linear-gradient(104deg,transparent 0 22px,rgba(215,230,255,.3) 22px 23px,transparent 23px 47px),linear-gradient(180deg,rgba(20,30,50,.42),rgba(20,30,50,.12) 65%,rgba(150,180,200,.12));background-size:120px 120px,100% 100%;animation:rain .45s linear infinite}
+.vn-fx.rain::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 105%,rgba(205,225,235,.28),transparent 48%);animation:mistPulse 5s ease-in-out infinite alternate}
+.vn-fx.rain::after{content:"";position:absolute;inset:0;background:rgba(220,235,255,.22);opacity:0;animation:stormFlash 9s ease-in-out infinite}
 @keyframes rain{to{background-position:-28px 120px,0 0}}
+@keyframes mistPulse{to{opacity:.5;transform:translateY(-1.5%)}}
+@keyframes stormFlash{0%,72%,75%,100%{opacity:0}73%{opacity:.2}74%{opacity:.04}}
 .vn-card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(8,5,3,.82);animation:fadeIn .6s ease-out;z-index:3;padding:16px}
 .vn-card .no{font-family:var(--font-display);font-size:clamp(26px,4vw,40px)}
 .vn-card .tt{font-family:var(--font-display);font-size:clamp(38px,7vw,74px);line-height:1.2}

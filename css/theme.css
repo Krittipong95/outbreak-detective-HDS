@@ -203,7 +203,7 @@ h1,h2,h3,h4{margin:0 0 .4em;line-height:1.3}
 .note.jade{border-color:var(--jade);background:color-mix(in srgb,var(--jade) 14%,transparent)}
 .paper .note{background:rgba(160,120,40,.10)}
 
-@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}.vn-bg svg{transform:none!important}}
 
 /* วางขีดปิดเสียงทับไอคอนให้อยู่ตำแหน่งเดียวกันทุกเบราว์เซอร์ */
 .music-btn.is-muted{position:relative}

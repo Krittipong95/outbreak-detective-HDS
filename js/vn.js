@@ -146,8 +146,12 @@ OD.vn = (function(){
       const s = steps[i]; let r = null;
       if(s.label) continue;
       if(s.goto) r = {goto:s.goto};
-      if(s.bg){ E.bg.innerHTML = OD.art.scene(s.bg); OD.music && OD.music.sceneMood(s.bg); if(OD.sound){const hr=OD.S?OD.S.T%24:12;OD.sound.setScene(s.bg,{night:String(s.bg).includes('night')||hr>=19||hr<5});} }
-      if(s.fx!==undefined){ E.fx.className = 'vn-fx' + (s.fx ? ' '+s.fx : ''); if(OD.sound)OD.sound.setRain(s.fx==='rain'); }
+      if(s.bg){
+        const hr=OD.S?OD.S.T%24:12, time=hr<5?'night':hr<8?'dawn':hr<17?'day':hr<19?'dusk':'night';
+        E.bg.classList.remove('scene-enter');void E.bg.offsetWidth;E.bg.innerHTML=OD.art.scene(s.bg);E.bg.dataset.scene=String(s.bg).split(':')[0];E.bg.dataset.time=String(s.bg).includes('night')?'night':time;E.bg.classList.add('scene-enter');
+        OD.music && OD.music.sceneMood(s.bg);if(OD.sound)OD.sound.setScene(s.bg,{night:E.bg.dataset.time==='night'});
+      }
+      if(s.fx!==undefined){ E.fx.className='vn-fx'+(s.fx?' '+s.fx:'');E.bg.classList.toggle('weather-rain',s.fx==='rain');if(OD.sound)OD.sound.setRain(s.fx==='rain'); }
       if(s.card) await card(s.card);
       if(s.hideAll) hideAll();
       if(s.hide) hide(s.hide);
@@ -169,7 +173,7 @@ OD.vn = (function(){
     if(root.classList.contains('hidden') && OD.sound) previousSoundScene=OD.sound.scene();
     root.classList.toggle('overlay', opts.mode==='overlay');
     root.classList.remove('hidden');
-    E.text.innerHTML = ''; E.name.innerHTML = ''; E.choices.classList.add('hidden'); E.box.classList.remove('me'); E.fx.className = 'vn-fx';
+    E.text.innerHTML='';E.name.innerHTML='';E.choices.classList.add('hidden');E.box.classList.remove('me');E.fx.className='vn-fx';E.bg.classList.remove('weather-rain');
     if(opts.mode!=='overlay' && !steps.some(s=>s.bg) && !opts.stay) E.bg.innerHTML = OD.art.scene('village');
     // ผู้เล่นใหม่: บอกวิธีอ่านต่อครั้งเดียว
     let hinted = false; try{ hinted = localStorage.getItem('od2-vnhint')==='1'; }catch(e){}

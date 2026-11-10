@@ -233,6 +233,7 @@ OD.art = OD.art || {};
   /* name อาจมี variant ต่อท้าย เช่น 'well_temple:bad' (ดู art-scenes3.js) */
   A.scene = function(name){
     const [key, variant] = String(name).split(':');
+    if(key==='village') return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="หมู่บ้านสุขใจยามเย็น"><image href="img/village-dusk-v2.jpg" width="1600" height="900" preserveAspectRatio="xMidYMid slice"/></svg>`;
     const svg = (A.scenes[key] || A.scenes.temple)(variant), n = ++sceneUid;
     const ids = Array.from(svg.matchAll(/id="([^"]+)"/g), m=>m[1]);
     return ids.reduce((s,id)=>s.split(`id="${id}"`).join(`id="${id}-${n}"`).split(`url(#${id})`).join(`url(#${id}-${n})`).split(`href="#${id}"`).join(`href="#${id}-${n}"`), svg);

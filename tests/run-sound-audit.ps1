@@ -11,7 +11,7 @@ try {
   [IO.File]::WriteAllText($htmlPath,$html,[Text.UTF8Encoding]::new($false))
   $url = ([Uri]$htmlPath).AbsoluteUri
   $ErrorActionPreference = 'Continue'
-  $output = (& $chrome --headless --disable-gpu --no-sandbox --autoplay-policy=no-user-gesture-required "--user-data-dir=$profile" --virtual-time-budget=5000 --dump-dom $url 2>$null | Out-String)
+  $output = (& $chrome --headless --disable-gpu --no-sandbox --autoplay-policy=no-user-gesture-required "--user-data-dir=$profile" --virtual-time-budget=30000 --dump-dom $url 2>$null | Out-String)
   $ErrorActionPreference = 'Stop'
   if ($output -notmatch '(?s)<pre id="sound-audit-output">(.*?)</pre>') { throw 'Sound audit output was not produced.' }
   $result = [System.Net.WebUtility]::HtmlDecode($Matches[1]) | ConvertFrom-Json

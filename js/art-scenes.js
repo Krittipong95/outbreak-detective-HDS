@@ -234,8 +234,11 @@ OD.art = OD.art || {};
     village:['img/village-dusk-v2.jpg','หมู่บ้านสุขใจ'],
     temple:['img/scene-temple-school-v1.jpg','วัดและศาลาชุมชน'], school:['img/scene-school-v2.png','โรงเรียนชุมชน'], hall:['img/scene-hall-v2.png','ศาลาประชาคม'],
     office:['img/scene-office-v2.jpg','สำนักงานสอบสวนโรค'], office_night:['img/scene-office-v2.jpg','สำนักงานสอบสวนโรคยามค่ำ'], clinic:['img/scene-clinic-lab-v1.jpg','สถานีอนามัย'], lab:['img/scene-lab-v2.jpg','ห้องปฏิบัติการ'],
-    market:['img/scene-market-food-v1.jpg','ตลาดชุมชน'], somtam:['img/scene-market-food-v1.jpg','ร้านส้มตำ'], noodle_boat:['img/scene-market-food-v1.jpg','ร้านก๋วยเตี๋ยว'], chicken_rice:['img/scene-market-food-v1.jpg','ร้านข้าวมันไก่'], mookata:['img/scene-market-food-v1.jpg','ร้านหมูกระทะ'],
-    well_temple:['img/scene-waterways-v1.jpg','บ่อน้ำข้างวัด'], well_market:['img/scene-waterways-v1.jpg','จุดน้ำข้างตลาด'], well_canal:['img/scene-waterways-v1.jpg','คลองชุมชน'],
+    market:['img/scene-market-food-v1.jpg','ตลาดชุมชน'],
+    somtam:['img/scene-somtam-v2.jpg','ร้านส้มตำป้าแดง'], noodle_boat:['img/scene-noodle-boat-v2.jpg','ร้านก๋วยเตี๋ยวเรือลุงชัย'],
+    chicken_rice:['img/scene-chicken-rice-v2.jpg','ร้านข้าวมันไก่เจ๊หมวย'], mookata:['img/scene-mookata-v2.jpg','ร้านหมูกระทะริมทุ่ง'],
+    well_temple:['img/scene-well-temple-v2.jpg','บ่อน้ำวัด'], well_market:['img/scene-well-market-v2.jpg','บ่อน้ำตลาด'],
+    well_canal:['img/scene-well-canal-v2.jpg','บ่อน้ำริมคลอง'],
     ice_factory:['img/scene-supply-v1.jpg','โรงงานน้ำแข็ง'], farm:['img/scene-farm-v2.jpg','สวนผักและเส้นทางขนส่ง']
   };
   /* name อาจมี variant ต่อท้าย เช่น 'well_temple:bad' (ดู art-scenes3.js) */

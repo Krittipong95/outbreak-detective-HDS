@@ -8,7 +8,10 @@
 .vn[data-cinema-scene="farm"] .cinema-water{clip-path:polygon(78% 47%,100% 45%,100% 100%,67% 100%);mask-image:linear-gradient(transparent 45%,#000 60%)}
 .cinema-cloud{position:absolute;inset:0;background:radial-gradient(ellipse at 15% 14%,#fff8df17,transparent 44%),radial-gradient(ellipse at 85% 25%,#d8e8ff12,transparent 40%);animation:cloudPass 28s ease-in-out infinite alternate}
 .cinema-fireflies i{position:absolute;left:calc(8% + var(--p)*9%);top:calc(35% + var(--p)*4%);width:3px;height:3px;border-radius:50%;background:#fff3ab;box-shadow:0 0 10px 3px #f3d77366;opacity:0;animation:firefly 8s ease-in-out infinite;animation-delay:calc(var(--p)*-.87s)}
-.vn[data-outdoor="false"] .cinema-foliage,.vn[data-outdoor="false"] .cinema-cloud,.vn[data-water="false"] .cinema-water,.vn[data-lantern="false"] .cinema-lantern,.vn[data-lantern="false"] .cinema-lantern-light,.vn[data-night="false"] .cinema-fireflies,.vn.overlay .cinema-depth,.vn.overlay .cinema-location{display:none}
+.vn[data-foliage="false"] .cinema-foliage,.vn[data-outdoor="false"] .cinema-cloud,.vn[data-water="false"] .cinema-water,.vn[data-lantern="false"] .cinema-lantern,.vn[data-lantern="false"] .cinema-lantern-light,.vn[data-night="false"] .cinema-fireflies,.vn.overlay .cinema-depth,.vn.overlay .cinema-location{display:none}
+.vn[data-cinema-scene="well_canal"] .cinema-water{clip-path:polygon(0 22%,67% 22%,58% 100%,0 100%);mask-image:linear-gradient(90deg,#000 0 45%,transparent 70%)}
+.vn[data-cinema-scene="noodle_boat"] .cinema-water{clip-path:polygon(0 24%,100% 24%,100% 72%,0 72%);mask-image:linear-gradient(180deg,transparent 17%,#000 32%,#000 68%,transparent 78%);opacity:.38}
+.vn[data-cinema-scene="mookata"] .cinema-cloud{background:radial-gradient(ellipse at 65% 80%,#ffb65b1f,transparent 38%),radial-gradient(ellipse at 18% 18%,#cab7ff12,transparent 42%)}
 .cinema-location{position:absolute;left:24px;top:24px;z-index:2;padding:7px 14px;border-left:2px solid #d8b667;background:#17130dc9;color:#ffedc4;font-size:12px;letter-spacing:.08em;pointer-events:none;max-width:34vw;backdrop-filter:blur(8px);border-radius:0 6px 6px 0;opacity:0}
 .cinema-location.reveal{animation:locationReveal 5s ease both}.cinema-location:empty{display:none}
 .vn-chars{z-index:2}.vn-tools{z-index:4}.vn-card{z-index:5}

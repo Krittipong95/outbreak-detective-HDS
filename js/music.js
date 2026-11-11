@@ -1,5 +1,5 @@
 /* =========================================================
-   music  เพลงประกอบสำนวนเพลงไทยเดิม เขียนด้วย "โน้ตไทย" (ด ร ม ฟ ซ ล ท)
+   music  เครื่องเล่นโน้ตไทย พร้อมเสียงสายดีดสำหรับเพลงกลิ่นอายล้านนา
    วงแบบปี่พาทย์: ระนาดเอก (ตีเก็บ/คู่แปด) · ฆ้องวง (ทำนองหลัก) · ขลุ่ย ·
    ฉิ่ง–ฉับ · ตะโพน/โทน · กลองยาว    สังเคราะห์เสียงสด ไม่ใช้ไฟล์เพลง
    เพิ่มเพลงเองได้ที่ js/songs-custom.js (เช่น เพลงไทยเดิมที่มีโน้ตอยู่แล้ว)
@@ -11,7 +11,7 @@ OD.music = (function(){
   let ctx = null, master = null, bus = null, timer = null;
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   const savedVol = (key, fallback) => { const n=Number(store.get(key, fallback)); return Number.isFinite(n) ? clamp(n,0,100)/100 : fallback/100; };
-  let enabled = store.get('music','1')==='1', vol = savedVol('vol',55);
+  let enabled = store.get('music','1')==='1', vol = savedVol('vol',45);
   let sfxEnabled = store.get('sfx','1')==='1', sfxVol = savedVol('sfxVol',55);
   let song = 'kangkao', target = 'kangkao', pos = 0, nextT = 0, cur = null;
 
@@ -45,10 +45,15 @@ OD.music = (function(){
   const MOOD = {calm:['kangkao','sanuk'], field:['kangkao_f','field'], tense:['tense'], ending:['kangkao_e','ending'], night:['night']};
   let moodKey = 'calm', moodIdx = 0;
   function addSong(key, o){
-    SONGS[key] = {name:o.name||key, bpm:o.bpm||110, lead:o.lead||'ranat', drum:o.drum||'chandiao', ching:o.ching||'chandiao',
+    SONGS[key] = {name:o.name||key, nameEn:o.nameEn||o.name||key, style:o.style||'thai', root:o.root||60, flute:o.flute!==false, bpm:o.bpm||110, lead:o.lead||'ranat', drum:o.drum||'chandiao', ching:o.ching||'chandiao',
                   ev: parseThai(o.notation, o.root||60)};
     if(o.mood) MOOD[o.mood] = [key];
     return SONGS[key];
+  }
+  function setPlaylist(mood,keys){
+    if(!Array.isArray(keys)||!keys.length||keys.some(key=>!SONGS[key]))throw new Error('Unknown music playlist');
+    MOOD[mood]=keys.slice();
+    if(moodKey===mood){moodIdx=0;target=keys[0];if(!timer){song=target;pos=0;cur=null;}}
   }
   /* ค้างคาวกินกล้วย  เพลงไทยเดิม (สาธารณสมบัติ) ถอดจากโน้ตที่ผู้ใช้ให้มา แต่ละท่อนบรรเลงสองเที่ยว */
   const KK1 = `- ล - ซ  ซ ซ - มํ  - - ซํ มํ  - - รํ มํ  - - ซํ มํ  - - รํ มํ  ซํ มํ รํ ดํ  - รํ - มํ
@@ -148,8 +153,53 @@ OD.music = (function(){
     noise(t, .08, .015*v, 3500);
   }
 
+  /* Warm, double-course plucked string. The initial noise excites a tuned loop;
+     the low-pass feedback lets upper harmonics decay naturally. */
+  const stringBuffers=new Map();
+  function seung(t,midi,v=1){
+    const key=ctx.sampleRate+':'+midi;let buffer=stringBuffers.get(key);
+    if(!buffer){
+      const length=Math.max(4,Math.round(ctx.sampleRate/mtof(midi))),ring=new Float32Array(length);
+      let seed=(midi*9781+37)>>>0;
+      const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296*2-1;};
+      let previous=0;for(let i=0;i<length;i++){previous=previous*.35+rand()*.65;ring[i]=previous;}
+      buffer=ctx.createBuffer(1,Math.round(ctx.sampleRate*2.8),ctx.sampleRate);const data=buffer.getChannelData(0);
+      for(let i=0;i<data.length;i++){const p=i%length;data[i]=ring[p];ring[p]=.4988*(ring[p]+ring[(p+1)%length]);}
+      if(stringBuffers.size>=40)stringBuffers.delete(stringBuffers.keys().next().value);stringBuffers.set(key,buffer);
+    }
+    for(const course of [0,1]){
+      const source=ctx.createBufferSource(),gain=ctx.createGain(),filter=ctx.createBiquadFilter();source.buffer=buffer;source.playbackRate.value=course?1.0025:1;
+      filter.type='lowpass';filter.frequency.value=Math.min(4200,mtof(midi)*8);filter.Q.value=.3;
+      env(gain,t+course*.009,.004,(course?.075:.11)*v,2.4);
+      source.connect(filter);filter.connect(gain);gain.connect(bus);source.start(t+course*.009);source.stop(t+2.8);
+    }
+  }
+  function softFlute(t,midi,dur,v){
+    const f=mtof(midi),voice=ctx.createOscillator(),gain=ctx.createGain(),vibrato=ctx.createOscillator(),depth=ctx.createGain();
+    voice.type='sine';voice.frequency.setValueAtTime(f*.997,t);voice.frequency.linearRampToValueAtTime(f,t+.18);
+    vibrato.frequency.value=4.4;depth.gain.setValueAtTime(0,t);depth.gain.linearRampToValueAtTime(f*.0028,t+.7);vibrato.connect(depth);depth.connect(voice.frequency);
+    gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.035*v,t+.24);gain.gain.setValueAtTime(.035*v,t+dur*.68);gain.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    voice.connect(gain);gain.connect(bus);voice.start(t);vibrato.start(t);voice.stop(t+dur+.04);vibrato.stop(t+dur+.04);
+    tone('sine',f*2,t,.2,.004*v,dur*.75);
+  }
+  function playLanna(t,S,spb){
+    const i=pos%S.ev.length,ev=S.ev[i],beat=i%16;
+    if(ev.n!=null){
+      const notes=ev.ns||[ev.n];notes.forEach((n,j)=>seung(t+j*spb/notes.length,n,beat%4===0?.88:.66));
+      if(S.flute&&(beat===0||beat===8)){
+        let length=1;while(length<8&&S.ev[(i+length)%S.ev.length].k==='-')length++;
+        softFlute(t+.035,ev.n+12,Math.max(1.2,length*spb*.95),.7);
+      }
+    }
+    if(beat===0)seung(t,S.root-12,.32);
+    if(beat===8)seung(t+.025,S.root-5,.24);
+    // A sparse, soft pulse; no cymbal or rapid struck-melody fills.
+    if(S.drum!=='none'&&(beat===0||beat===8))tone('sine',beat===0?88:112,t,.012,.055,.24);
+  }
+
   /* ---------- เครื่องเล่นทีละตำแหน่ง ---------- */
   function play(t, S, spb){
+    if(S.style==='lanna'){playLanna(t,S,spb);return;}
     const len = S.ev.length, i = pos % len, step = i % 8, ev = S.ev[i];
     if(ev.ns && S.lead==='ranat'){                                               // หลายเสียงในตำแหน่งเดียว
       ev.ns.forEach((n,j)=>{ const tt = t + j*spb/ev.ns.length; ranat(tt, n+12, .9); ranat(tt, n, .4); });
@@ -209,7 +259,7 @@ OD.music = (function(){
     const box = document.getElementById('musicCtl'); if(!box) return;
     if(!box.dataset.ready){
       const row=(id,icon,label)=>`<div class="audio-row"><button class="music-btn" data-audio="${id}" type="button">${icon}</button><label>${label}<input data-audio="${id}-vol" type="range" min="0" max="100" aria-label="ระดับเสียง${label}"></label><output data-audio="${id}-value"></output></div>`;
-      box.innerHTML = `<button class="music-btn audio-menu" data-audio="menu" type="button" aria-expanded="false" aria-label="ตั้งค่าเสียง">🎚️</button><div class="audio-panel" hidden><div class="audio-panel-title">ตั้งค่าเสียง</div>${row('music','🎵','เพลง')}${row('sfx','🔔','เอฟเฟกต์')}${row('ambient','🌿','บรรยากาศ')}</div>`;
+      box.innerHTML = `<button class="music-btn audio-menu" data-audio="menu" type="button" aria-expanded="false" aria-label="ตั้งค่าเสียง">🎚️</button><div class="audio-panel" hidden><div class="audio-panel-title">ตั้งค่าเสียง</div><small data-audio="track" data-no-translate></small>${row('music','🎵','เพลง')}${row('sfx','🔔','เอฟเฟกต์')}${row('ambient','🌿','บรรยากาศ')}</div>`;
       box.dataset.ready='1';
       box.querySelector('[data-audio="menu"]').onclick=e=>{e.stopPropagation();const panel=box.querySelector('.audio-panel');panel.hidden=!panel.hidden;e.currentTarget.setAttribute('aria-expanded',String(!panel.hidden));};
       box.querySelector('[data-audio="music"]').onclick=e=>{e.stopPropagation();toggle();};
@@ -220,6 +270,7 @@ OD.music = (function(){
       }
     }
     const status=OD.sound?OD.sound.status():{ambientOn:false,ambientVol:0};
+    const track=box.querySelector('[data-audio="track"]');if(track)track.textContent=(OD.i18n?.lang()==='en'?SONGS[song].nameEn:SONGS[song].name);
     const entries=[['music',enabled,vol,'เพลง'],['sfx',sfxEnabled,sfxVol,'เสียงเอฟเฟกต์'],['ambient',status.ambientOn,status.ambientVol,'เสียงบรรยากาศ']];
     for(const [id,on,value,label] of entries){const button=box.querySelector('[data-audio="'+id+'"]');button.classList.toggle('is-muted',!on);button.setAttribute('aria-pressed',String(on));button.title=label+(on?'เปิดอยู่ กดเพื่อปิด':'ปิดอยู่ กดเพื่อเปิด');button.setAttribute('aria-label',button.title);box.querySelector('[data-audio="'+id+'-vol"]').value=Math.round(value*100);box.querySelector('[data-audio="'+id+'-value"]').textContent=Math.round(value*100)+'%';}
     box.classList.toggle('off',!enabled&&!sfxEnabled&&!status.ambientOn);
@@ -265,16 +316,18 @@ OD.music = (function(){
   OD.sfx = sfx;
 
   /* เรนเดอร์ออฟไลน์เพื่อตรวจระดับเสียง (ใช้ตอนทดสอบเท่านั้น) */
-  async function renderTest(sec=8, s='sanuk'){
+  async function renderTest(sec=8, s='calm', includeBuffer=false){
     const keep = {ctx, master, bus, song, target, pos, cur};
-    ctx = new OfflineAudioContext(2, Math.floor(44100*sec), 44100);
-    song = target = (MOOD[s] ? MOOD[s][0] : s); pos = 0; cur = null; buildGraph(); master.gain.value = vol*.7;
-    const S = SONGS[song], spb = 60/S.bpm/2;
-    for(let t=.05; t<sec-.6; t+=spb){ play(t, S, spb); pos++; }
-    const buf = await ctx.startRendering(), d = buf.getChannelData(0);
-    let sum = 0, peak = 0; for(let i=0;i<d.length;i++){ sum += d[i]*d[i]; peak = Math.max(peak, Math.abs(d[i])); }
-    ({ctx, master, bus, song, target, pos, cur} = keep);
-    return {rms:Math.sqrt(sum/d.length), peak};
+    try{
+      ctx = new OfflineAudioContext(2, Math.floor(44100*sec), 44100);
+      song = target = (MOOD[s] ? MOOD[s][0] : s); pos = 0; cur = null; buildGraph(); master.gain.value = vol*.7;
+      const S = SONGS[song], spb = 60/S.bpm/2;
+      for(let t=.05; t<sec-.6; t+=spb){ play(t, S, spb); pos++; }
+      const buf = await ctx.startRendering(), d = buf.getChannelData(0);
+      let sum = 0, peak = 0; for(let i=0;i<d.length;i++){ sum += d[i]*d[i]; peak = Math.max(peak, Math.abs(d[i])); }
+      return {rms:Math.sqrt(sum/d.length), peak, ...(includeBuffer?{buffer:buf}:{})};
+    }finally{({ctx, master, bus, song, target, pos, cur} = keep);}
   }
-  return {arm, ui, start, stop, toggle, toggleSfx, setMood, sceneMood, setVolume, setSfxVolume, renderTest, addSong, parseThai, sfx, songs:()=>Object.keys(SONGS)};
+  const soundtrack=()=>Object.fromEntries(Object.entries(MOOD).map(([mood,keys])=>[mood,keys.map(key=>({key,name:SONGS[key].name,bpm:SONGS[key].bpm,style:SONGS[key].style}))]));
+  return {arm, ui, start, stop, toggle, toggleSfx, setMood, sceneMood, setVolume, setSfxVolume, renderTest, addSong, setPlaylist, soundtrack, parseThai, sfx, songs:()=>Object.keys(SONGS)};
 })();

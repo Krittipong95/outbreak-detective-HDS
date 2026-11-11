@@ -1,7 +1,7 @@
 /* Layered scenery. Only compositor transforms and opacity animate. */
 window.OD=window.OD||{};
 OD.cinema=(()=>{
-  const labels={village:['บ้านสุขใจ · ริมคลอง','Ban Sukjai · Canal'],temple:['วัดบ้านสุขใจ','Ban Sukjai Temple'],school:['โรงเรียนบ้านสุขใจ','Ban Sukjai School'],hall:['ศาลาประชาคม','Community Hall'],office:['ห้องทำงานทีม HDS','HDS Field Office'],office_night:['ห้องทำงาน · ยามค่ำ','Field Office · Night'],clinic:['สถานีอนามัย','Health Centre'],lab:['ห้องปฏิบัติการ','Laboratory'],market:['ตลาดชุมชน','Village Market'],farm:['สวนผัก','Vegetable Farm'],ice_factory:['โรงงานน้ำแข็ง','Ice Factory']};
+  const labels={village:['บ้านสุขใจ · ริมคลอง','Ban Sukjai · Canal'],temple:['วัดบ้านสุขใจ','Ban Sukjai Temple'],school:['โรงเรียนบ้านสุขใจ','Ban Sukjai School'],hall:['ศาลาประชาคม','Community Hall'],office:['ห้องทำงานทีม HDS','HDS Field Office'],office_night:['ห้องทำงาน · ยามค่ำ','Field Office · Night'],clinic:['สถานีอนามัย','Health Centre'],lab:['ห้องปฏิบัติการ','Laboratory'],market:['ตลาดชุมชน','Village Market'],somtam:['ร้านส้มตำป้าแดง','Pa Daeng’s Som Tam Shop'],noodle_boat:['ก๋วยเตี๋ยวเรือลุงชัย','Uncle Chai’s Boat Noodles'],chicken_rice:['ร้านข้าวมันไก่เจ๊หมวย','Jae Muay’s Chicken Rice'],mookata:['หมูกระทะริมทุ่ง','Rice-field Mookata'],well_temple:['บ่อน้ำวัด','Temple Well'],well_market:['บ่อน้ำตลาด','Market Well'],well_canal:['บ่อน้ำริมคลอง','Canal-side Well'],farm:['สวนผัก','Vegetable Farm'],ice_factory:['โรงงานน้ำแข็ง','Ice Factory']};
   let enabled=true;try{enabled=localStorage.getItem('od-cinema-motion')!=='off';}catch(e){}
   function paint(){document.documentElement.dataset.motion=enabled?'on':'off';document.querySelectorAll('[data-vn="motion"]').forEach(b=>{b.setAttribute('aria-pressed',String(enabled));b.textContent=(OD.i18n?.lang()==='en'?'◉ Motion: ':'◉ ภาพเคลื่อนไหว: ')+(OD.i18n?.lang()==='en'?(enabled?'On':'Off'):(enabled?'เปิด':'ปิด'));});}
   function attach(root){
@@ -12,8 +12,8 @@ OD.cinema=(()=>{
     const button=document.createElement('button');button.className='btn btn-sm';button.dataset.vn='motion';button.onclick=e=>{e.stopPropagation();enabled=!enabled;try{localStorage.setItem('od-cinema-motion',enabled?'on':'off');}catch(e){}paint();};root.querySelector('.vn-tools').prepend(button);paint();
   }
   function set(scene,time,root){
-    attach(root);const key=String(scene).split(':')[0],outdoor=!/office|clinic|lab|ice_factory|hall/.test(key),water=/village|well_canal|farm/.test(key);
-    root.dataset.cinemaScene=key;root.dataset.outdoor=String(outdoor);root.dataset.water=String(water);root.dataset.lantern=String(/village|temple|hall|market|mookata|noodle/.test(key));root.dataset.night=String(time==='night'||time==='dusk');
+    attach(root);const key=String(scene).split(':')[0],outdoor=!/office|clinic|lab|ice_factory|hall/.test(key),water=/village|well_canal|farm|noodle_boat/.test(key);
+    root.dataset.cinemaScene=key;root.dataset.outdoor=String(outdoor);root.dataset.foliage=String(/^(village|temple)$/.test(key));root.dataset.water=String(water);root.dataset.lantern=String(/village|temple|hall|market|mookata|noodle_boat/.test(key));root.dataset.night=String(time==='night'||time==='dusk');
     const image=root.querySelector('.vn-bg image'),surface=root.querySelector('.cinema-water');surface.style.backgroundImage=image?'url("'+image.getAttribute('href')+'")':'';
     const caption=root.querySelector('.cinema-location'),pair=labels[key];caption.textContent=pair?pair[OD.i18n?.lang()==='en'?1:0]:'';caption.classList.remove('reveal');void caption.offsetWidth;caption.classList.add('reveal');
   }

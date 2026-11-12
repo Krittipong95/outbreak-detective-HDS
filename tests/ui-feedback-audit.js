@@ -6,6 +6,11 @@ window.addEventListener('load',async()=>{
       localStorage.removeItem('od3-practice-v1');OD.practice.open();const card=document.querySelector('.practice-modal');
       document.querySelector('[data-m="talk:a"]').click();await tick();
       assert(document.querySelector('.practice-modal')===card,'practice modal node was recreated');
+      document.querySelector('[data-m="talk:b"]').click();document.querySelector('[data-m="q:more"]').click();await tick();
+      const next=document.querySelector('[data-m="next"]'),dock=document.querySelector('.practice-dock'),cr=card.getBoundingClientRect(),nr=next?.getBoundingClientRect();
+      assert(next&&dock?.contains(next),'practice next action is not in the fixed action dock');
+      assert(nr&&nr.top>=cr.top&&nr.bottom<=cr.bottom,'practice next action requires scrolling');
+      assert(getComputedStyle(card).overflowY==='hidden','practice modal has a second vertical scrollbar');
     }else if(view==='ch1'){
       OD.W=OD.sim.build(15,'WELL');OD.S=OD.sim.newState(OD.W,'easy','ทดสอบ');OD.S.gender='m';OD.S.pol='ครับ';OD.S.flags.v={fest:'kathin'};OD.ch1.run();await tick();
       assert(document.querySelectorAll('.qcard').length===1,'more than one question card shown');

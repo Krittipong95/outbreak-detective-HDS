@@ -54,27 +54,27 @@ OD.ch1 = (function(){
   function questions(d){
     const f1 = x => Number.isInteger(x) ? String(x) : x.toFixed(1);
     return [
-      {q:`ค่ามัธยฐาน ๕ ปีย้อนหลัง (๒๕๖๔–๒๕๖๘) ของ **สัปดาห์ที่ ๔๘** คือเท่าใด?`,
+      {q:`ค่ามัธยฐาน ๕ ปีย้อนหลัง (๒๕๖๔–๒๕๖๘) ของ **สัปดาห์ที่ ๔๘** คือเท่าใด?`,qEn:'What is the five-year median (2021–2025) for **week 48**?',
        opts:[
-         {t:`${f1(d.med)} ราย`, ok:true, fb:'ถูกต้อง  เรียงค่าจากน้อยไปมากแล้วเลือกค่ากลาง ค่ามัธยฐานไม่ถูกดึงด้วยปีที่สูงผิดปกติ จึงเหมาะเป็นค่าคาดหมาย'},
-         {t:`${f1(d.mean)} ราย`, fb:'นั่นคือค่าเฉลี่ย  ถ้ามีปีใดสูงผิดปกติ ค่าเฉลี่ยจะถูกดึงขึ้น เกณฑ์เฝ้าระวังของไทยจึงใช้ค่ามัธยฐาน'},
-         {t:`${d.max} ราย`, fb:'นั่นคือค่าสูงสุด ถ้าใช้ค่าสูงสุดเป็นเกณฑ์ เราจะตรวจจับการระบาดได้ช้าเกินไป'},
-         {t:`${d.last} ราย`, fb:'นั่นคือค่าของปี ๒๕๖๘ ปีเดียว ซึ่งอาจบังเอิญสูงหรือต่ำก็ได้'},
+         {t:`${f1(d.med)} ราย`,tEn:`${f1(d.med)} cases`, ok:true, fb:'ถูกต้อง  เรียงค่าจากน้อยไปมากแล้วเลือกค่ากลาง ค่ามัธยฐานไม่ถูกดึงด้วยปีที่สูงผิดปกติ จึงเหมาะเป็นค่าคาดหมาย',fbEn:'Correct. Sort the five values from lowest to highest and select the middle one. The median is less affected by an unusually high year, so it is appropriate as the expected value.'},
+         {t:`${f1(d.mean)} ราย`,tEn:`${f1(d.mean)} cases`, fb:'นั่นคือค่าเฉลี่ย  ถ้ามีปีใดสูงผิดปกติ ค่าเฉลี่ยจะถูกดึงขึ้น เกณฑ์เฝ้าระวังของไทยจึงใช้ค่ามัธยฐาน',fbEn:'That is the mean. One unusually high year can pull the mean upward, so this surveillance comparison uses the median.'},
+         {t:`${d.max} ราย`,tEn:`${d.max} cases`, fb:'นั่นคือค่าสูงสุด ถ้าใช้ค่าสูงสุดเป็นเกณฑ์ เราจะตรวจจับการระบาดได้ช้าเกินไป',fbEn:'That is the maximum. Using the maximum as the threshold could delay outbreak detection.'},
+         {t:`${d.last} ราย`,tEn:`${d.last} cases`, fb:'นั่นคือค่าของปี ๒๕๖๘ ปีเดียว ซึ่งอาจบังเอิญสูงหรือต่ำก็ได้',fbEn:'That is the value from 2025 alone, which could happen to be unusually high or low.'},
        ].filter((o,i,a)=>a.findIndex(x=>x.t===o.t)===i)},
-      {q:`สัปดาห์นี้ผ่านไปเพียง ๓ วัน มีผู้ป่วยแล้ว **${d.cur48} ราย** ควรสรุปว่าอย่างไร?`,
+      {q:`สัปดาห์นี้ผ่านไปเพียง ๓ วัน มีผู้ป่วยแล้ว **${d.cur48} ราย** ควรสรุปว่าอย่างไร?`,qEn:`Only three days of this week have passed, yet **${d.cur48} cases** have already been reported. What should you conclude?`,
        opts:[
-         {t:'สูงกว่าค่ามัธยฐานชัดเจนทั้งที่ยังไม่ครบสัปดาห์ → มีแนวโน้มการระบาด ควรสอบสวนโรคทันที', ok:true, fb:'ใช่  การรอให้ครบสัปดาห์อาจทำให้มีผู้ป่วยเพิ่มโดยไม่จำเป็น'},
-         {t:'ต้องรอให้ครบสัปดาห์ก่อน จึงจะเปรียบเทียบได้อย่างยุติธรรม', fb:'แม้ข้อมูลยังไม่ครบ แต่ตัวเลขแค่ ๓ วันก็เกินค่าคาดหมายของทั้งสัปดาห์แล้ว การรอจะทำให้เสียเวลาสำคัญ'},
-         {t:'ช่วงนี้ท้องร่วงเพิ่มทุกปีอยู่แล้ว เป็นเรื่องปกติตามฤดูกาล', fb:'เราเทียบกับค่ามัธยฐานของสัปดาห์เดียวกันในอดีตแล้ว ซึ่งรวมผลของฤดูกาลไว้แล้ว ตัวเลขปีนี้จึงผิดปกติจริง'},
-         {t:'ยังไม่ถือว่าระบาด จนกว่าจะมีผู้เสียชีวิต', fb:'การระบาดนิยามจากจำนวนผู้ป่วยที่มากกว่าที่คาดหมาย ไม่จำเป็นต้องมีผู้เสียชีวิต'},
+         {t:'สูงกว่าค่ามัธยฐานชัดเจนทั้งที่ยังไม่ครบสัปดาห์ → มีแนวโน้มการระบาด ควรสอบสวนโรคทันที',tEn:'The count is already clearly above the median before the week is over. An outbreak is likely, so investigate immediately.', ok:true, fb:'ใช่  การรอให้ครบสัปดาห์อาจทำให้มีผู้ป่วยเพิ่มโดยไม่จำเป็น',fbEn:'Correct. Waiting until the end of the week could allow preventable cases to occur.'},
+         {t:'ต้องรอให้ครบสัปดาห์ก่อน จึงจะเปรียบเทียบได้อย่างยุติธรรม',tEn:'Wait until the week is complete before making a fair comparison.', fb:'แม้ข้อมูลยังไม่ครบ แต่ตัวเลขแค่ ๓ วันก็เกินค่าคาดหมายของทั้งสัปดาห์แล้ว การรอจะทำให้เสียเวลาสำคัญ',fbEn:'Although the week is incomplete, the count from only three days already exceeds the expected value for a full week. Waiting would waste critical time.'},
+         {t:'ช่วงนี้ท้องร่วงเพิ่มทุกปีอยู่แล้ว เป็นเรื่องปกติตามฤดูกาล',tEn:'Diarrhea rises every year at this time, so this is a normal seasonal pattern.', fb:'เราเทียบกับค่ามัธยฐานของสัปดาห์เดียวกันในอดีตแล้ว ซึ่งรวมผลของฤดูกาลไว้แล้ว ตัวเลขปีนี้จึงผิดปกติจริง',fbEn:'The comparison uses the same week in previous years, so seasonality is already accounted for. This year is genuinely unusual.'},
+         {t:'ยังไม่ถือว่าระบาด จนกว่าจะมีผู้เสียชีวิต',tEn:'It is not an outbreak until a death occurs.', fb:'การระบาดนิยามจากจำนวนผู้ป่วยที่มากกว่าที่คาดหมาย ไม่จำเป็นต้องมีผู้เสียชีวิต',fbEn:'An outbreak is defined by more cases than expected; a death is not required.'},
        ]},
-      {q:'เลือก **นิยามผู้ป่วย (case definition)** ที่เหมาะที่สุดสำหรับการสอบสวนครั้งนี้',
+      {q:'เลือก **นิยามผู้ป่วย (case definition)** ที่เหมาะที่สุดสำหรับการสอบสวนครั้งนี้',qEn:'Choose the most appropriate **case definition** for this investigation.',
        opts:[
-         {t:'ผู้ที่อาศัยหรือเดินทางมาในตำบลบ้านสุขใจ มีอาการถ่ายเหลว ≥๓ ครั้งใน ๒๔ ชม. หรืออาเจียน ร่วมกับปวดท้องหรือไข้ ตั้งแต่ ๒๑ พ.ย. ๒๕๖๙ เป็นต้นมา', ok:true,
-          fb:'ครบทั้ง บุคคล–สถานที่–เวลา–อาการ และรวม “อาเจียน” ไว้ด้วย เพราะเชื้อบางชนิดทำให้อาเจียนเด่นกว่าท้องเสีย'},
-         {t:'ผู้ที่มีอาการท้องร่วง', fb:'กว้างเกินไป  ไม่ระบุสถานที่และเวลา จะเก็บผู้ป่วยท้องร่วงเรื้อรังหรือคนนอกพื้นที่มาปน ทำให้สัญญาณเจือจาง'},
-         {t:'ผู้ที่ตรวจพบเชื้อก่อโรคทางห้องปฏิบัติการเท่านั้น', fb:'แคบเกินไปในระยะแรก  ผู้ป่วยส่วนใหญ่ไม่ได้ถูกเก็บตัวอย่าง จะพลาดผู้ป่วยจริงจำนวนมาก'},
-         {t:'ผู้ที่ไปร่วมงานบวชที่วัด และมีอาการท้องร่วง', fb:'นิยามแบบนี้ผูกไว้กับสมมติฐานตั้งแต่ต้น (อคติ)  ถ้าต้นตอไม่ใช่งานบวช เราจะมองไม่เห็นผู้ป่วยกลุ่มอื่นเลย'},
+         {t:'ผู้ที่อาศัยหรือเดินทางมาในตำบลบ้านสุขใจ มีอาการถ่ายเหลว ≥๓ ครั้งใน ๒๔ ชม. หรืออาเจียน ร่วมกับปวดท้องหรือไข้ ตั้งแต่ ๒๑ พ.ย. ๒๕๖๙ เป็นต้นมา',tEn:'Anyone who lives in or visited Ban Sukjai Subdistrict and developed at least three loose stools in 24 hours or vomiting, with abdominal pain or fever, on or after 21 November 2026.', ok:true,
+          fb:'ครบทั้ง บุคคล–สถานที่–เวลา–อาการ และรวม “อาเจียน” ไว้ด้วย เพราะเชื้อบางชนิดทำให้อาเจียนเด่นกว่าท้องเสีย',fbEn:'This includes person, place, time, and clinical criteria. Vomiting is included because some pathogens cause more prominent vomiting than diarrhea.'},
+         {t:'ผู้ที่มีอาการท้องร่วง',tEn:'Anyone with diarrhea.', fb:'กว้างเกินไป  ไม่ระบุสถานที่และเวลา จะเก็บผู้ป่วยท้องร่วงเรื้อรังหรือคนนอกพื้นที่มาปน ทำให้สัญญาณเจือจาง',fbEn:'This is too broad. Without place and time criteria, chronic cases and people outside the area would be mixed in, weakening the signal.'},
+         {t:'ผู้ที่ตรวจพบเชื้อก่อโรคทางห้องปฏิบัติการเท่านั้น',tEn:'Only people with laboratory confirmation of a pathogen.', fb:'แคบเกินไปในระยะแรก  ผู้ป่วยส่วนใหญ่ไม่ได้ถูกเก็บตัวอย่าง จะพลาดผู้ป่วยจริงจำนวนมาก',fbEn:'This is too narrow early in an investigation. Most patients are not sampled, so many genuine cases would be missed.'},
+         {t:'ผู้ที่ไปร่วมงานบวชที่วัด และมีอาการท้องร่วง',tEn:'Anyone who attended the temple ordination ceremony and developed diarrhea.', fb:'นิยามแบบนี้ผูกไว้กับสมมติฐานตั้งแต่ต้น (อคติ)  ถ้าต้นตอไม่ใช่งานบวช เราจะมองไม่เห็นผู้ป่วยกลุ่มอื่นเลย',fbEn:'This definition builds the initial hypothesis into the criteria, creating bias. If the ceremony is not the source, other groups of cases will be missed.'},
        ]},
     ];
   }
@@ -83,6 +83,10 @@ OD.ch1 = (function(){
     return new Promise(resolve=>{
       const W = OD.W, S = OD.S, d = S.chapter1?.data || data(W), Q = S.chapter1?.questions || questions(d);
       if(!S.chapter1){Q.forEach(q=>{q.opts=U.shuffle(q.opts);q.tries=0;q.done=false;});S.acc.ch1=0;S.acc.ch1Max=Q.length*2;S.chapter1={data:d,questions:Q};}
+      else {
+        const authored=questions(d);
+        Q.forEach((q,qi)=>{const source=authored[qi];if(!source)return;q.qEn=source.qEn;const used=new Set();q.opts.forEach(o=>{let oi=source.opts.findIndex((x,i)=>!used.has(i)&&x.t===o.t);if(oi<0)oi=source.opts.findIndex((x,i)=>!used.has(i)&&!!x.ok===!!o.ok);if(oi>=0){used.add(oi);Object.assign(o,{tEn:source.opts[oi].tEn,fbEn:source.opts[oi].fbEn});}});});
+      }
       OD.session?.save('ch1');
       const yrs = d.hist.map(x=>`<tr><td>${U.thaiNum(x.y)}</td>${x.w.map((v,i)=>`<td>${v}</td>`).join('')}</tr>`).join('');
       const root = U.$('#scr-ch1');
@@ -103,23 +107,24 @@ OD.ch1 = (function(){
       U.show('scr-ch1'); if(OD.sound)OD.sound.setScene('office');
       const box = U.$('#ch1q'), root2 = U.$('#scr-ch1');
       const md = t => t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+      const en=()=>OD.i18n.lang()==='en', L=(th,enText)=>en()?enText:th, N=n=>en()?String(n):U.thaiNum(n);
       let view=Math.max(0,Q.findIndex(q=>!q.done));
       function render(){
         const cur = Q.findIndex(q=>!q.done);
         if(view<0)view=Q.length-1;
         if(cur>=0 && view>cur)view=cur;
-        const nav=`<div class="question-tabs" role="tablist" aria-label="เลือกข้อคำถาม">${Q.map((q,i)=>`<button type="button" role="tab" aria-selected="${view===i}" class="question-tab ${view===i?'on':''} ${q.done?'done':''}" data-qnav="${i}" ${i>cur&&cur>=0?'disabled':''}><span>${q.done?'✓':U.thaiNum(i+1)}</span>ข้อ ${U.thaiNum(i+1)}</button>`).join('')}</div>`;
+        const nav=`<div class="question-tabs" role="tablist" aria-label="${L('เลือกข้อคำถาม','Choose a question')}">${Q.map((q,i)=>`<button type="button" role="tab" aria-selected="${view===i}" class="question-tab ${view===i?'on':''} ${q.done?'done':''}" data-qnav="${i}" ${i>cur&&cur>=0?'disabled':''}><span>${q.done?'✓':N(i+1)}</span>${L('ข้อ','Question')} ${N(i+1)}</button>`).join('')}</div>`;
         const q=Q[view];
-        box.innerHTML = `<div class="ch-progress"><b>${cur<0?'ตอบครบทุกข้อแล้ว':`กำลังทำข้อ ${U.thaiNum(cur+1)} จาก ${U.thaiNum(Q.length)}`}</b><span>เลือกดูทีละข้อ จึงไม่ต้องไล่อ่านการ์ดยาว ๆ</span>${nav}</div>` + (q?`<div class="frame tight qcard" data-q="${view}"><h3><span>คำถามข้อ ${U.thaiNum(view+1)}</span>${md(q.q)}</h3><div class="qopts">${
-            q.opts.map((o,oi)=>`<button class="qopt ${o.state||''}" data-o="${oi}" ${q.done||o.state?'disabled':''}><span class="lt">${'กขคง'[oi]}</span>${o.t}</button>`).join('')}</div>
-            ${q.fb?`<div class="mentor" style="margin-top:12px">${OD.mentorFace()}<div><div class="who">พี่วิ</div><div>${q.fb}</div></div></div>`:''}</div>`:'') + (cur<0 ? `<div class="ch-complete"><b>เรียบร้อย! คุณยืนยันการระบาดและกำหนดนิยามผู้ป่วยแล้ว</b><p>ขั้นต่อไป ตรวจสอบข้อมูลผู้ป่วยให้พร้อมสำหรับการสอบสวน</p><button class="btn btn-gold btn-lg" id="ch1next">ไปต่อ: ตรวจสอบข้อมูล →</button></div>` : '');
+        box.innerHTML = `<div class="ch-progress"><b>${cur<0?L('ตอบครบทุกข้อแล้ว','All questions answered'):`${L('กำลังทำข้อ','Question')} ${N(cur+1)} ${L('จาก','of')} ${N(Q.length)}`}</b><span>${L('เลือกดูทีละข้อ จึงไม่ต้องไล่อ่านการ์ดยาว ๆ','Work through one question at a time')}</span>${nav}</div>` + (q?`<div class="frame tight qcard" data-q="${view}"><h3><span>${L('คำถามข้อ','Question')} ${N(view+1)}</span>${md(L(q.q,q.qEn))}</h3><div class="qopts">${
+            q.opts.map((o,oi)=>`<button class="qopt ${o.state||''}" data-o="${oi}" ${q.done||o.state?'disabled':''}><span class="lt">${en()?'ABCD'[oi]:'กขคง'[oi]}</span>${L(o.t,o.tEn)}</button>`).join('')}</div>
+            ${q.fb?`<div class="mentor" style="margin-top:12px">${OD.mentorFace()}<div><div class="who">${L('พี่วิ','Vi')}</div><div>${q.fb}</div></div></div>`:''}</div>`:'') + (cur<0 ? `<div class="ch-complete"><b>${L('เรียบร้อย! คุณยืนยันการระบาดและกำหนดนิยามผู้ป่วยแล้ว','Done! You confirmed the outbreak and defined the cases.')}</b><p>${L('ขั้นต่อไป ตรวจสอบข้อมูลผู้ป่วยให้พร้อมสำหรับการสอบสวน','Next, prepare the patient data for investigation.')}</p><button class="btn btn-gold btn-lg" id="ch1next">${L('ไปต่อ: ตรวจสอบข้อมูล →','Continue: Check the data →')}</button></div>` : '');
       }
       root2.onclick = async e=>{
         const tab=e.target.closest('[data-qnav]');if(tab&&!tab.disabled){view=+tab.dataset.qnav;render();return;}
         if(e.target.closest('#ch1next')){ root2.onclick = null; await OD.vn.play(OD.story.ch1_done(W,S), {mode:'overlay'}); resolve(); return; }
         const b = e.target.closest('.qopt'); if(!b || b.disabled) return;
         const q = Q[+b.closest('[data-q]').dataset.q], o = q.opts[+b.dataset.o];
-        OD.sfx && OD.sfx(o.ok?'correct':'wrong'); q.tries++; o.state = o.ok ? 'right' : 'wrong'; q.fb = (o.ok?'✅ ':'❌ ') + o.fb;
+        OD.sfx && OD.sfx(o.ok?'correct':'wrong'); q.tries++; o.state = o.ok ? 'right' : 'wrong'; q.fb = (o.ok?'✅ ':'❌ ') + L(o.fb,o.fbEn);
         if(o.ok){ q.done = true; S.acc.ch1 += q.tries===1 ? 2 : q.tries===2 ? 1 : 0; view=Math.min(Q.length-1,view+1); }
         else S.mistakes.push({area:'ch1', title:q.q.replace(/\*\*/g,''), chosen:o.t, correct:q.opts.find(x=>x.ok).t, why:o.fb});
         render(); OD.session?.save('ch1');

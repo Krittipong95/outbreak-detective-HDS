@@ -448,6 +448,7 @@ OD.field = (function(){
       <div class="f-stat"><span class="l">งบประมาณคงเหลือ</span><b>${U.baht(S.budget)}</b></div>
       <div class="f-stat"><span class="l">ความเชื่อมั่นชุมชน ${Math.round(S.trust)}</span><div class="meter jade"><i style="width:${S.trust}%"></i></div></div>
       ${OD.deadline.html(S)}
+      <div class="f-language notranslate" data-no-translate aria-label="Language"><button type="button" data-a="language" data-language="th" class="${OD.i18n.lang()==='th'?'on':''}">ไทย</button><button type="button" data-a="language" data-language="en" class="${OD.i18n.lang()==='en'?'on':''}">English</button></div>
       <button class="chip gold ck-chip" id="fCk" data-a="checklist" title="ดูเช็คลิสต์ ๑๐ ขั้นตอน">✅ ขั้นตอน ${U.thaiNum(OD.checklist.progress(W,S))}/๑๐</button>
       <span class="save-status" data-save-status role="status">บันทึกอัตโนมัติ</span><button class="btn btn-ghost btn-sm" data-a="help" title="วิธีเล่น">📖</button><button class="btn btn-ghost btn-sm" data-a="handbook" title="คู่มือนักสืบมือใหม่">📘</button><button class="btn btn-ghost btn-sm" data-a="theme" title="สลับธีม">🌓</button>`;
     OD.session?.paint();
@@ -514,6 +515,7 @@ OD.field = (function(){
     root.onclick = e=>{
       const b = e.target.closest('[data-a]'); if(!b || b.disabled) return;
       const a = b.dataset.a;
+      if(a==='language') return OD.i18n.setLanguage(b.dataset.language);
       if(a==='help') return help();
       if(a==='handbook') return OD.handbook.open();
       if(a==='checklist'){ S.ui.tab = 'ck'; F.render(); U.$('#fAna').scrollIntoView({behavior:'smooth', block:'start'}); return; }

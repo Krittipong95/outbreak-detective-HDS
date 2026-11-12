@@ -38,14 +38,14 @@ OD.practice = (function(){
   }
   let renderedStep=-1;
   function draw(){
-    const old=document.querySelector('.practice-modal'),scroll=old&&renderedStep===P.step?old.scrollTop:0;
+    const old=document.querySelector('.practice-modal'),oldScroller=old?.querySelector('.practice-scroll'),scroll=oldScroller&&renderedStep===P.step?oldScroller.scrollTop:0;
     const focus=old?.contains(document.activeElement)?document.activeElement.dataset.m:null;
     renderedStep=P.step;
-    const html=`<div class="practice-head"><div><div class="title-eyebrow">แฟ้มฝึกของพี่วิ · ข้อมูลสมมติ</div><h2>คดีน้ำในบ่อกลางหมู่บ้าน</h2></div><button class="btn btn-sm" data-m="exit">พักไว้ก่อน</button></div><ol class="practice-progress" aria-label="ขั้นตอนคดีฝึก">${titles.map((t,i)=>`<li class="${i===P.step?'active':P.done[i]?'done':''}" ${i===P.step?'aria-current="step"':''}><span>${P.done[i]?'✓':i+1}</span>${t}</li>`).join('')}</ol><div class="practice-body">${body()}</div>${P.feedback?`<div class="practice-feedback" role="status"><b>พี่วิ</b><p>${P.feedback}</p></div>`:''}<div class="m-actions">${P.step>0?'<button class="btn" data-m="back">← ทบทวนขั้นก่อน</button>':''}${P.step<5&&P.done[P.step]?'<button class="btn btn-gold" data-m="next">ขั้นต่อไป →</button>':''}${P.step===5?'<button class="btn" data-m="reset">ฝึกอีกรอบ</button><button class="btn btn-gold" data-m="exit">กลับหน้าเกม</button>':''}</div><small class="practice-foot">ฝึกได้ตามสบาย ไม่มีการจับเวลา · บันทึกแยกจากคดีจริง</small>`;
+    const html=`<div class="practice-head"><div><div class="title-eyebrow">แฟ้มฝึกของพี่วิ · ข้อมูลสมมติ</div><h2>คดีน้ำในบ่อกลางหมู่บ้าน</h2></div><button class="btn btn-sm" data-m="exit">พักไว้ก่อน</button></div><ol class="practice-progress" aria-label="ขั้นตอนคดีฝึก">${titles.map((t,i)=>`<li class="${i===P.step?'active':P.done[i]?'done':''}" ${i===P.step?'aria-current="step"':''}><span>${P.done[i]?'✓':i+1}</span>${t}</li>`).join('')}</ol><div class="practice-scroll"><div class="practice-body">${body()}</div>${P.feedback?`<div class="practice-feedback" role="status"><b>พี่วิ</b><p>${P.feedback}</p></div>`:''}</div><div class="practice-dock"><div class="m-actions">${P.step>0?'<button class="btn" data-m="back">← ทบทวนขั้นก่อน</button>':''}${P.step<5&&P.done[P.step]?'<button class="btn btn-gold" data-m="next">ขั้นต่อไป →</button>':''}${P.step===5?'<button class="btn" data-m="reset">ฝึกอีกรอบ</button><button class="btn btn-gold" data-m="exit">กลับหน้าเกม</button>':''}</div><small class="practice-foot">ฝึกได้ตามสบาย ไม่มีการจับเวลา · บันทึกแยกจากคดีจริง</small></div>`;
     // Do not recreate the modal on every choice: that replayed the entrance animation.
     if(old) old.innerHTML=html;
     else U.modal(html,act,{wide:true,locked:true,cls:'practice-modal'});
-    const card=document.querySelector('.practice-modal');card.scrollTop=scroll;
+    const card=document.querySelector('.practice-modal'),scroller=card.querySelector('.practice-scroll');scroller.scrollTop=scroll;
     if(focus){const b=[...card.querySelectorAll('[data-m]')].find(b=>b.dataset.m===focus);b?.focus({preventScroll:true});}
   }
   function act(k){
